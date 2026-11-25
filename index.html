@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cẩm Nang Tư Vấn Mầm Non Chuyển Giao — NovaStars</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css?v=2">
+</head>
+<body>
+  <!-- 1. AUTHENTICATION SCREEN (LOGIN PORTAL - 3 ROLES) -->
+  <section class="auth-portal" id="authPortal" aria-label="Màn hình Đăng nhập">
+    <div class="auth-card">
+      <div class="auth-header">
+        <div class="auth-brand-badge">NS</div>
+        <h1 class="auth-title">Cẩm Nang Tư Vấn Mầm Non Chuyển Giao</h1>
+        <p class="auth-sub">NovaStars Education · Vui lòng chọn vai trò để đăng nhập</p>
+      </div>
+
+      <!-- 3 ROLE SELECTOR TABS -->
+      <div class="auth-tabs" role="tablist" aria-label="Chọn đối tượng đăng nhập">
+        <button type="button" class="auth-tab-btn active" id="authTabSale" role="tab" aria-selected="true">
+          💼 Người học (Sale)
+        </button>
+        <button type="button" class="auth-tab-btn" id="authTabUploader" role="tab" aria-selected="false">
+          ✍️ Người up nội dung
+        </button>
+        <button type="button" class="auth-tab-btn" id="authTabAdmin" role="tab" aria-selected="false">
+          🛡️ Quản lý
+        </button>
+      </div>
+
+      <!-- FORM 1: SALE (LEARNER) LOGIN -->
+      <form class="auth-form" id="formSaleLogin">
+        <div class="auth-field">
+          <label for="authSelectSale">Họ và tên Nhân viên Sale:</label>
+          <select id="authSelectSale" class="auth-input" required>
+            <option value="" disabled selected>-- Chọn tên của bạn --</option>
+          </select>
+        </div>
+
+        <div class="auth-field">
+          <label for="authSalePin">Mã PIN cá nhân (4 số):</label>
+          <input type="password" id="authSalePin" class="auth-input mono-input" maxlength="8" placeholder="Nhập mã PIN (VD: 1111)" required autocomplete="current-password">
+        </div>
+
+        <p class="auth-error-msg hidden" id="authSaleError"></p>
+
+        <button type="submit" class="btn-auth-submit">
+          Vào Học &amp; Làm Trắc Nghiệm ➔
+        </button>
+      </form>
+
+      <!-- FORM 2: CONTENT UPLOADER LOGIN -->
+      <form class="auth-form hidden" id="formUploaderLogin">
+        <div class="auth-field">
+          <label for="authSelectUploader">Người phụ trách nội dung:</label>
+          <select id="authSelectUploader" class="auth-input" required>
+            <option value="" disabled selected>-- Chọn tên người up nội dung --</option>
+          </select>
+        </div>
+
+        <div class="auth-field">
+          <label for="authUploaderPin">Mã PIN Nội dung:</label>
+          <input type="password" id="authUploaderPin" class="auth-input mono-input" maxlength="8" placeholder="Nhập mã PIN (VD: 4444)" required autocomplete="current-password">
+        </div>
+
+        <p class="auth-error-msg hidden" id="authUploaderError"></p>
+
+        <button type="submit" class="btn-auth-submit uploader">
+          Vào Quản lý Tài liệu &amp; Câu hỏi ➔
+        </button>
+      </form>
+
+      <!-- FORM 3: ADMIN (MANAGER) LOGIN -->
+      <form class="auth-form hidden" id="formAdminLogin">
+        <div class="auth-field">
+          <label for="authAdminPin">Mã PIN Quản lý:</label>
+          <input type="password" id="authAdminPin" class="auth-input mono-input" maxlength="8" placeholder="Nhập mã PIN Quản trị" required autocomplete="current-password">
+        </div>
+
+        <p class="auth-error-msg hidden" id="authAdminError"></p>
+
+        <button type="submit" class="btn-auth-submit admin">
+          Đăng nhập Quản lý ➔
+        </button>
+      </form>
+
+      <div class="auth-footer-hint">
+        💡 Nhân viên Sale và Người up nội dung sử dụng mã PIN do Quản lý cấp. Nếu quên mã PIN, vui lòng liên hệ Quản lý.
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. COMPACT TOP BAR -->
+  <header class="topbar hidden" id="mainTopBar">
+    <div class="topbar-left">
+      <button type="button" class="btn-sidebar-toggle" id="btnToggleSidebar" title="Ẩn/hiện danh sách học phần (Alt+B)">
+        <span class="toggle-icon" id="btnToggleSidebarIcon">☰</span>
+        <span class="toggle-text" id="btnToggleSidebarText">Danh sách bài</span>
+      </button>
+      <div class="brand-mark" aria-hidden="true">NS</div>
+      <h1 class="brand-title">Cẩm Nang Tư Vấn Mầm Non Chuyển Giao</h1>
+    </div>
+
+    <div class="topbar-right">
+      <!-- ROLE WORKSPACE SWITCHER (Visible for Admin & Uploader to preview or switch views) -->
+      <div class="workspace-mode-pills hidden" id="topWorkspaceSwitcher">
+        <button type="button" class="ws-mode-pill" id="btnSwitchViewAdmin" data-target-view="admin">
+          📊 Quản lý Tiến độ
+        </button>
+        <button type="button" class="ws-mode-pill" id="btnSwitchViewUploader" data-target-view="uploader">
+          ✍️ Up Tài liệu &amp; Trắc nghiệm
+        </button>
+        <button type="button" class="ws-mode-pill" id="btnSwitchViewSale" data-target-view="sale">
+          💼 Giao diện Học của Sale
+        </button>
+      </div>
+
+      <button type="button" class="btn-top-save" id="btnTopSave" title="Bấm để đồng bộ dữ liệu ngay lập tức">
+        💾 <span class="save-badge" id="saveText">Tự động lưu</span>
+      </button>
+
+      <div class="user-switcher">
+        <span class="user-dot" id="currentUserDot"></span>
+        <strong id="currentUserName">Người dùng</strong>
+        <button type="button" class="btn-signout" id="btnSignOut" title="Đăng xuất khỏi hệ thống">🚪 Đăng xuất</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- 3. APP SHELL: SIDEBAR + MAIN VIEWPORT -->
+  <div class="app-shell hidden" id="appShell">
+    <!-- LEFT SIDEBAR: LIST OF TRAINING MODULES -->
+    <aside class="lesson-sidebar" id="moduleSidebar" aria-label="Danh sách học phần đào tạo">
+      <div class="sidebar-header">
+        <div class="sidebar-header-top">
+          <div class="sidebar-title-group">
+            <span class="sidebar-heading">📚 Lộ Trình Đào Tạo</span>
+            <span class="sidebar-count-badge" id="lblSidebarTotalModules">4 bài</span>
+          </div>
+          <button type="button" class="btn-collapse-sidebar" id="btnCollapseSidebar" title="Thu gọn danh sách sang bên trái">
+            ◀ Thu gọn
+          </button>
+        </div>
+
+        <!-- LEARNER OVERALL PROGRESS MINI CARD -->
+        <div class="sidebar-progress-box" id="sidebarProgressBox">
+          <div class="sp-top">
+            <span class="sp-label" id="lblSidebarProgressTitle">Tiến độ hoàn thành</span>
+            <strong class="sp-val" id="lblSidebarProgressPct">0%</strong>
+          </div>
+          <div class="sp-bar-track">
+            <div class="sp-bar-fill" id="sidebarProgressBarFill" style="width: 0%;"></div>
+          </div>
+          <div class="sp-sub" id="lblSidebarProgressSub">Đã đạt 0/4 học phần (Chuẩn &ge; 80%)</div>
+        </div>
+
+        <!-- UPLOADER QUICK CREATE MODULE BUTTON -->
+        <button type="button" class="btn-new-module-sidebar hidden" id="btnSidebarCreateModule">
+          ➕ Tạo Học phần / Up Tài liệu mới
+        </button>
+
+        <div class="sidebar-search-wrap">
+          <span class="search-icon" aria-hidden="true">🔍</span>
+          <input type="text" id="sidebarSearchInput" class="sidebar-search-input" placeholder="Tìm mã bài, chủ đề..." autocomplete="off">
+          <button type="button" class="btn-clear-search hidden" id="btnSidebarClearSearch" title="Xóa tìm kiếm">✕</button>
+        </div>
+      </div>
+
+      <div class="sidebar-lessons-scroll" id="sidebarModulesList">
+        <!-- Rendered by JS -->
+      </div>
+    </aside>
+
+    <!-- MOBILE BACKDROP -->
+    <div class="sidebar-backdrop hidden" id="sidebarBackdrop"></div>
+
+    <!-- MAIN WORKSPACE VIEWPORT -->
+    <div class="workspace-viewport" id="workspaceViewport">
+
+      <!-- ================================================================= -->
+      <!-- VIEW A: SALE (LEARNER) WORKSPACE - STUDY DOCS & TAKE QUIZZES      -->
+      <!-- ================================================================= -->
+      <main class="single-workspace hidden" id="saleWorkspace" aria-label="Không gian học tập của Sale">
+        <div class="workspace-container">
+          <!-- ADMIN/UPLOADER PREVIEW BANNER (Shown when Admin/Uploader previews as a Sale) -->
+          <div class="impersonation-banner hidden" id="impersonationBanner">
+            <div class="imp-left">
+              <span class="imp-badge">👁️ CHẾ ĐỘ XEM THỬ / KIỂM TRA</span>
+              <span id="lblImpersonationText">Bạn đang xem giao diện học và làm bài trắc nghiệm dưới góc nhìn của Nhân viên Sale.</span>
+            </div>
+            <button type="button" class="btn-imp-back" id="btnExitImpersonation">
+              ← Quay lại trang chính của bạn
+            </button>
+          </div>
+
+          <!-- MODULE HEADER CARD -->
+          <section class="module-hero-card">
+            <div class="module-hero-top">
+              <div class="module-hero-left">
+                <button type="button" class="btn-inline-open-sidebar hidden" id="btnInlineOpenSidebar">
+                  📚 Danh sách bài
+                </button>
+                <span class="lesson-code-tag" id="saleModCode">HP01</span>
+                <span class="mod-cat-pill" id="saleModCategory">Nền tảng &amp; Định vị Sản phẩm</span>
+                <span class="mod-time-pill" id="saleModDuration">⏱️ 20 phút học</span>
+              </div>
+              <div class="module-hero-right" id="saleModStatusArea">
+                <!-- Status badge injected by JS -->
+              </div>
+            </div>
+
+            <h2 class="module-main-title" id="saleModTitle">So sánh Tổng quan Chương trình Bộ GD&amp;ĐT và Kĩ năng sống Novastars</h2>
+            <p class="module-main-subtitle" id="saleModSubtitle"></p>
+
+            <!-- 2 STEP TABS FOR SALE: 1. TÀI LIỆU HỌC TẬP | 2. LÀM BÀI TRẮC NGHIỆM -->
+            <div class="sale-mode-tabs" role="tablist">
+              <button type="button" class="sale-mode-tab active" id="btnSaleTabDoc" role="tab" aria-selected="true">
+                <span class="tab-step-num">1</span>
+                <div class="tab-step-text">
+                  <strong>📖 Tài liệu Học tập</strong>
+                  <span id="lblSaleDocStatus">Đọc kỹ kiến thức &amp; kịch bản tư vấn</span>
+                </div>
+              </button>
+              <button type="button" class="sale-mode-tab" id="btnSaleTabQuiz" role="tab" aria-selected="false">
+                <span class="tab-step-num">2</span>
+                <div class="tab-step-text">
+                  <strong>📝 Làm Bài Tập Trắc Nghiệm</strong>
+                  <span id="lblSaleQuizStatus">10 câu hỏi · Cần đạt &ge; 80%</span>
+                </div>
+              </button>
+            </div>
+          </section>
+
+          <!-- PANEL 1: STUDY DOCUMENT VIEW -->
+          <section class="sale-panel" id="salePanelDoc" aria-label="Nội dung tài liệu đào tạo">
+            <!-- Key Takeaways / Summary Box -->
+            <div class="doc-takeaways-card" id="saleDocTakeawaysCard">
+              <div class="doc-takeaways-head">
+                <div class="dt-title-wrap">
+                  <span class="dt-icon">🎯</span>
+                  <div>
+                    <h3>Tóm tắt Trọng tâm Tư vấn Sale cần nắm vững</h3>
+                    <p>Các luận điểm cốt lõi cần nhớ để trao đổi với Chủ trường và Hiệu trưởng</p>
+                  </div>
+                </div>
+                <div class="dt-actions" id="saleDocSourceFileWrap">
+                  <!-- Download source file button if available -->
+                </div>
+              </div>
+              <ul class="doc-takeaways-list" id="saleDocTakeawaysList"></ul>
+            </div>
+
+            <!-- Main Document Body (Tables / Structured Cards / Rich Text) -->
+            <div class="doc-body-card" id="saleDocBodyContainer">
+              <!-- Rendered dynamically by JS -->
+            </div>
+
+            <!-- Bottom Call-to-Action: Mark Document Read & Start Quiz -->
+            <div class="doc-bottom-cta">
+              <div class="doc-cta-info">
+                <strong>💡 Bạn đã đọc và nắm vững các luận điểm trong tài liệu này?</strong>
+                <span>Hãy chuyển sang phần Làm bài tập trắc nghiệm và đạt tối thiểu <strong id="lblDocPassThreshold">80%</strong> để hoàn thành học phần nhé!</span>
+              </div>
+              <button type="button" class="btn-start-quiz-cta" id="btnDocStartQuiz">
+                ✅ Đã đọc xong tài liệu ➔ Làm bài Trắc nghiệm ngay
+              </button>
+            </div>
+          </section>
+
+          <!-- PANEL 2: INTERACTIVE MULTIPLE-CHOICE QUIZ VIEW -->
+          <section class="sale-panel hidden" id="salePanelQuiz" aria-label="Bài tập trắc nghiệm kiểm tra tiến độ">
+            <!-- Quiz Top Status Strip -->
+            <div class="quiz-info-banner" id="saleQuizInfoBanner">
+              <!-- Rendered by JS: Total questions, Pass threshold, Best Score, Attempt count, Reset/Retake button -->
+            </div>
+
+            <!-- Quiz Submission Result Banner (Hidden until submitted) -->
+            <div class="quiz-result-banner hidden" id="saleQuizResultBanner"></div>
+
+            <!-- Questions Container -->
+            <div class="quiz-questions-list" id="saleQuizQuestionsList">
+              <!-- Rendered by JS -->
+            </div>
+
+            <!-- Quiz Footer Submit Bar -->
+            <div class="quiz-submit-bar" id="saleQuizSubmitBar">
+              <div class="quiz-progress-text" id="lblQuizAnsweredCount">
+                Đã trả lời <strong>0/10</strong> câu hỏi
+              </div>
+              <div class="quiz-submit-actions">
+                <button type="button" class="btn-secondary" id="btnBackToDocFromQuiz">
+                  📖 Xem lại tài liệu
+                </button>
+                <button type="button" class="btn-submit-quiz" id="btnSubmitSaleQuiz">
+                  🚀 Nộp bài &amp; Chấm điểm
+                </button>
+              </div>
+            </div>
+
+            <!-- Previous Attempts History Accordion -->
+            <div class="quiz-history-card hidden" id="saleQuizHistoryCard"></div>
+          </section>
+        </div>
+      </main>
+
+      <!-- ================================================================= -->
+      <!-- VIEW B: CONTENT UPLOADER WORKSPACE - UPLOAD DOCS & EDIT QUIZZES   -->
+      <!-- ================================================================= -->
+      <section class="single-workspace hidden" id="uploaderWorkspace" aria-label="Không gian dành cho Người up nội dung">
+        <div class="workspace-container">
+          <!-- UPLOADER HEADER -->
+          <div class="uploader-top-card">
+            <div class="ut-left">
+              <span class="ut-role-badge">✍️ QUẢN TRỊ HỌC LIỆU &amp; BỘ CÂU HỎI TRẮC NGHIỆM</span>
+              <h2 class="ut-title" id="uploaderHeaderTitle">Biên tập Học phần &amp; Duyệt Câu hỏi Trắc nghiệm</h2>
+              <p class="ut-sub">Đưa tài liệu mới vào cho Sale học, tự động chuyển đổi tài liệu sang câu hỏi trắc nghiệm theo 4 tiêu chí chuẩn, hoặc tải bộ câu hỏi có sẵn lên để xem trước và chỉnh sửa.</p>
+            </div>
+            <div class="ut-actions">
+              <button type="button" class="btn-ut-action secondary" id="btnUploaderPreviewAsSale" title="Xem trước màn hình học & làm bài của Sale">
+                👁️ Xem trước giao diện Sale
+              </button>
+              <button type="button" class="btn-ut-action danger" id="btnUploaderDeleteModule" title="Xóa học phần này">
+                🗑️ Xóa học phần
+              </button>
+              <button type="button" class="btn-ut-action primary" id="btnUploaderSaveModule">
+                💾 Lưu &amp; Cập nhật Học phần
+              </button>
+            </div>
+          </div>
+
+          <!-- UPLOADER 2-STEP SUB-NAVIGATION -->
+          <div class="uploader-subtabs" role="tablist">
+            <button type="button" class="uploader-subtab active" id="btnUpTabDoc" role="tab" aria-selected="true">
+              📄 Bước 1: Thông tin &amp; Nội dung Tài liệu Học tập
+            </button>
+            <button type="button" class="uploader-subtab" id="btnUpTabQuiz" role="tab" aria-selected="false">
+              🎯 Bước 2: Chuyển sang Trắc nghiệm · Xem trước &amp; Chỉnh sửa Câu hỏi (<span id="lblUpQuestionCount">10</span> câu)
+            </button>
+          </div>
+
+          <!-- UPLOADER TAB 1: DOCUMENT & METADATA EDITOR -->
+          <div class="uploader-panel" id="uploaderPanelDoc">
+            <div class="up-card">
+              <div class="up-card-head">
+                <h3>1. Thông tin chung của Học phần</h3>
+                <div class="up-status-toggle-wrap">
+                  <label for="upModStatus">Trạng thái hiển thị với Sale:</label>
+                  <select id="upModStatus" class="input-control" style="width: auto; font-weight: 700;">
+                    <option value="published">🟢 Đã xuất bản (Sale vào học được ngay)</option>
+                    <option value="draft">🟡 Bản nháp (Đang soạn thảo - Ẩn với Sale)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="up-form-grid">
+                <div class="form-group">
+                  <label for="upModCode">Mã học phần:</label>
+                  <input type="text" id="upModCode" class="input-control mono-input" placeholder="VD: HP05">
+                </div>
+                <div class="form-group">
+                  <label for="upModCategory">Chuyên đề / Nhóm tài liệu:</label>
+                  <input type="text" id="upModCategory" class="input-control" placeholder="VD: Kịch bản Tư vấn & Xử lý Từ chối">
+                </div>
+                <div class="form-group">
+                  <label for="upModDuration">Thời lượng học dự kiến (phút):</label>
+                  <input type="number" id="upModDuration" class="input-control" min="5" max="180" value="20">
+                </div>
+                <div class="form-group">
+                  <label for="upModThreshold">Điểm chuẩn cần đạt (%):</label>
+                  <input type="number" id="upModThreshold" class="input-control" min="50" max="100" step="5" value="80">
+                </div>
+                <div class="form-group full-width">
+                  <label for="upModTitle">Tên Học phần / Tài liệu đào tạo:</label>
+                  <input type="text" id="upModTitle" class="input-control" placeholder="Nhập tiêu đề bài đào tạo cho Sale...">
+                </div>
+                <div class="form-group full-width">
+                  <label for="upModSubtitle">Mô tả bối cảnh bán hàng / Mục tiêu bài học:</label>
+                  <input type="text" id="upModSubtitle" class="input-control" placeholder="VD: Dùng cho Sale khi tư vấn Chủ trường và Hiệu trưởng về...">
+                </div>
+              </div>
+            </div>
+
+            <!-- UPLOAD DOCUMENT FILE OR PASTE CONTENT -->
+            <div class="up-card">
+              <div class="up-card-head">
+                <div>
+                  <h3>2. Đưa Tài liệu Học tập vào Hệ thống</h3>
+                  <p class="up-card-desc">Tải lên file Word (<code>.docx</code>), Excel (<code>.xlsx</code>), PDF (<code>.pdf</code>), Text (<code>.txt</code>/<code>.md</code>) hoặc soạn thảo trực tiếp bên dưới.</p>
+                </div>
+                <div class="up-upload-actions">
+                  <label class="btn-upload-doc-primary">
+                    📤 Tải file Tài liệu lên (.docx, .xlsx, .pdf, .txt)
+                    <input type="file" id="inputUploadDocFile" accept=".docx,.xlsx,.xls,.pdf,.txt,.md,.csv" hidden>
+                  </label>
+                </div>
+              </div>
+
+              <!-- File Upload Status Banner -->
+              <div class="up-file-status hidden" id="upDocFileStatus"></div>
+
+              <!-- Key Summary Points Editor -->
+              <div class="form-group" style="margin-top: 14px;">
+                <label for="upModSummaryPoints">🎯 Các ý tóm tắt trọng tâm Sale cần nhớ (Mỗi dòng 1 luận điểm chính):</label>
+                <textarea id="upModSummaryPoints" class="input-control" rows="4" placeholder="• Luận điểm 1: ...&#10;• Luận điểm 2: ..."></textarea>
+              </div>
+
+              <!-- Main Document Content Editor -->
+              <div class="form-group" style="margin-top: 14px;">
+                <div class="label-row-between">
+                  <label for="upModContentText">📖 Nội dung chi tiết Tài liệu Học tập (Hỗ trợ văn bản, bảng biểu tự động trích xuất từ file):</label>
+                  <span class="text-counter" id="lblDocCharCount">0 ký tự</span>
+                </div>
+                <textarea id="upModContentText" class="input-control doc-editor-textarea" rows="12" placeholder="Khi bạn tải file Word (.docx), Excel (.xlsx) hoặc PDF (.pdf) lên ở nút phía trên, hệ thống sẽ tự động bóc tách toàn bộ nội dung văn bản và bảng biểu vào đây để Sale đọc và để AI chuyển thành câu hỏi trắc nghiệm. Bạn cũng có thể gõ hoặc dán trực tiếp nội dung tài liệu vào ô này..."></textarea>
+              </div>
+
+              <!-- Preview of Structured Content if present -->
+              <div class="up-structured-preview-box hidden" id="upStructuredPreviewBox">
+                <div class="usp-head">
+                  <span>📊 <strong>Dữ liệu Bảng biểu Chuẩn từ File Excel/Word gốc đang được gắn kèm học phần này</strong></span>
+                  <button type="button" class="btn-text-small" id="btnToggleUpDocPreview">👁️ Xem trước bảng tài liệu</button>
+                </div>
+                <div class="usp-body hidden" id="upStructuredPreviewBody"></div>
+              </div>
+
+              <div class="up-step-footer">
+                <button type="button" class="btn-primary-large" id="btnGoToQuizGenerator">
+                  Tiếp theo: Chuyển Tài liệu sang Câu hỏi Trắc nghiệm ➔
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- UPLOADER TAB 2: AI QUIZ CONVERTER + IMPORT EXISTING + PREVIEW & EDIT -->
+          <div class="uploader-panel hidden" id="uploaderPanelQuiz">
+            <!-- TOOLBOX: 2 WAYS TO CREATE / ADD QUIZ QUESTIONS -->
+            <div class="quiz-generator-grid">
+              <!-- WAY 1: AUTO-CONVERT FROM DOCUMENT BY 4 APPROVED CRITERIA -->
+              <div class="qgen-card ai-converter">
+                <div class="qgen-badge">CÁCH 1 · CHUYỂN TỪ TÀI LIỆU HỌC TẬP</div>
+                <h3>🤖 Chuyển Tài liệu sang Trắc nghiệm (Chuẩn 4 Tiêu chí)</h3>
+                <p>Hệ thống tự động đọc tài liệu của học phần này và sinh bộ câu hỏi trắc nghiệm 4 đáp án (A, B, C, D) kèm lời giải thích &amp; gợi ý tư vấn:</p>
+                <div class="criteria-mini-tags">
+                  <span class="c-tag c1">1. Cấu trúc chương trình (25-30%)</span>
+                  <span class="c-tag c2">2. Điểm khác biệt USP (25-30%)</span>
+                  <span class="c-tag c3">3. Dẫn chứng bài mẫu (20%)</span>
+                  <span class="c-tag c4">4. Xử lý tình huống (20-30%)</span>
+                </div>
+
+                <div class="qgen-controls">
+                  <div class="qgen-field">
+                    <label for="selAiQuestionCount">Số câu muốn tạo:</label>
+                    <select id="selAiQuestionCount" class="input-control">
+                      <option value="5">5 câu hỏi trọng tâm</option>
+                      <option value="8" selected>8 câu hỏi tiêu chuẩn</option>
+                      <option value="10">10 câu hỏi toàn diện</option>
+                      <option value="12">12 câu hỏi chuyên sâu</option>
+                      <option value="15">15 câu hỏi tổng hợp</option>
+                    </select>
+                  </div>
+                  <div class="qgen-field">
+                    <label for="selAiMergeMode">Chế độ cập nhật:</label>
+                    <select id="selAiMergeMode" class="input-control">
+                      <option value="append">➕ Thêm nối tiếp vào danh sách hiện có</option>
+                      <option value="replace">🔄 Thay thế toàn bộ câu hỏi cũ</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="qgen-btn-row">
+                  <button type="button" class="btn-ai-generate" id="btnRunAiQuizConverter">
+                    ✨ Tự động chuyển Tài liệu sang Trắc nghiệm ngay
+                  </button>
+                  <button type="button" class="btn-ai-prompt-copy" id="btnCopyAntigravityPrompt" title="Sao chép nội dung tài liệu + quy chuẩn để gửi vào khung chat Antigravity nếu muốn nhờ Antigravity biên soạn chuyên sâu">
+                    📋 Copy gửi Antigravity
+                  </button>
+                </div>
+              </div>
+
+              <!-- WAY 2: UPLOAD / IMPORT EXISTING QUESTION BANK -->
+              <div class="qgen-card import-existing">
+                <div class="qgen-badge secondary">CÁCH 2 · ĐƯA BỘ CÂU HỎI CÓ SẴN VÀO APP</div>
+                <h3>📥 Tải lên hoặc Dán Bộ Câu hỏi Trắc nghiệm có sẵn</h3>
+                <p>Nếu bạn đã có sẵn bộ câu hỏi trắc nghiệm trên file Excel (<code>.xlsx</code>), Word (<code>.docx</code>), CSV/JSON hoặc văn bản, hãy đưa trực tiếp vào đây:</p>
+
+                <div class="import-actions-stack">
+                  <label class="btn-import-file">
+                    📁 Chọn file Bộ câu hỏi có sẵn (.xlsx, .docx, .csv, .json)
+                    <input type="file" id="inputImportQuizFile" accept=".xlsx,.xls,.docx,.csv,.json,.txt,.md" hidden>
+                  </label>
+
+                  <div class="import-sub-row">
+                    <button type="button" class="btn-open-paste-quiz" id="btnOpenPasteQuizModal">
+                      📋 Dán nhanh văn bản câu hỏi (Word / Text / JSON)
+                    </button>
+                    <button type="button" class="btn-download-quiz-template" id="btnDownloadQuizTemplate" title="Tải file mẫu Excel để nhập câu hỏi">
+                      ⬇️ Tải mẫu Excel
+                    </button>
+                  </div>
+                </div>
+
+                <div class="import-hint-box">
+                  💡 Sau khi chuyển đổi hoặc tải lên, toàn bộ câu hỏi sẽ hiện ngay ở danh sách <strong>Xem trước &amp; Chỉnh sửa</strong> bên dưới để bạn duyệt trước khi lưu.
+                </div>
+              </div>
+            </div>
+
+            <!-- QUESTION BANK TOOLBAR & QUALITY AUDIT SUMMARY -->
+            <div class="qbank-header-card">
+              <div class="qbank-head-left">
+                <h3>👁️ Xem trước &amp; Chỉnh sửa Bộ câu hỏi Trắc nghiệm</h3>
+                <div class="qbank-audit-badges" id="uploaderQuizAuditBadges">
+                  <!-- Rendered by JS: Total questions, Distribution across A/B/C/D, 4 Categories breakdown -->
+                </div>
+              </div>
+              <div class="qbank-head-actions">
+                <button type="button" class="btn-qbank-tool" id="btnBalanceAnswerPositions" title="Tự động xáo trộn để đáp án đúng phân bổ đều 25% ở cả A, B, C, D">
+                  🔀 Cân bằng vị trí A/B/C/D
+                </button>
+                <button type="button" class="btn-qbank-tool primary" id="btnAddManualQuestion">
+                  ➕ Thêm 1 câu hỏi mới
+                </button>
+              </div>
+            </div>
+
+            <!-- EDITABLE QUESTIONS LIST -->
+            <div class="uploader-questions-list" id="uploaderQuestionsList">
+              <!-- Rendered by JS: Editable cards for each question -->
+            </div>
+
+            <div class="up-bottom-save-bar">
+              <button type="button" class="btn-secondary" id="btnAddManualQuestionBottom">
+                ➕ Thêm câu hỏi vào cuối danh sách
+              </button>
+              <div class="up-bottom-right">
+                <button type="button" class="btn-ut-action secondary" id="btnUploaderPreviewBottom">
+                  👁️ Xem thử màn hình Làm bài của Sale
+                </button>
+                <button type="button" class="btn-ut-action primary" id="btnUploaderSaveBottom">
+                  💾 Lưu &amp; Xuất bản Bộ câu hỏi này
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================================================================= -->
+      <!-- VIEW C: ADMIN (MANAGER) DASHBOARD - TRACK PROGRESS & MANAGE USERS -->
+      <!-- ================================================================= -->
+      <section class="admin-dashboard hidden" id="adminWorkspace" aria-label="Bảng điều khiển Quản lý">
+        <div class="admin-shell-layout">
+          <!-- LEFT ADMIN NAVIGATION SIDEBAR (2-Column Focused Layout like web-nhan-xet-gv) -->
+          <aside class="admin-nav-sidebar" aria-label="Điều hướng Quản lý">
+            <div class="admin-nav-label">BẢNG ĐIỀU KHIỂN QUẢN LÝ</div>
+            <nav class="admin-dossier-tab-bar" id="adminNavTabBar" role="tablist">
+              <button type="button" class="admin-nav-btn active" data-admin-tab="matrix">
+                <span>📊 Ma trận Tiến độ Sale</span>
+                <span class="admin-nav-badge" id="badgeAdminMatrixCount">5 Sale</span>
+              </button>
+              <button type="button" class="admin-nav-btn" data-admin-tab="dossier">
+                <span>👤 Hồ sơ từng Sale</span>
+                <span class="admin-nav-badge" id="badgeAdminDossierCount">Chi tiết</span>
+              </button>
+              <button type="button" class="admin-nav-btn" data-admin-tab="analytics">
+                <span>📌 Thống kê theo Học phần</span>
+                <span class="admin-nav-badge" id="badgeAdminAnalyticsCount">4 bài</span>
+              </button>
+            </nav>
+
+            <div class="admin-sidebar-tools">
+              <div class="admin-nav-label" style="margin-bottom:6px;">CÔNG CỤ QUẢN LÝ</div>
+              <button type="button" class="admin-tool-btn" id="btnRefreshCloud" title="Tải ngay tiến độ học & điểm thi mới nhất từ Supabase Cloud">
+                🔄 Làm mới dữ liệu Cloud
+              </button>
+              <button type="button" class="admin-tool-btn" id="btnOpenManageUsersModal">
+                ⚙️ Quản lý Nhân sự &amp; Mã PIN
+              </button>
+              <button type="button" class="admin-tool-btn" id="btnAdminGoToUploader">
+                ✍️ Up Tài liệu &amp; Duyệt Câu hỏi
+              </button>
+              <button type="button" class="admin-tool-btn primary" id="btnExportExcel">
+                📊 Xuất Báo cáo Excel (.xlsx)
+              </button>
+            </div>
+          </aside>
+
+          <!-- RIGHT ADMIN MAIN WORKSPACE -->
+          <div class="admin-main-area">
+            <!-- COMPACT 1-LINE KPI STRIP -->
+            <div class="admin-kpi-strip" id="adminKpiBar"></div>
+
+            <!-- ADMIN PANEL 1: PROGRESS & SCORE MATRIX -->
+            <div class="admin-view-panel" id="adminPanelMatrix">
+              <div class="admin-card">
+                <div class="admin-card-head">
+                  <div>
+                    <h2 class="admin-title">📊 Bảng Ma trận Tiến độ Học tập &amp; Điểm Trắc nghiệm của Sale</h2>
+                    <p class="admin-sub">Bấm vào từng ô kết quả để xem chi tiết lịch sử làm bài, các câu trả lời đúng/sai của từng nhân viên Sale.</p>
+                  </div>
+                  <div class="matrix-legend">
+                    <span class="legend-chip done">✓ Đã đạt (&ge;80%)</span>
+                    <span class="legend-chip failed">⚠️ Chưa đạt (&lt;80%)</span>
+                    <span class="legend-chip reading">📖 Đang đọc tài liệu</span>
+                    <span class="legend-chip empty">Chưa học</span>
+                  </div>
+                </div>
+                <div class="table-responsive">
+                  <table class="progress-matrix-table" id="progressMatrixTable"></table>
+                </div>
+              </div>
+            </div>
+
+            <!-- ADMIN PANEL 2: INDIVIDUAL SALE DOSSIER -->
+            <div class="admin-view-panel hidden" id="adminPanelDossier">
+              <!-- Rendered by JS -->
+            </div>
+
+            <!-- ADMIN PANEL 3: MODULE & QUESTION ANALYTICS -->
+            <div class="admin-view-panel hidden" id="adminPanelAnalytics">
+              <!-- Rendered by JS -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- DIALOG 1: QUICK INSPECT SALE QUIZ ATTEMPTS (FOR MANAGER)              -->
+  <!-- ===================================================================== -->
+  <dialog class="admin-quick-inspect-dialog" id="adminQuickInspectModal" closedby="any" aria-label="Chi tiết kết quả học tập của Sale">
+    <div class="dialog-inner inspect-dialog-inner">
+      <div class="dialog-header">
+        <div>
+          <h2 id="quickInspectTitle" style="font-size: 16px; margin: 0; color: var(--ink-primary);">Chi tiết kết quả làm bài</h2>
+          <p id="quickInspectMeta" style="font-size: 12.5px; color: var(--ink-muted); margin: 3px 0 0 0;"></p>
+        </div>
+        <button type="button" class="btn-close-dialog" data-close-dialog="adminQuickInspectModal" aria-label="Đóng">✕</button>
+      </div>
+      <div class="inspect-dialog-body" id="quickInspectBody">
+        <!-- Rendered by JS -->
+      </div>
+      <div class="dialog-footer inspect-dialog-footer">
+        <button type="button" class="btn-act-as-teacher-inspect" id="btnInspectActAsSale">
+          🔑 Xem giao diện học &amp; thi dưới quyền Sale này ➔
+        </button>
+        <button type="button" class="btn-primary" data-close-dialog="adminQuickInspectModal" style="padding: 8px 18px;">
+          Đóng (Esc)
+        </button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- ===================================================================== -->
+  <!-- DIALOG 2: MANAGE USERS (SALE & UPLOADERS) & PIN CODES (LIKE PREVIOUS) -->
+  <!-- ===================================================================== -->
+  <dialog id="manageDialog" closedby="any" aria-labelledby="manageDialogTitle">
+    <div class="dialog-inner dialog-manage">
+      <div class="dialog-header">
+        <h2 id="manageDialogTitle">⚙️ Quản lý Nhân sự, Phân quyền &amp; Mã PIN</h2>
+        <button type="button" class="btn-close-dialog" data-close-dialog="manageDialog" aria-label="Đóng">✕</button>
+      </div>
+
+      <div class="modal-tab-bar" role="tablist">
+        <button type="button" class="modal-tab-btn active" id="tabBtnManageSales" role="tab" aria-selected="true">
+          💼 Nhân viên Sale (Người học)
+        </button>
+        <button type="button" class="modal-tab-btn" id="tabBtnManageUploaders" role="tab" aria-selected="false">
+          ✍️ Người up nội dung
+        </button>
+        <button type="button" class="modal-tab-btn" id="tabBtnManageSettings" role="tab" aria-selected="false">
+          🛡️ Cài đặt Quản lý
+        </button>
+      </div>
+
+      <!-- TAB 1: MANAGE SALES -->
+      <div class="modal-tab-panel" id="tabPanelManageSales">
+        <div class="share-banner">
+          <button type="button" class="btn-copy-card-img" id="btnCopyPinCardImg">
+            📸 Copy ảnh Bảng Tên + Mã PIN (Paste vào nhóm chat)
+          </button>
+          <button type="button" class="btn-secondary" id="btnCopySharedUrl">
+            🔗 Copy Link Web đào tạo
+          </button>
+        </div>
+
+        <div class="teacher-list-box" id="manageSaleList"></div>
+
+        <div class="add-row-form">
+          <input type="text" id="newSaleName" class="input-control" placeholder="Họ tên Sale mới (VD: Nguyễn Văn A)">
+          <input type="text" id="newSalePin" class="input-control mono-input" placeholder="Mã PIN (VD: 1234)" style="max-width: 150px;">
+          <button type="button" class="btn-primary" id="btnAddSale">+ Thêm Sale</button>
+        </div>
+      </div>
+
+      <!-- TAB 2: MANAGE CONTENT UPLOADERS -->
+      <div class="modal-tab-panel hidden" id="tabPanelManageUploaders">
+        <p style="font-size: 13px; color: var(--ink-muted); margin-bottom: 10px;">
+          Người up nội dung có quyền đăng tải tài liệu học tập, dùng công cụ chuyển tài liệu thành trắc nghiệm, tải bộ câu hỏi có sẵn và chỉnh sửa/duyệt câu hỏi.
+        </p>
+        <div class="teacher-list-box" id="manageUploaderList"></div>
+
+        <div class="add-row-form">
+          <input type="text" id="newUploaderName" class="input-control" placeholder="Tên Người up nội dung mới">
+          <input type="text" id="newUploaderPin" class="input-control mono-input" placeholder="Mã PIN (VD: 7777)" style="max-width: 150px;">
+          <button type="button" class="btn-primary" id="btnAddUploader">+ Thêm Người up</button>
+        </div>
+      </div>
+
+      <!-- TAB 3: ADMIN SETTINGS -->
+      <div class="modal-tab-panel hidden" id="tabPanelManageSettings">
+        <div class="up-form-grid" style="padding: 10px 0;">
+          <div class="form-group">
+            <label for="settingAdminPin">Mã PIN Quản lý (Admin):</label>
+            <input type="text" id="settingAdminPin" class="input-control mono-input" value="8888">
+          </div>
+          <div class="form-group">
+            <label for="settingDefaultThreshold">Ngưỡng điểm Đạt mặc định (%):</label>
+            <input type="number" id="settingDefaultThreshold" class="input-control" min="50" max="100" step="5" value="80">
+          </div>
+        </div>
+        <button type="button" class="btn-primary" id="btnSaveAdminSettings" style="margin-top: 8px;">
+          ✓ Lưu cài đặt hệ thống
+        </button>
+      </div>
+
+      <div class="dialog-footer">
+        <button type="button" class="btn-primary" data-close-dialog="manageDialog">Đóng</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- ===================================================================== -->
+  <!-- DIALOG 3: PASTE EXISTING QUIZ QUESTIONS (TEXT / WORD / JSON)          -->
+  <!-- ===================================================================== -->
+  <dialog id="pasteQuizDialog" closedby="any" aria-labelledby="pasteQuizDialogTitle">
+    <div class="dialog-inner dialog-manage">
+      <div class="dialog-header">
+        <h2 id="pasteQuizDialogTitle">📋 Dán Bộ Câu hỏi Trắc nghiệm có sẵn</h2>
+        <button type="button" class="btn-close-dialog" data-close-dialog="pasteQuizDialog" aria-label="Đóng">✕</button>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <p style="font-size:13px;color:var(--ink-secondary);line-height:1.5;">
+          Bạn có thể copy và dán bộ câu hỏi từ <strong>file Word, Google Docs, Excel</strong> hoặc kết quả do <strong>Antigravity</strong> tạo vào ô dưới đây. Hệ thống tự động nhận diện câu hỏi, 4 đáp án A/B/C/D, đáp án đúng và lời giải thích:
+        </p>
+        <div class="paste-format-example">
+          <strong>Mẫu văn bản tự động nhận diện:</strong><br>
+          <code>Câu 1: Chương trình KNS Novastars có bao nhiêu tiết mỗi năm cho 1 khối?</code><br>
+          <code>A. 36 tiết</code> &nbsp;|&nbsp; <code>B. 72 tiết</code> &nbsp;|&nbsp; <code>C. 50 tiết</code> &nbsp;|&nbsp; <code>D. 90 tiết</code><br>
+          <code>Đáp án đúng: B</code><br>
+          <code>Giải thích: Dạy đều đặn 2 tiết/tuần x 36 tuần = 72 tiết/năm.</code>
+        </div>
+        <textarea id="textareaPasteQuiz" class="input-control" rows="10" placeholder="Dán nội dung bộ câu hỏi trắc nghiệm (hoặc JSON) vào đây..."></textarea>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+          <label style="font-size:13px;font-weight:600;color:var(--ink-secondary);display:flex;align-items:center;gap:6px;">
+            <input type="checkbox" id="chkPasteReplaceAll"> Thay thế toàn bộ câu hỏi hiện tại của học phần
+          </label>
+          <div style="display:flex;gap:8px;">
+            <button type="button" class="btn-secondary" data-close-dialog="pasteQuizDialog">Hủy</button>
+            <button type="button" class="btn-primary" id="btnConfirmPasteQuiz">📥 Nhập vào danh sách Xem trước &amp; Sửa</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- ===================================================================== -->
+  <!-- DIALOG 4: IMAGE LIGHTBOX FOR PIN CARD FALLBACK                        -->
+  <!-- ===================================================================== -->
+  <dialog id="lightboxDialog" closedby="any" aria-labelledby="lightboxTitle">
+    <div class="dialog-inner dialog-lightbox">
+      <div class="dialog-header">
+        <h2 id="lightboxTitle">Bảng Tên &amp; Mã PIN</h2>
+        <button type="button" class="btn-close-dialog" data-close-dialog="lightboxDialog" aria-label="Đóng">✕</button>
+      </div>
+      <div class="lightbox-body">
+        <img id="lightboxImg" src="" alt="Bảng Tên và Mã PIN" style="max-width:100%;border-radius:10px;">
+      </div>
+    </div>
+  </dialog>
+
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+  <script src="data/initial_data.js?v=3"></script>
+  <script src="app.js?v=3"></script>
+</body>
+</html>
