@@ -716,13 +716,20 @@
     });
   }
 
+  let activeDocStepIndex = 0;
+  let activeQuizQuestionIndex = 0;
+  let expandedUploaderQuestionIndex = null;
+
   function resetActiveQuizState() {
     currentQuizAnswers = {};
     currentQuizSubmittedResult = null;
+    activeDocStepIndex = 0;
+    activeQuizQuestionIndex = 0;
+    expandedUploaderQuestionIndex = null;
   }
 
   // =========================================================================
-  // VIEW A: SALE (LEARNER) WORKSPACE RENDERING
+  // VIEW A: SALE WORKSPACE (STEP-BY-STEP CARD DOC & 1-BY-1 QUIZ)
   // =========================================================================
   function renderSaleWorkspace() {
     const mod = getCurrentModule();
@@ -742,8 +749,8 @@
       if (currentUser && (currentUser.role === "admin" || currentUser.role === "uploader")) {
         impBanner.classList.remove("hidden");
         impText.innerHTML = impersonatedSaleUser
-          ? `Bạn đang xem và kiểm tra giao diện học dưới tên Nhân viên Sale: <strong>${escapeHtml(impersonatedSaleUser.name)}</strong>.`
-          : `Bạn đang ở chế độ <strong>Xem thử giao diện Học &amp; Làm bài trắc nghiệm của Sale</strong>.`;
+          ? `Đang xem giao diện của Sale: <strong>${escapeHtml(impersonatedSaleUser.name)}</strong>`
+          : `Đang xem thử giao diện của <strong>Sale</strong>`;
         btnExitImp.onclick = () => {
           impersonatedSaleUser = null;
           activeWorkspaceView = currentUser.role === "admin" ? "admin" : "uploader";
@@ -754,34 +761,26 @@
       }
     }
 
-    // Header details
     document.getElementById("saleModCode").textContent = mod.code || "HP";
-    document.getElementById("saleModCategory").textContent = mod.category || "Chuyên đề Đào tạo";
-    document.getElementById("saleModDuration").textContent = `⏱️ ${mod.durationMinutes || 20} phút học`;
     document.getElementById("saleModTitle").textContent = mod.title || "";
-    document.getElementById("saleModSubtitle").textContent = mod.subtitle || "";
 
     const statusArea = document.getElementById("saleModStatusArea");
     if (prog.passed) {
-      statusArea.innerHTML = `<span class="sidebar-item-status done" style="font-size:12.5px;padding:5px 12px;">🏆 ĐÃ HOÀN THÀNH (Đạt ${prog.bestScore}%)</span>`;
+      statusArea.innerHTML = `<span class="sidebar-item-status done" style="font-size:12px;padding:4px 10px;">✓ Đã đạt (${prog.bestScore}%)</span>`;
     } else if (prog.attempts && prog.attempts.length > 0) {
-      statusArea.innerHTML = `<span class="sidebar-item-status failed" style="font-size:12.5px;padding:5px 12px;">⚠️ Điểm cao nhất: ${prog.bestScore}% (Cần đạt &ge; ${thresh}%)</span>`;
-    } else if (prog.docViewed) {
-      statusArea.innerHTML = `<span class="sidebar-item-status reading" style="font-size:12.5px;padding:5px 12px;">📖 Đã xem tài liệu · Chưa nộp trắc nghiệm</span>`;
+      statusArea.innerHTML = `<span class="sidebar-item-status failed" style="font-size:12px;padding:4px 10px;">⚠️ Điểm cao nhất: ${prog.bestScore}% (Chuẩn &ge;${thresh}%)</span>`;
     } else {
-      statusArea.innerHTML = `<span class="sidebar-item-status empty" style="font-size:12.5px;padding:5px 12px;">Chưa hoàn thành</span>`;
+      statusArea.innerHTML = `<span class="sidebar-item-status empty" style="font-size:12px;padding:4px 10px;">Chuẩn hoàn thành &ge;${thresh}%</span>`;
     }
 
-    // 2 Mode Tabs
     const btnTabDoc = document.getElementById("btnSaleTabDoc");
     const btnTabQuiz = document.getElementById("btnSaleTabQuiz");
     const panelDoc = document.getElementById("salePanelDoc");
     const panelQuiz = document.getElementById("salePanelQuiz");
 
-    document.getElementById("lblSaleDocStatus").textContent = prog.docViewed
-      ? "✓ Đã đọc tài liệu · Bấm để ôn lại bất kỳ lúc nào"
-      : "Đọc kỹ kiến thức, bảng đối chiếu & kịch bản tư vấn";
-    document.getElementById("lblSaleQuizStatus").textContent = `${qList.length} câu hỏi trắc nghiệm · Cần đạt >= ${thresh}%`;
+    const docSteps = buildDocumentSteps(mod);
+    document.getElementById("lblSaleDocStatus").textContent = `${docSteps.length} mục`;
+    document.getElementById("lblSaleQuizStatus").textContent = `${qList.length} câu`;
 
     btnTabDoc.classList.toggle("active", activeSaleTab === "doc");
     btnTabDoc.setAttribute("aria-selected", String(activeSaleTab === "doc"));
@@ -807,221 +806,149 @@
     };
 
     if (activeSaleTab === "doc") {
-      renderSaleDocumentPanel(mod, prog);
+      renderSaleDocumentPanel(mod, prog, docSteps);
     } else {
       renderSaleQuizPanel(mod, prog);
     }
   }
 
-  function renderSaleDocumentPanel(mod, prog) {
-    // Takeaways card
-    const takeawaysCard = document.getElementById("saleDocTakeawaysCard");
-    const takeawaysList = document.getElementById("saleDocTakeawaysList");
-    const sourceWrap = document.getElementById("saleDocSourceFileWrap");
-
-    if (mod.sourceFile && mod.sourceFile.url) {
-      sourceWrap.innerHTML = `
-        <a href="${escapeHtml(mod.sourceFile.url)}" download="${escapeHtml(mod.sourceFile.name || "Tai_lieu_dao_tao.xlsx")}" class="btn-download-source">
-          📥 Tải file gốc (${escapeHtml(mod.sourceFile.name)})
-        </a>
-      `;
-    } else if (mod.sourceFile && mod.sourceFile.name) {
-      sourceWrap.innerHTML = `<span class="mod-time-pill">📄 Nguồn: ${escapeHtml(mod.sourceFile.name)}</span>`;
-    } else {
-      sourceWrap.innerHTML = "";
-    }
-
-    const pts = Array.isArray(mod.summaryPoints) ? mod.summaryPoints.filter(Boolean) : [];
-    if (pts.length > 0) {
-      takeawaysCard.classList.remove("hidden");
-      takeawaysList.innerHTML = pts.map(p => `<li>${escapeHtml(p)}</li>`).join("");
-    } else {
-      takeawaysCard.classList.add("hidden");
-    }
-
-    // Main document body
-    const bodyContainer = document.getElementById("saleDocBodyContainer");
-    bodyContainer.innerHTML = buildStructuredDocumentHtml(mod);
-    bindDocumentInteractiveFilters(bodyContainer, mod);
-
-    document.getElementById("lblDocPassThreshold").textContent = `${mod.passThreshold || 80}%`;
-    const btnStartQuiz = document.getElementById("btnDocStartQuiz");
-    btnStartQuiz.onclick = () => {
-      prog.docViewed = true;
-      prog.docViewedAt = new Date().toISOString();
-      prog.updatedAt = new Date().toISOString();
-      triggerAutoSave(true, false, prog);
-      activeSaleTab = "quiz";
-      renderSaleWorkspace();
-      renderSidebar();
-      document.getElementById("workspaceViewport").scrollTo({ top: 0, behavior: "smooth" });
-    };
-  }
-
-  function buildStructuredDocumentHtml(mod) {
-    // 1. Comparison 6 Criteria (HP01)
+  function buildDocumentSteps(mod) {
+    // 1. HP01: 6 Comparison Criteria -> 6 clean steps
     if (mod.structuredType === "comparison_6_criteria" && Array.isArray(mod.structuredData)) {
-      const cardsHtml = mod.structuredData.map(item => `
-        <article class="study-topic-card">
-          <div class="stc-head">
-            <div class="stc-head-left">
-              <span class="stc-num">Tiêu chí ${escapeHtml(item.stt)}</span>
-              <h4 class="stc-title">${escapeHtml(item.title)}</h4>
+      return mod.structuredData.map((item, idx) => ({
+        pillLabel: `Mục ${idx + 1}`,
+        title: `${item.stt}. ${item.title}`,
+        html: `
+          <article class="study-topic-card">
+            <div class="stc-head">
+              <div class="stc-head-left">
+                <span class="stc-num">Mục ${escapeHtml(item.stt)}/6</span>
+                <h4 class="stc-title">${escapeHtml(item.title)}</h4>
+              </div>
             </div>
-            <div class="stc-badges">
-              <span class="stc-badge">Đối chiếu Chính khóa</span>
+            <div class="stc-grid-2">
+              <div class="stc-box traditional">
+                <div class="stc-box-label">🏫 Chương trình Bộ GD&amp;ĐT</div>
+                <div class="stc-box-content">${escapeHtml(item.bo_gddt)}</div>
+              </div>
+              <div class="stc-box novastars">
+                <div class="stc-box-label">🌟 Chương trình KNS Novastars</div>
+                <div class="stc-box-content">${escapeHtml(item.novastars)}</div>
+              </div>
+              <div class="stc-box usp">
+                <div class="stc-box-label">💎 Điểm khác biệt ăn tiền</div>
+                <div class="stc-box-content">${escapeHtml(item.khac_biet_an_tien)}</div>
+              </div>
+              <div class="stc-box pitch">
+                <div class="stc-box-label">🗣️ Câu chốt nói với Chủ trường / Hiệu trưởng</div>
+                <div class="stc-box-content"><strong>"${escapeHtml(item.sale_pitch)}"</strong></div>
+              </div>
             </div>
-          </div>
-          <div class="stc-grid-2">
-            <div class="stc-box traditional">
-              <div class="stc-box-label">🏫 Chương trình của Bộ GD&amp;ĐT (Các trường thường dạy)</div>
-              <div class="stc-box-content">${escapeHtml(item.bo_gddt)}</div>
-            </div>
-            <div class="stc-box novastars">
-              <div class="stc-box-label">🌟 Chương trình Kĩ năng sống Novastars (72 tiết/khối)</div>
-              <div class="stc-box-content">${escapeHtml(item.novastars)}</div>
-            </div>
-            <div class="stc-box usp">
-              <div class="stc-box-label">💎 Điểm khác biệt "ăn tiền" của Novastars ( &amp; Điểm tương đồng)</div>
-              <div class="stc-box-content"><strong>• Điểm khác biệt ăn tiền:</strong> ${escapeHtml(item.khac_biet_an_tien)}\n<strong>• Điểm giống nhau:</strong> ${escapeHtml(item.giong_nhau)}</div>
-            </div>
-            <div class="stc-box pitch">
-              <div class="stc-box-label">🗣️ Ý chính để Sale nói với Chủ trường / Hiệu trưởng</div>
-              <div class="stc-box-content"><strong>"${escapeHtml(item.sale_pitch)}"</strong></div>
-            </div>
-          </div>
-        </article>
-      `).join("");
-
-      return `
-        <div class="study-section-header">
-          <h3>📊 Bảng Đối Chiếu 6 Tiêu Chí Cốt Lõi: Chương Trình Bộ GD&amp;ĐT vs. Kĩ Năng Sống Novastars</h3>
-        </div>
-        <div class="study-cards-stack">${cardsHtml}</div>
-      `;
+          </article>
+        `
+      }));
     }
 
-    // 2. Pedagogy 6 Reasons (HP02)
+    // 2. HP02: 6 Pedagogical Reasons -> 6 clean steps
     if (mod.structuredType === "pedagogy_6_reasons" && Array.isArray(mod.structuredData)) {
-      const cardsHtml = mod.structuredData.map(item => `
-        <article class="study-topic-card">
-          <div class="stc-head">
-            <div class="stc-head-left">
-              <span class="stc-num">Lý do #${escapeHtml(item.stt)}</span>
-              <h4 class="stc-title">${escapeHtml(item.title)}</h4>
+      return mod.structuredData.map((item, idx) => ({
+        pillLabel: `Lý do ${idx + 1}`,
+        title: `Lý do ${item.stt}: ${item.title}`,
+        html: `
+          <article class="study-topic-card">
+            <div class="stc-head">
+              <div class="stc-head-left">
+                <span class="stc-num">Lý do ${escapeHtml(item.stt)}/6</span>
+                <h4 class="stc-title">${escapeHtml(item.title)}</h4>
+              </div>
             </div>
-            <div class="stc-badges">
-              <span class="stc-badge">Nền tảng Sư phạm</span>
+            <div class="stc-grid-2">
+              <div class="stc-box traditional">
+                <div class="stc-box-label">🧠 Tâm lý trẻ &amp; Cách trường thường dạy</div>
+                <div class="stc-box-content"><strong>• Tâm lý trẻ:</strong> ${escapeHtml(item.tam_ly_tre)}\n\n<strong>• Trường thường dạy:</strong> ${escapeHtml(item.cach_truong_thuong_day)}</div>
+              </div>
+              <div class="stc-box novastars">
+                <div class="stc-box-label">✨ Cách Novastars thiết kế sẵn</div>
+                <div class="stc-box-content">${escapeHtml(item.cach_novastars)}</div>
+              </div>
+              <div class="stc-box pitch" style="grid-column: 1 / -1;">
+                <div class="stc-box-label">🗣️ Câu trả lời mẫu thuyết phục Chủ trường / Hiệu trưởng</div>
+                <div class="stc-box-content"><strong>"${escapeHtml(item.sale_pitch)}"</strong></div>
+              </div>
             </div>
-          </div>
-          <div class="stc-grid-2">
-            <div class="stc-box traditional">
-              <div class="stc-box-label">🧠 Thực tế tâm lý trẻ mầm non &amp; Cách trường thường dạy</div>
-              <div class="stc-box-content"><strong>• Tâm lý trẻ:</strong> ${escapeHtml(item.tam_ly_tre)}\n\n<strong>• Cách trường thường dạy:</strong>\n${escapeHtml(item.cach_truong_thuong_day)}</div>
-            </div>
-            <div class="stc-box novastars">
-              <div class="stc-box-label">✨ Cách Novastars thiết kế sẵn trong Giáo án &amp; Phần mềm</div>
-              <div class="stc-box-content">${escapeHtml(item.cach_novastars)}</div>
-            </div>
-            <div class="stc-box pitch" style="grid-column: 1 / -1;">
-              <div class="stc-box-label">🗣️ Câu trả lời mẫu để Sale thuyết phục Chủ trường / Hiệu trưởng</div>
-              <div class="stc-box-content"><strong>"${escapeHtml(item.sale_pitch)}"</strong></div>
-            </div>
-          </div>
-        </article>
-      `).join("");
-
-      return `
-        <div class="study-section-header">
-          <h3>🎯 6 Lý Do Chứng Minh: Cô Giáo Cầm Giáo Án Dễ Dạy Ngay Nhưng Không Thể Tự Soạn Lẻ Tẻ Được</h3>
-        </div>
-        <div class="study-cards-stack">${cardsHtml}</div>
-      `;
+          </article>
+        `
+      }));
     }
 
-    // 3. 10 Sample Lessons Analysis (HP03)
+    // 3. HP03: 10 Sample Lessons -> 10 clean steps (1 lesson per card)
     if (mod.structuredType === "sample_10_lessons" && Array.isArray(mod.structuredData)) {
-      const filteredLessons = mod.structuredData.filter(item => {
-        if (hp03GradeFilter === "ALL") return true;
-        return (item.khoi || "").toLowerCase().includes(hp03GradeFilter.toLowerCase());
-      });
-
-      const cardsHtml = filteredLessons.map(item => `
-        <article class="study-topic-card">
-          <div class="stc-head">
-            <div class="stc-head-left">
-              <span class="stc-num">Bài mẫu #${escapeHtml(item.stt)} · ${escapeHtml(item.khoi)}</span>
-              <h4 class="stc-title">${escapeHtml(item.bai_hoc)}</h4>
+      return mod.structuredData.map((item, idx) => ({
+        pillLabel: `Bài ${idx + 1} (${(item.bai_hoc || "").split(" ")[0]})`,
+        title: `${item.bai_hoc}`,
+        html: `
+          <article class="study-topic-card">
+            <div class="stc-head">
+              <div class="stc-head-left">
+                <span class="stc-num">${escapeHtml(item.khoi)}</span>
+                <h4 class="stc-title">${escapeHtml(item.bai_hoc)}</h4>
+              </div>
+              <div class="stc-badges">
+                <span class="stc-badge">💻 ${escapeHtml(item.cong_nghe)}</span>
+                <span class="stc-badge">🎤 Thuyết trình: ${escapeHtml(item.co_thuyet_trinh)}</span>
+              </div>
             </div>
-            <div class="stc-badges">
-              <span class="stc-badge">💻 ${escapeHtml(item.cong_nghe)}</span>
-              <span class="stc-badge">🎤 Thuyết trình: ${escapeHtml(item.co_thuyet_trinh)}</span>
+            <div class="stc-grid-2">
+              <div class="stc-box traditional">
+                <div class="stc-box-label">🏫 Cách trường thường dạy (${escapeHtml(item.de_tai_quen_thuoc)})</div>
+                <div class="stc-box-content">${escapeHtml(item.cach_truong_thuong_day)}</div>
+              </div>
+              <div class="stc-box novastars">
+                <div class="stc-box-label">🌟 Nội dung &amp; Cách triển khai của Novastars</div>
+                <div class="stc-box-content">${escapeHtml(item.noi_dung_novastars)}\n\n${escapeHtml(item.cach_trien_khai)}</div>
+              </div>
+              <div class="stc-box pitch" style="grid-column: 1 / -1;">
+                <div class="stc-box-label">💎 Điểm ăn tiền để Sale thuyết phục Chủ trường</div>
+                <div class="stc-box-content">${escapeHtml(item.diem_an_tien)}</div>
+              </div>
             </div>
-          </div>
-          <div class="stc-grid-2">
-            <div class="stc-box traditional">
-              <div class="stc-box-label">🏫 Đề tài quen thuộc (${escapeHtml(item.de_tai_quen_thuoc)}) — Cách trường thường dạy</div>
-              <div class="stc-box-content">${escapeHtml(item.cach_truong_thuong_day)}</div>
-            </div>
-            <div class="stc-box novastars">
-              <div class="stc-box-label">🌟 Nội dung trọng tâm &amp; Mục tiêu của Novastars</div>
-              <div class="stc-box-content">${escapeHtml(item.noi_dung_novastars)}</div>
-            </div>
-            <div class="stc-box usp">
-              <div class="stc-box-label">📋 Phương pháp cô giáo triển khai từng bước theo giáo án Novastars</div>
-              <div class="stc-box-content">${escapeHtml(item.cach_trien_khai)}</div>
-            </div>
-            <div class="stc-box pitch">
-              <div class="stc-box-label">💎 Điểm ăn tiền để Sale thuyết phục Chủ trường / Hiệu trưởng</div>
-              <div class="stc-box-content">${escapeHtml(item.diem_an_tien)}</div>
-            </div>
-          </div>
-        </article>
-      `).join("");
-
-      return `
-        <div class="study-section-header">
-          <h3>📚 Kịch Bản Phân Tích Chi Tiết 10 Bài Học Mẫu (Khối Bé – Khối Nhỡ – Khối Lớn)</h3>
-          <div class="study-filter-pills">
-            <button type="button" class="study-filter-pill ${hp03GradeFilter === 'ALL' ? 'active' : ''}" data-hp03-grade="ALL">Tất cả (10 bài)</button>
-            <button type="button" class="study-filter-pill ${hp03GradeFilter === 'Mẫu giáo bé' ? 'active' : ''}" data-hp03-grade="Mẫu giáo bé">Mẫu giáo Bé 3-4 tuổi (3 bài)</button>
-            <button type="button" class="study-filter-pill ${hp03GradeFilter === 'Mẫu giáo nhỡ' ? 'active' : ''}" data-hp03-grade="Mẫu giáo nhỡ">Mẫu giáo Nhỡ 4-5 tuổi (3 bài)</button>
-            <button type="button" class="study-filter-pill ${hp03GradeFilter === 'Mẫu giáo lớn' ? 'active' : ''}" data-hp03-grade="Mẫu giáo lớn">Mẫu giáo Lớn 5-6 tuổi (4 bài)</button>
-          </div>
-        </div>
-        <div class="study-cards-stack">${cardsHtml}</div>
-      `;
+          </article>
+        `
+      }));
     }
 
-    // 4. Roadmap 3 Ages & 72 Lessons (HP04)
+    // 4. HP04: 3 Age Groups + 72-Lesson Lookup Table -> 4 clean steps
     if (mod.structuredType === "roadmap_72_lessons" && mod.structuredData) {
       const ages = mod.structuredData.ageSummaries || [];
       const list72 = mod.structuredData.curriculum72 || [];
-
-      const ageCardsHtml = ages.map(a => `
-        <article class="study-topic-card">
-          <div class="stc-head">
-            <div class="stc-head-left">
-              <span class="stc-num">Khối #${escapeHtml(a.stt)}</span>
-              <h4 class="stc-title">${escapeHtml((a.do_tuoi || "").replace(/\n/g, " · "))}</h4>
+      const steps = ages.map((a, idx) => ({
+        pillLabel: idx === 0 ? "1. Khối Bé (3-4t)" : (idx === 1 ? "2. Khối Nhỡ (4-5t)" : "3. Khối Lớn (5-6t)"),
+        title: (a.do_tuoi || "").replace(/\n/g, " · "),
+        html: `
+          <article class="study-topic-card">
+            <div class="stc-head">
+              <div class="stc-head-left">
+                <span class="stc-num">Độ tuổi #${escapeHtml(a.stt)}</span>
+                <h4 class="stc-title">${escapeHtml((a.do_tuoi || "").replace(/\n/g, " · "))}</h4>
+              </div>
             </div>
-          </div>
-          <div class="stc-grid-2">
-            <div class="stc-box traditional">
-              <div class="stc-box-label">🏫 Nội dung trường vẫn dạy theo khung Bộ</div>
-              <div class="stc-box-content">${escapeHtml(a.noi_dung_bo)}</div>
+            <div class="stc-grid-2">
+              <div class="stc-box traditional">
+                <div class="stc-box-label">🏫 Nội dung trường vẫn dạy theo khung Bộ</div>
+                <div class="stc-box-content">${escapeHtml(a.noi_dung_bo)}</div>
+              </div>
+              <div class="stc-box novastars">
+                <div class="stc-box-label">🌟 Nội dung nâng cấp của Novastars</div>
+                <div class="stc-box-content">${escapeHtml(a.noi_dung_novastars)}</div>
+              </div>
+              <div class="stc-box pitch" style="grid-column: 1 / -1;">
+                <div class="stc-box-label">🗣️ Điểm nhấn để Sale nói với Hiệu trưởng</div>
+                <div class="stc-box-content"><strong>"${escapeHtml(a.diem_nhan_sale)}"</strong></div>
+              </div>
             </div>
-            <div class="stc-box novastars">
-              <div class="stc-box-label">🌟 Nội dung nâng cấp của Novastars</div>
-              <div class="stc-box-content">${escapeHtml(a.noi_dung_novastars)}</div>
-            </div>
-            <div class="stc-box pitch" style="grid-column: 1 / -1;">
-              <div class="stc-box-label">🗣️ Điểm nhấn để Sale nói với Hiệu trưởng</div>
-              <div class="stc-box-content"><strong>"${escapeHtml(a.diem_nhan_sale)}"</strong></div>
-            </div>
-          </div>
-        </article>
-      `).join("");
+          </article>
+        `
+      }));
 
       const q = hp04SearchQuery.trim().toLowerCase();
       const filtered72 = list72.filter(row => {
@@ -1045,42 +972,41 @@
         </tr>
       `).join("");
 
-      return `
-        <div class="study-section-header">
-          <h3>Phần A: Tóm Tắt Điểm Hay Của Từng Khối Độ Tuổi Để Sale Tư Vấn</h3>
-        </div>
-        <div class="study-cards-stack">${ageCardsHtml}</div>
-
-        <div class="study-section-header" style="margin-top: 14px;">
-          <h3>Phần B: Bảng Tra Cứu Đủ 72 Tiết × 3 Khối Độ Tuổi (${filtered72.length} tiết)</h3>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-            <input type="text" id="inputHp04Search" class="input-control" style="width:230px;padding:6px 11px;font-size:12.5px;" placeholder="🔍 Tìm tên bài trong 72 tiết..." value="${escapeHtml(hp04SearchQuery)}">
-            <button type="button" class="study-filter-pill ${hp04TermFilter === 'ALL' ? 'active' : ''}" data-hp04-term="ALL">Cả năm (72 tiết)</button>
-            <button type="button" class="study-filter-pill ${hp04TermFilter === 'Học kì I' ? 'active' : ''}" data-hp04-term="Học kì I">Học kì I (35 tiết)</button>
-            <button type="button" class="study-filter-pill ${hp04TermFilter === 'Học kì II' ? 'active' : ''}" data-hp04-term="Học kì II">Học kì II (37 tiết)</button>
+      steps.push({
+        pillLabel: "4. Tra cứu 72 tiết",
+        title: "Danh sách đủ 72 tiết × 3 khối",
+        html: `
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+            <input type="text" id="inputHp04Search" class="input-control" style="width:240px;padding:7px 11px;font-size:13px;" placeholder="🔍 Tìm tên bài trong 72 tiết..." value="${escapeHtml(hp04SearchQuery)}">
+            <div style="display:flex;gap:6px;">
+              <button type="button" class="study-filter-pill ${hp04TermFilter === 'ALL' ? 'active' : ''}" data-hp04-term="ALL">Cả năm (72)</button>
+              <button type="button" class="study-filter-pill ${hp04TermFilter === 'Học kì I' ? 'active' : ''}" data-hp04-term="Học kì I">Học kì I (35)</button>
+              <button type="button" class="study-filter-pill ${hp04TermFilter === 'Học kì II' ? 'active' : ''}" data-hp04-term="Học kì II">Học kì II (37)</button>
+            </div>
           </div>
-        </div>
-        <div class="table-responsive">
-          <table class="progress-matrix-table">
-            <thead>
-              <tr>
-                <th style="width:80px;text-align:center;">Tiết</th>
-                <th style="width:110px;">Học kì</th>
-                <th>Khối Mẫu giáo Bé (3–4 tuổi)</th>
-                <th>Khối Mẫu giáo Nhỡ (4–5 tuổi)</th>
-                <th>Khối Mẫu giáo Lớn (5–6 tuổi)</th>
-              </tr>
-            </thead>
-            <tbody>${rows72Html}</tbody>
-          </table>
-        </div>
-      `;
+          <div class="table-responsive" style="max-height:420px;overflow-y:auto;">
+            <table class="progress-matrix-table">
+              <thead>
+                <tr>
+                  <th style="width:75px;text-align:center;">Tiết</th>
+                  <th style="width:105px;">Học kì</th>
+                  <th>Mẫu giáo Bé (3–4 tuổi)</th>
+                  <th>Mẫu giáo Nhỡ (4–5 tuổi)</th>
+                  <th>Mẫu giáo Lớn (5–6 tuổi)</th>
+                </tr>
+              </thead>
+              <tbody>${rows72Html}</tbody>
+            </table>
+          </div>
+        `
+      });
+      return steps;
     }
 
-    // 5. Uploaded Tables from Excel/Word file + Text Content
-    let customHtml = "";
+    // 5. Uploaded Tables or Plain Text -> Split into clean steps
+    const customSteps = [];
     if (Array.isArray(mod.uploadedTables) && mod.uploadedTables.length > 0) {
-      mod.uploadedTables.forEach(tbl => {
+      mod.uploadedTables.forEach((tbl, tIdx) => {
         const rows = tbl.rows || [];
         if (rows.length === 0) return;
         const trs = rows.map((r, rIdx) => {
@@ -1088,61 +1014,134 @@
           const cells = r.map(c => `<${tag}>${escapeHtml(c)}</${tag}>`).join("");
           return `<tr>${cells}</tr>`;
         }).join("");
-        customHtml += `
-          <div class="study-section-header">
-            <h3>📊 ${escapeHtml(tbl.sheet || "Bảng dữ liệu tài liệu")}</h3>
-          </div>
-          <div class="table-responsive" style="margin-bottom:16px;">
-            <table class="progress-matrix-table">${trs}</table>
-          </div>
-        `;
+        customSteps.push({
+          pillLabel: tbl.sheet ? tbl.sheet.slice(0, 18) : `Bảng ${tIdx + 1}`,
+          title: tbl.sheet || `Bảng dữ liệu ${tIdx + 1}`,
+          html: `<div class="table-responsive" style="max-height:450px;overflow-y:auto;"><table class="progress-matrix-table">${trs}</table></div>`
+        });
       });
     }
 
     const rawText = (mod.contentText || "").trim();
-    if (rawText) {
-      const paras = rawText.split(/\n+/).map(line => {
-        const trimmed = line.trim();
-        if (!trimmed) return "";
-        if (trimmed.startsWith("===") || trimmed.startsWith("#")) {
-          return `<h3 style="font-family:var(--font-display);font-size:16px;font-weight:800;color:#831843;margin-top:12px;">${escapeHtml(trimmed.replace(/^[=#\s]+|[=#\s]+$/g, ""))}</h3>`;
-        }
-        return `<p style="font-size:14px;line-height:1.68;color:#1E293B;">${escapeHtml(trimmed)}</p>`;
-      }).join("");
-      customHtml += `<div style="display:flex;flex-direction:column;gap:10px;">${paras}</div>`;
+    if (rawText && customSteps.length === 0) {
+      const lines = rawText.split(/\n+/).map(l => l.trim()).filter(Boolean);
+      const chunkSize = 8;
+      for (let i = 0; i < lines.length; i += chunkSize) {
+        const chunk = lines.slice(i, i + chunkSize);
+        const stepNum = Math.floor(i / chunkSize) + 1;
+        customSteps.push({
+          pillLabel: `Phần ${stepNum}`,
+          title: `Nội dung phần ${stepNum}`,
+          html: `<div style="display:flex;flex-direction:column;gap:10px;">${chunk.map(p => `<p style="font-size:14.2px;line-height:1.65;">${escapeHtml(p)}</p>`).join("")}</div>`
+        });
+      }
     }
 
-    if (!customHtml) {
-      customHtml = `<p style="color:#64748B;font-size:13.5px;">Tài liệu này chưa có nội dung chi tiết. Người up nội dung có thể tải file hoặc nhập văn bản ở mục Quản trị học liệu.</p>`;
+    if (customSteps.length === 0) {
+      customSteps.push({
+        pillLabel: "Phần 1",
+        title: mod.title || "Tài liệu học tập",
+        html: `<p style="color:#64748B;font-size:13.5px;">Chưa có nội dung tài liệu. Đào tạo có thể tải file hoặc dán nội dung ở mục Đào tạo.</p>`
+      });
     }
-    return customHtml;
+    return customSteps;
   }
 
-  function bindDocumentInteractiveFilters(container, mod) {
-    container.querySelectorAll("[data-hp03-grade]").forEach(btn => {
+  function renderSaleDocumentPanel(mod, prog, docSteps) {
+    const steps = docSteps || buildDocumentSteps(mod);
+    if (activeDocStepIndex >= steps.length) activeDocStepIndex = 0;
+    if (activeDocStepIndex < 0) activeDocStepIndex = 0;
+
+    const currentStep = steps[activeDocStepIndex];
+    const bodyContainer = document.getElementById("saleDocBodyContainer");
+
+    const pillsHtml = steps.map((st, idx) => `
+      <button type="button" class="doc-step-pill ${idx === activeDocStepIndex ? 'active' : ''}" data-doc-step="${idx}">
+        ${escapeHtml(st.pillLabel)}
+      </button>
+    `).join("");
+
+    const downloadBtnHtml = (mod.sourceFile && mod.sourceFile.url)
+      ? `<a href="${escapeHtml(mod.sourceFile.url)}" download="${escapeHtml(mod.sourceFile.name || 'Tai_lieu.xlsx')}" class="btn-download-source">📥 Tải file gốc</a>`
+      : "";
+
+    const isLastStep = activeDocStepIndex === steps.length - 1;
+
+    bodyContainer.innerHTML = `
+      <div class="doc-stepper-bar">
+        <div class="doc-step-pills">${pillsHtml}</div>
+        ${downloadBtnHtml}
+      </div>
+
+      <div class="doc-active-step-body">
+        ${currentStep.html}
+      </div>
+
+      <div class="doc-pager-footer">
+        <button type="button" class="btn-secondary" id="btnDocPrevStep" ${activeDocStepIndex === 0 ? "disabled" : ""}>
+          ◀ Mục trước
+        </button>
+        <span class="doc-pager-counter">Mục ${activeDocStepIndex + 1} / ${steps.length}</span>
+        ${!isLastStep
+          ? `<button type="button" class="btn-primary" id="btnDocNextStep">Mục tiếp theo ▶</button>`
+          : `<button type="button" class="btn-start-quiz-cta" id="btnDocStartQuiz">📝 Làm bài Trắc nghiệm ngay ➔</button>`
+        }
+      </div>
+    `;
+
+    bodyContainer.querySelectorAll("[data-doc-step]").forEach(btn => {
       btn.addEventListener("click", () => {
-        hp03GradeFilter = btn.dataset.hp03Grade;
-        const learner = getEffectiveLearnerUser();
-        const prog = getOrCreateProgress(learner.id, learner.name, mod.id);
-        renderSaleDocumentPanel(mod, prog);
+        activeDocStepIndex = Number(btn.dataset.docStep);
+        renderSaleDocumentPanel(mod, prog, steps);
       });
     });
 
-    container.querySelectorAll("[data-hp04-term]").forEach(btn => {
+    const btnPrev = document.getElementById("btnDocPrevStep");
+    if (btnPrev) {
+      btnPrev.onclick = () => {
+        if (activeDocStepIndex > 0) {
+          activeDocStepIndex--;
+          renderSaleDocumentPanel(mod, prog, steps);
+        }
+      };
+    }
+
+    const btnNext = document.getElementById("btnDocNextStep");
+    if (btnNext) {
+      btnNext.onclick = () => {
+        if (activeDocStepIndex < steps.length - 1) {
+          activeDocStepIndex++;
+          renderSaleDocumentPanel(mod, prog, steps);
+        }
+      };
+    }
+
+    const btnStartQuiz = document.getElementById("btnDocStartQuiz");
+    if (btnStartQuiz) {
+      btnStartQuiz.onclick = () => {
+        prog.docViewed = true;
+        prog.docViewedAt = new Date().toISOString();
+        prog.updatedAt = new Date().toISOString();
+        triggerAutoSave(true, false, prog);
+        activeSaleTab = "quiz";
+        activeQuizQuestionIndex = 0;
+        renderSaleWorkspace();
+        renderSidebar();
+      };
+    }
+
+    // Bind HP04 table filters if on step 4
+    bodyContainer.querySelectorAll("[data-hp04-term]").forEach(btn => {
       btn.addEventListener("click", () => {
         hp04TermFilter = btn.dataset.hp04Term;
-        const learner = getEffectiveLearnerUser();
-        const prog = getOrCreateProgress(learner.id, learner.name, mod.id);
         renderSaleDocumentPanel(mod, prog);
       });
     });
 
-    const inpHp04 = container.querySelector("#inputHp04Search");
+    const inpHp04 = bodyContainer.querySelector("#inputHp04Search");
     if (inpHp04) {
       inpHp04.addEventListener("input", e => {
         hp04SearchQuery = e.target.value;
-        const learner = getEffectiveLearnerUser();
-        const prog = getOrCreateProgress(learner.id, learner.name, mod.id);
         renderSaleDocumentPanel(mod, prog);
         const newInp = document.getElementById("inputHp04Search");
         if (newInp) {
@@ -1156,48 +1155,21 @@
   function renderSaleQuizPanel(mod, prog) {
     const qList = Array.isArray(mod.questions) ? mod.questions : [];
     const thresh = Number(mod.passThreshold || 80);
-    const infoBanner = document.getElementById("saleQuizInfoBanner");
     const resultBanner = document.getElementById("saleQuizResultBanner");
-    const questionsContainer = document.getElementById("saleQuizQuestionsList");
-    const submitBar = document.getElementById("saleQuizSubmitBar");
-    const historyCard = document.getElementById("saleQuizHistoryCard");
+    const stageContainer = document.getElementById("saleQuizQuestionsList");
 
-    const attCount = Array.isArray(prog.attempts) ? prog.attempts.length : 0;
-
-    infoBanner.innerHTML = `
-      <div class="qib-stats">
-        <div class="qib-stat-item">
-          <span class="qib-stat-label">Số lượng câu hỏi</span>
-          <span class="qib-stat-val">${qList.length} câu</span>
-        </div>
-        <div class="qib-stat-item">
-          <span class="qib-stat-label">Điểm chuẩn hoàn thành</span>
-          <span class="qib-stat-val" style="color:#BE185D;">&ge; ${thresh}%</span>
-        </div>
-        <div class="qib-stat-item">
-          <span class="qib-stat-label">Điểm cao nhất của bạn</span>
-          <span class="qib-stat-val" style="color:${prog.passed ? '#059669' : '#D97706'};">${attCount > 0 ? `${prog.bestScore}%` : "Chưa thi"}</span>
-        </div>
-        <div class="qib-stat-item">
-          <span class="qib-stat-label">Số lần đã làm</span>
-          <span class="qib-stat-val">${attCount} lần</span>
-        </div>
-      </div>
-      <div>
-        ${currentQuizSubmittedResult ? `<button type="button" class="btn-primary" id="btnRetakeQuizTop">🔄 Làm lại bài trắc nghiệm</button>` : ""}
-      </div>
-    `;
-
-    const btnRetakeTop = document.getElementById("btnRetakeQuizTop");
-    if (btnRetakeTop) {
-      btnRetakeTop.onclick = () => {
-        resetActiveQuizState();
-        renderSaleQuizPanel(mod, prog);
-        document.getElementById("workspaceViewport").scrollTo({ top: 0, behavior: "smooth" });
-      };
+    if (qList.length === 0) {
+      resultBanner.classList.add("hidden");
+      stageContainer.innerHTML = `<div style="padding:24px;text-align:center;color:#64748B;">Học phần này chưa có câu hỏi trắc nghiệm.</div>`;
+      return;
     }
 
-    if (currentQuizSubmittedResult) {
+    if (activeQuizQuestionIndex >= qList.length) activeQuizQuestionIndex = 0;
+    if (activeQuizQuestionIndex < 0) activeQuizQuestionIndex = 0;
+
+    const isSubmitted = Boolean(currentQuizSubmittedResult);
+
+    if (isSubmitted) {
       const res = currentQuizSubmittedResult;
       resultBanner.classList.remove("hidden", "passed", "failed");
       resultBanner.classList.add(res.passed ? "passed" : "failed");
@@ -1205,179 +1177,205 @@
         <div class="qrb-left">
           <div class="qrb-score-circle">${res.score}%</div>
           <div class="qrb-text">
-            <h3>${res.passed ? "🎉 CHÚC MỪNG! BẠN ĐÃ ĐẠT HỌC PHẦN NÀY" : "⚠️ CHƯA ĐẠT ĐIỂM CHUẨN — HÃY ÔN LẠI VÀ LÀM LẠI NHÉ"}</h3>
-            <p>Bạn trả lời đúng <strong>${res.correctCount}/${res.totalCount} câu</strong> (${res.score}%). Ngưỡng điểm chuẩn của bài là <strong>${thresh}%</strong>. Hãy xem chi tiết đáp án đúng và gợi ý tư vấn ở từng câu bên dưới.</p>
+            <h3>${res.passed ? "🎉 ĐẠT YÊU CẦU!" : "⚠️ CHƯA ĐẠT — HÃY XEM LẠI CÂU SAI & LÀM LẠI"}</h3>
+            <p>Đúng <strong>${res.correctCount}/${res.totalCount} câu</strong> (Chuẩn cần đạt &ge; ${thresh}%). Bấm vào từng số câu bên dưới để xem đáp án và giải thích.</p>
           </div>
         </div>
         <button type="button" class="btn-primary" id="btnRetakeQuizBanner">
-          🔄 Làm lại bài trắc nghiệm
+          🔄 Làm lại
         </button>
       `;
       document.getElementById("btnRetakeQuizBanner").onclick = () => {
         resetActiveQuizState();
         renderSaleQuizPanel(mod, prog);
-        document.getElementById("workspaceViewport").scrollTo({ top: 0, behavior: "smooth" });
       };
-      submitBar.classList.add("hidden");
     } else {
       resultBanner.classList.add("hidden");
-      submitBar.classList.remove("hidden");
     }
 
-    // Render questions
-    questionsContainer.innerHTML = "";
+    const answeredCount = qList.filter(q => currentQuizAnswers[q.id] !== undefined).length;
     const letters = ["A", "B", "C", "D"];
 
-    qList.forEach((q, qIdx) => {
-      const selectedIdx = currentQuizAnswers[q.id];
-      const isSubmitted = Boolean(currentQuizSubmittedResult);
-      const isCorrect = isSubmitted && selectedIdx === Number(q.correctIndex);
-
-      const card = document.createElement("div");
-      let cardClass = "quiz-q-card";
+    // Question number pills strip [1] [2] ... [N]
+    const numPillsHtml = qList.map((item, idx) => {
+      const hasAns = currentQuizAnswers[item.id] !== undefined;
+      let cls = "q-num-pill";
+      if (idx === activeQuizQuestionIndex) cls += " active";
       if (isSubmitted) {
-        cardClass += isCorrect ? " graded-correct" : " graded-wrong";
-      } else if (selectedIdx !== undefined) {
-        cardClass += " answered";
+        const right = currentQuizAnswers[item.id] === Number(item.correctIndex);
+        cls += right ? " graded-ok" : " graded-err";
+      } else if (hasAns) {
+        cls += " answered";
       }
-      card.className = cardClass;
+      return `<button type="button" class="${cls}" data-goto-q="${idx}">${idx + 1}</button>`;
+    }).join("");
 
-      const catKey = q.category || "kien_thuc";
-      const catLabel = q.categoryLabel || getCategoryLabel(catKey);
+    // Render ONLY the 1 active question
+    const q = qList[activeQuizQuestionIndex];
+    const selectedIdx = currentQuizAnswers[q.id];
+    const isCorrect = isSubmitted && selectedIdx === Number(q.correctIndex);
+    const catKey = q.category || "kien_thuc";
+    const catLabel = q.categoryLabel || getCategoryLabel(catKey);
 
-      const optsHtml = (q.options || []).map((optText, oIdx) => {
-        const isSel = selectedIdx === oIdx;
-        let optClass = "qq-option-btn";
-        if (isSubmitted) {
-          if (oIdx === Number(q.correctIndex)) {
-            optClass += " correct-answer";
-          } else if (isSel && oIdx !== Number(q.correctIndex)) {
-            optClass += " wrong-selected";
-          }
-        } else if (isSel) {
-          optClass += " selected";
+    const optsHtml = (q.options || []).map((optText, oIdx) => {
+      const isSel = selectedIdx === oIdx;
+      let optClass = "qq-option-btn";
+      if (isSubmitted) {
+        if (oIdx === Number(q.correctIndex)) {
+          optClass += " correct-answer";
+        } else if (isSel && oIdx !== Number(q.correctIndex)) {
+          optClass += " wrong-selected";
         }
-
-        return `
-          <button type="button" class="${optClass}" data-q-id="${escapeHtml(q.id)}" data-opt-idx="${oIdx}" ${isSubmitted ? "disabled" : ""}>
-            <span class="qq-opt-letter">${letters[oIdx] || oIdx + 1}</span>
-            <span>${escapeHtml(optText)}</span>
-          </button>
-        `;
-      }).join("");
-
-      let explanationHtml = "";
-      if (isSubmitted) {
-        const statusTag = isCorrect
-          ? `<span style="color:#059669;font-weight:800;">✓ Bạn chọn ĐÚNG (Đáp án ${letters[q.correctIndex]})</span>`
-          : `<span style="color:#DC2626;font-weight:800;">✕ Bạn chọn ${selectedIdx !== undefined ? letters[selectedIdx] : "Chưa chọn"} — Đáp án đúng là ${letters[q.correctIndex]}</span>`;
-        explanationHtml = `
-          <div class="qq-explanation-box">
-            <div style="margin-bottom:4px;">${statusTag}</div>
-            <div>💡 <strong>Giải thích &amp; Gợi ý tư vấn:</strong> ${escapeHtml(q.explanation || "Bám sát nội dung tài liệu gốc của học phần.")}</div>
-          </div>
-        `;
+      } else if (isSel) {
+        optClass += " selected";
       }
 
-      card.innerHTML = `
-        <div class="qq-head">
-          <span class="qq-num-badge">Câu ${qIdx + 1}/${qList.length}</span>
-          <span class="qq-cat-badge ${escapeHtml(catKey)}">${escapeHtml(catLabel)}</span>
-        </div>
-        <div class="qq-question-text">${escapeHtml(q.question)}</div>
-        <div class="qq-options-list">${optsHtml}</div>
-        ${explanationHtml}
+      return `
+        <button type="button" class="${optClass}" data-opt-idx="${oIdx}" ${isSubmitted ? "disabled" : ""}>
+          <span class="qq-opt-letter">${letters[oIdx] || oIdx + 1}</span>
+          <span>${escapeHtml(optText)}</span>
+        </button>
       `;
+    }).join("");
 
-      card.querySelectorAll("[data-opt-idx]").forEach(btn => {
-        btn.addEventListener("click", () => {
-          if (currentQuizSubmittedResult) return;
-          currentQuizAnswers[q.id] = Number(btn.dataset.optIdx);
-          renderSaleQuizPanel(mod, prog);
-        });
+    let explanationHtml = "";
+    if (isSubmitted) {
+      const statusTag = isCorrect
+        ? `<span style="color:#059669;font-weight:800;">✓ ĐÚNG (Đáp án ${letters[q.correctIndex]})</span>`
+        : `<span style="color:#DC2626;font-weight:800;">✕ Bạn chọn ${selectedIdx !== undefined ? letters[selectedIdx] : "Chưa chọn"} — Đáp án đúng là ${letters[q.correctIndex]}</span>`;
+      explanationHtml = `
+        <div class="qq-explanation-box">
+          <div style="margin-bottom:4px;">${statusTag}</div>
+          <div>💡 <strong>Giải thích:</strong> ${escapeHtml(q.explanation || "")}</div>
+        </div>
+      `;
+    }
+
+    const isLastQ = activeQuizQuestionIndex === qList.length - 1;
+
+    stageContainer.innerHTML = `
+      <div class="quiz-num-strip-bar">
+        <div class="quiz-num-pills">${numPillsHtml}</div>
+        <span style="font-size:12.5px;font-weight:700;color:#64748B;">
+          Đã chọn: <strong style="color:#BE185D;">${answeredCount}/${qList.length}</strong> câu
+        </span>
+      </div>
+
+      <div class="qq-head">
+        <span class="qq-num-badge">Câu ${activeQuizQuestionIndex + 1} / ${qList.length}</span>
+        <span class="qq-cat-badge ${escapeHtml(catKey)}">${escapeHtml(catLabel)}</span>
+      </div>
+
+      <div class="qq-question-text">${escapeHtml(q.question)}</div>
+      <div class="qq-options-list">${optsHtml}</div>
+      ${explanationHtml}
+
+      <div class="single-q-nav-bar">
+        <button type="button" class="btn-secondary" id="btnPrevQuizQ" ${activeQuizQuestionIndex === 0 ? "disabled" : ""}>
+          ◀ Câu trước
+        </button>
+
+        <div style="display:flex;gap:8px;align-items:center;">
+          ${!isLastQ
+            ? `<button type="button" class="btn-secondary" id="btnNextQuizQ">Câu tiếp theo ▶</button>`
+            : ""
+          }
+          ${!isSubmitted && (isLastQ || answeredCount === qList.length)
+            ? `<button type="button" class="btn-submit-quiz" id="btnSubmitSaleQuiz">🚀 Nộp bài &amp; Chấm điểm</button>`
+            : ""
+          }
+        </div>
+      </div>
+    `;
+
+    stageContainer.querySelectorAll("[data-goto-q]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        activeQuizQuestionIndex = Number(btn.dataset.gotoQ);
+        renderSaleQuizPanel(mod, prog);
       });
-
-      questionsContainer.appendChild(card);
     });
 
-    // Update answered count in footer
-    const answeredCount = qList.filter(q => currentQuizAnswers[q.id] !== undefined).length;
-    document.getElementById("lblQuizAnsweredCount").innerHTML = `Đã trả lời <strong>${answeredCount}/${qList.length}</strong> câu hỏi`;
-
-    document.getElementById("btnBackToDocFromQuiz").onclick = () => {
-      activeSaleTab = "doc";
-      renderSaleWorkspace();
-      document.getElementById("workspaceViewport").scrollTo({ top: 0, behavior: "smooth" });
-    };
-
-    document.getElementById("btnSubmitSaleQuiz").onclick = () => {
-      if (qList.length === 0) return;
-      if (answeredCount < qList.length) {
-        const confirmUnfinished = confirm(`Bạn mới trả lời ${answeredCount}/${qList.length} câu hỏi. Bạn có chắc chắn muốn nộp bài ngay không?`);
-        if (!confirmUnfinished) return;
-      }
-
-      let correctCount = 0;
-      qList.forEach(q => {
-        if (currentQuizAnswers[q.id] === Number(q.correctIndex)) {
-          correctCount++;
+    stageContainer.querySelectorAll("[data-opt-idx]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        if (currentQuizSubmittedResult) return;
+        currentQuizAnswers[q.id] = Number(btn.dataset.optIdx);
+        renderSaleQuizPanel(mod, prog);
+        // Auto-advance to next question if not on the last question
+        if (activeQuizQuestionIndex < qList.length - 1) {
+          setTimeout(() => {
+            if (!currentQuizSubmittedResult && activeSaleTab === "quiz") {
+              activeQuizQuestionIndex++;
+              renderSaleQuizPanel(mod, prog);
+            }
+          }, 260);
         }
       });
-      const score = Math.round((correctCount * 100) / qList.length);
-      const passed = score >= thresh;
+    });
 
-      const attemptRecord = {
-        id: "att-" + Date.now().toString(36),
-        timestamp: new Date().toISOString(),
-        score,
-        correctCount,
-        totalCount: qList.length,
-        passed,
-        answers: { ...currentQuizAnswers }
+    const btnPrevQ = document.getElementById("btnPrevQuizQ");
+    if (btnPrevQ) {
+      btnPrevQ.onclick = () => {
+        if (activeQuizQuestionIndex > 0) {
+          activeQuizQuestionIndex--;
+          renderSaleQuizPanel(mod, prog);
+        }
       };
+    }
 
-      prog.docViewed = true;
-      if (!Array.isArray(prog.attempts)) prog.attempts = [];
-      prog.attempts.unshift(attemptRecord);
-      prog.bestScore = Math.max(Number(prog.bestScore || 0), score);
-      if (passed) prog.passed = true;
-      prog.updatedAt = new Date().toISOString();
+    const btnNextQ = document.getElementById("btnNextQuizQ");
+    if (btnNextQ) {
+      btnNextQ.onclick = () => {
+        if (activeQuizQuestionIndex < qList.length - 1) {
+          activeQuizQuestionIndex++;
+          renderSaleQuizPanel(mod, prog);
+        }
+      };
+    }
 
-      currentQuizSubmittedResult = attemptRecord;
-      triggerAutoSave(true, false, prog);
-      renderSaleQuizPanel(mod, prog);
-      renderSidebar();
-      document.getElementById("workspaceViewport").scrollTo({ top: 0, behavior: "smooth" });
-    };
+    const btnSubmit = document.getElementById("btnSubmitSaleQuiz");
+    if (btnSubmit) {
+      btnSubmit.onclick = () => {
+        const curAnswered = qList.filter(item => currentQuizAnswers[item.id] !== undefined).length;
+        if (curAnswered < qList.length) {
+          const ok = confirm(`Bạn mới chọn ${curAnswered}/${qList.length} câu. Nộp bài ngay?`);
+          if (!ok) return;
+        }
 
-    // Previous attempts history
-    if (Array.isArray(prog.attempts) && prog.attempts.length > 0) {
-      historyCard.classList.remove("hidden");
-      const rows = prog.attempts.map((att, idx) => {
-        const timeStr = new Date(att.timestamp).toLocaleString("vi-VN");
-        const badge = att.passed
-          ? `<span class="sidebar-item-status done">✓ Đạt (${att.score}%)</span>`
-          : `<span class="sidebar-item-status failed">⚠️ Chưa đạt (${att.score}%)</span>`;
-        return `
-          <div class="manage-item-row">
-            <div><strong>Lần thi #${prog.attempts.length - idx}</strong> · ${escapeHtml(timeStr)} — Đúng <strong>${att.correctCount}/${att.totalCount}</strong> câu</div>
-            <div>${badge}</div>
-          </div>
-        `;
-      }).join("");
-      historyCard.innerHTML = `
-        <div class="up-card">
-          <h3 style="font-size:15px;font-weight:800;">🕒 Lịch sử các lần làm bài của bạn (${prog.attempts.length} lần)</h3>
-          <div style="display:flex;flex-direction:column;gap:6px;">${rows}</div>
-        </div>
-      `;
-    } else {
-      historyCard.classList.add("hidden");
+        let correctCount = 0;
+        qList.forEach(item => {
+          if (currentQuizAnswers[item.id] === Number(item.correctIndex)) correctCount++;
+        });
+        const score = Math.round((correctCount * 100) / qList.length);
+        const passed = score >= thresh;
+
+        const attemptRecord = {
+          id: "att-" + Date.now().toString(36),
+          timestamp: new Date().toISOString(),
+          score,
+          correctCount,
+          totalCount: qList.length,
+          passed,
+          answers: { ...currentQuizAnswers }
+        };
+
+        prog.docViewed = true;
+        if (!Array.isArray(prog.attempts)) prog.attempts = [];
+        prog.attempts.unshift(attemptRecord);
+        prog.bestScore = Math.max(Number(prog.bestScore || 0), score);
+        if (passed) prog.passed = true;
+        prog.updatedAt = new Date().toISOString();
+
+        currentQuizSubmittedResult = attemptRecord;
+        activeQuizQuestionIndex = 0;
+        triggerAutoSave(true, false, prog);
+        renderSaleQuizPanel(mod, prog);
+        renderSidebar();
+      };
     }
   }
 
   // =========================================================================
-  // VIEW B: CONTENT UPLOADER WORKSPACE (UPLOAD DOCS, AI QUIZ GEN, PREVIEW/EDIT)
+  // VIEW B: ĐÀO TẠO WORKSPACE (COMPACT & STREAMLINED)
   // =========================================================================
   function renderUploaderWorkspace() {
     const mod = getCurrentModule();
@@ -1385,7 +1383,6 @@
     currentModuleId = mod.id;
 
     const qList = Array.isArray(mod.questions) ? mod.questions : [];
-    document.getElementById("uploaderHeaderTitle").textContent = `${mod.code}: ${mod.title}`;
     document.getElementById("lblUpQuestionCount").textContent = String(qList.length);
 
     const btnTabDoc = document.getElementById("btnUpTabDoc");
@@ -1408,10 +1405,9 @@
       renderUploaderWorkspace();
     };
 
-    // Populate Step 1 Document fields
     document.getElementById("upModStatus").value = mod.status || "published";
-    document.getElementById("upModCode").value = mod.code || "";
-    document.getElementById("upModCategory").value = mod.category || "";
+    document.getElementById("upModCode").value = mod.code || "HP";
+    document.getElementById("upModCategory").value = mod.category || "Tài liệu Đào tạo";
     document.getElementById("upModDuration").value = mod.durationMinutes || 20;
     document.getElementById("upModThreshold").value = mod.passThreshold || 80;
     document.getElementById("upModTitle").value = mod.title || "";
@@ -1426,23 +1422,16 @@
     contentTa.oninput = () => {
       mod.contentText = contentTa.value;
       document.getElementById("lblDocCharCount").textContent = `${contentTa.value.length.toLocaleString("vi-VN")} ký tự`;
+      triggerAutoSave(false, true);
     };
 
-    // Structured data preview box
-    const structBox = document.getElementById("upStructuredPreviewBox");
-    const structBody = document.getElementById("upStructuredPreviewBody");
-    const btnTogglePreview = document.getElementById("btnToggleUpDocPreview");
-    if (mod.structuredType || (Array.isArray(mod.uploadedTables) && mod.uploadedTables.length > 0)) {
-      structBox.classList.remove("hidden");
-      btnTogglePreview.onclick = () => {
-        const isHidden = structBody.classList.contains("hidden");
-        structBody.classList.toggle("hidden", !isHidden);
-        if (isHidden) {
-          structBody.innerHTML = buildStructuredDocumentHtml(mod);
-        }
+    const titleInp = document.getElementById("upModTitle");
+    if (titleInp) {
+      titleInp.oninput = () => {
+        mod.title = titleInp.value.trim() || mod.title;
+        triggerAutoSave(false, true);
+        renderSidebar();
       };
-    } else {
-      structBox.classList.add("hidden");
     }
 
     document.getElementById("btnGoToQuizGenerator").onclick = () => {
@@ -1453,7 +1442,6 @@
       renderSidebar();
     };
 
-    // Render Step 2: Quiz Generator & Question Bank Editor
     renderUploaderQuestionBank(mod);
   }
 
@@ -1462,11 +1450,11 @@
     const lines = [];
     if (mod.structuredType === "comparison_6_criteria" && Array.isArray(mod.structuredData)) {
       mod.structuredData.forEach(r => {
-        lines.push(`[Tiêu chí ${r.stt}: ${r.title}]`);
+        lines.push(`[Mục ${r.stt}: ${r.title}]`);
         lines.push(`- Chương trình Bộ GD&ĐT: ${r.bo_gddt}`);
         lines.push(`- Chương trình KNS Novastars: ${r.novastars}`);
         lines.push(`- Điểm khác biệt ăn tiền: ${r.khac_biet_an_tien}`);
-        lines.push(`- Ý chính Sale tư vấn Chủ trường/Hiệu trưởng: ${r.sale_pitch}\n`);
+        lines.push(`- Câu chốt Sale nói với Chủ trường/Hiệu trưởng: ${r.sale_pitch}\n`);
       });
     } else if (mod.structuredType === "pedagogy_6_reasons" && Array.isArray(mod.structuredData)) {
       mod.structuredData.forEach(r => {
@@ -1498,17 +1486,7 @@
   function syncUploaderDocFieldsToModule(mod) {
     if (!mod) return;
     mod.status = document.getElementById("upModStatus").value || "published";
-    mod.code = document.getElementById("upModCode").value.trim() || mod.code || "HP";
-    mod.category = document.getElementById("upModCategory").value.trim() || "Chuyên đề Đào tạo";
-    mod.durationMinutes = Number(document.getElementById("upModDuration").value || 20);
-    mod.passThreshold = Number(document.getElementById("upModThreshold").value || 80);
-    mod.title = document.getElementById("upModTitle").value.trim() || "Học phần mới";
-    mod.subtitle = document.getElementById("upModSubtitle").value.trim() || "";
-    const rawPts = document.getElementById("upModSummaryPoints").value;
-    mod.summaryPoints = rawPts
-      .split(/\n+/)
-      .map(s => s.replace(/^[•\-*]\s*/, "").trim())
-      .filter(Boolean);
+    mod.title = document.getElementById("upModTitle").value.trim() || mod.title || "Bài học mới";
     mod.contentText = document.getElementById("upModContentText").value;
     mod.updatedAt = new Date().toISOString();
   }
@@ -1518,30 +1496,13 @@
     const qList = mod.questions;
     document.getElementById("lblUpQuestionCount").textContent = String(qList.length);
 
-    // Render Audit Badges (Total, A/B/C/D balance, 4 Categories count)
-    const auditWrap = document.getElementById("uploaderQuizAuditBadges");
-    const dist = { 0: 0, 1: 0, 2: 0, 3: 0 };
-    const catCount = { kien_thuc: 0, usp_khac_biet: 0, dan_chung_bai_mau: 0, xu_ly_tinh_huong: 0 };
-    qList.forEach(q => {
-      const cIdx = Number(q.correctIndex || 0);
-      dist[cIdx] = (dist[cIdx] || 0) + 1;
-      const ck = q.category || "kien_thuc";
-      catCount[ck] = (catCount[ck] || 0) + 1;
-    });
-
-    auditWrap.innerHTML = `
-      <span class="audit-pill good">✓ Tổng: ${qList.length} câu</span>
-      <span class="audit-pill">Phân bổ Đáp án đúng: A(${dist[0]}) · B(${dist[1]}) · C(${dist[2]}) · D(${dist[3]})</span>
-      <span class="audit-pill">Cấu trúc(${catCount.kien_thuc}) · USP(${catCount.usp_khac_biet}) · Bài mẫu(${catCount.dan_chung_bai_mau}) · Tình huống(${catCount.xu_ly_tinh_huong})</span>
-    `;
-
     const listContainer = document.getElementById("uploaderQuestionsList");
     listContainer.innerHTML = "";
 
     if (qList.length === 0) {
       listContainer.innerHTML = `
-        <div class="up-card" style="text-align:center;padding:32px;color:#64748B;">
-          Chưa có câu hỏi trắc nghiệm nào trong học phần này. Hãy bấm <strong>"✨ Tự động chuyển Tài liệu sang Trắc nghiệm ngay"</strong> hoặc tải bộ câu hỏi có sẵn lên ở phía trên nhé!
+        <div class="up-card" style="text-align:center;padding:28px;color:#64748B;">
+          Chưa có câu hỏi nào. Hãy bấm <strong>"✨ Tạo tự động từ tài liệu"</strong> hoặc <strong>"📁 Tải file câu hỏi có sẵn"</strong> ở thanh công cụ phía trên.
         </div>
       `;
       return;
@@ -1549,22 +1510,62 @@
 
     const letters = ["A", "B", "C", "D"];
     qList.forEach((q, qIdx) => {
+      const isExpanded = expandedUploaderQuestionIndex === qIdx;
+
+      if (!isExpanded) {
+        // COMPACT 1-LINE ROW
+        const row = document.createElement("div");
+        row.className = "up-compact-q-row";
+        const cIdx = Number(q.correctIndex || 0);
+        const correctText = (q.options && q.options[cIdx]) ? q.options[cIdx] : "";
+        row.innerHTML = `
+          <div class="up-q-row-left">
+            <span class="qq-num-badge">Câu ${qIdx + 1}</span>
+            <span class="up-q-row-title">${escapeHtml(q.question || "(Chưa nhập câu hỏi)")}</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+            <span class="up-q-row-ans" title="Đáp án đúng: ${letters[cIdx]}. ${escapeHtml(correctText)}">
+              ✓ ${letters[cIdx]}. ${escapeHtml(correctText)}
+            </span>
+            <button type="button" class="btn-q-mini" data-expand-q="${qIdx}">✏️ Sửa</button>
+            <button type="button" class="btn-q-mini danger" data-del-q="${qIdx}" title="Xóa câu này">🗑️</button>
+          </div>
+        `;
+
+        row.addEventListener("click", e => {
+          if (e.target.closest("[data-del-q]")) return;
+          expandedUploaderQuestionIndex = qIdx;
+          renderUploaderQuestionBank(mod);
+        });
+
+        row.querySelector(`[data-del-q="${qIdx}"]`).addEventListener("click", e => {
+          e.stopPropagation();
+          if (confirm(`Xóa Câu ${qIdx + 1}?`)) {
+            qList.splice(qIdx, 1);
+            if (expandedUploaderQuestionIndex === qIdx) expandedUploaderQuestionIndex = null;
+            triggerAutoSave(true, true);
+            renderUploaderQuestionBank(mod);
+            renderSidebar();
+          }
+        });
+
+        listContainer.appendChild(row);
+        return;
+      }
+
+      // EXPANDED EDITOR FOR ONLY THE SELECTED QUESTION
       const card = document.createElement("div");
       card.className = "up-q-card";
-
-      const catOptionsHtml = QUESTION_CATEGORIES.map(c =>
-        `<option value="${c.key}" ${q.category === c.key ? "selected" : ""}>${escapeHtml(c.label)}</option>`
-      ).join("");
 
       const optsRowsHtml = [0, 1, 2, 3].map(oIdx => {
         const isCorrect = Number(q.correctIndex) === oIdx;
         const optVal = (q.options && q.options[oIdx]) ? q.options[oIdx] : "";
         return `
           <div class="up-q-opt-row">
-            <button type="button" class="up-opt-radio-btn ${isCorrect ? "is-correct" : ""}" data-set-correct="${qIdx}:${oIdx}" title="Bấm để chọn phương án ${letters[oIdx]} làm Đáp án đúng">
+            <button type="button" class="up-opt-radio-btn ${isCorrect ? "is-correct" : ""}" data-set-correct="${qIdx}:${oIdx}">
               ${isCorrect ? "✓ Đúng:" : "Chọn:"} ${letters[oIdx]}
             </button>
-            <input type="text" class="input-control" data-edit-opt="${qIdx}:${oIdx}" value="${escapeHtml(optVal)}" placeholder="Nhập nội dung phương án ${letters[oIdx]}...">
+            <input type="text" class="input-control" data-edit-opt="${qIdx}:${oIdx}" value="${escapeHtml(optVal)}" placeholder="Phương án ${letters[oIdx]}...">
           </div>
         `;
       }).join("");
@@ -1572,21 +1573,17 @@
       card.innerHTML = `
         <div class="up-q-top">
           <div class="up-q-top-left">
-            <span class="qq-num-badge">Câu ${qIdx + 1}</span>
-            <select class="input-control" data-edit-cat="${qIdx}" style="width:auto;padding:5px 10px;font-size:12.5px;font-weight:700;">
-              ${catOptionsHtml}
-            </select>
+            <span class="qq-num-badge">Đang sửa Câu ${qIdx + 1}</span>
           </div>
           <div class="up-q-actions">
-            <button type="button" class="btn-q-mini" data-move-up="${qIdx}" ${qIdx === 0 ? "disabled" : ""} title="Chuyển câu này lên trên">▲ Lên</button>
-            <button type="button" class="btn-q-mini" data-move-down="${qIdx}" ${qIdx === qList.length - 1 ? "disabled" : ""} title="Chuyển câu này xuống dưới">▼ Xuống</button>
-            <button type="button" class="btn-q-mini danger" data-del-q="${qIdx}" title="Xóa câu hỏi này">🗑️ Xóa câu</button>
+            <button type="button" class="btn-q-mini danger" data-del-q="${qIdx}">🗑️ Xóa câu</button>
+            <button type="button" class="btn-primary" data-collapse-q="${qIdx}" style="padding:5px 12px;font-size:12px;">✓ Xong (Thu gọn)</button>
           </div>
         </div>
 
         <div class="form-group">
-          <label>Nội dung câu hỏi / Tình huống khách hàng:</label>
-          <textarea class="input-control" rows="2" data-edit-qtext="${qIdx}" placeholder="Nhập câu hỏi trắc nghiệm...">${escapeHtml(q.question || "")}</textarea>
+          <label>Câu hỏi:</label>
+          <textarea class="input-control" rows="2" data-edit-qtext="${qIdx}">${escapeHtml(q.question || "")}</textarea>
         </div>
 
         <div class="up-q-options-grid">
@@ -1594,16 +1591,15 @@
         </div>
 
         <div class="form-group">
-          <label>💡 Giải thích căn cứ tài liệu gốc &amp; Gợi ý câu nói tư vấn Chủ trường / Hiệu trưởng:</label>
-          <textarea class="input-control" rows="2" data-edit-exp="${qIdx}" placeholder="Nhập giải thích vì sao đáp án đúng và gợi ý câu chốt tư vấn...">${escapeHtml(q.explanation || "")}</textarea>
+          <label>💡 Giải thích &amp; Gợi ý tư vấn:</label>
+          <textarea class="input-control" rows="2" data-edit-exp="${qIdx}">${escapeHtml(q.explanation || "")}</textarea>
         </div>
       `;
 
-      // Bind live edits
-      card.querySelector(`[data-edit-cat="${qIdx}"]`).addEventListener("change", e => {
-        q.category = e.target.value;
-        q.categoryLabel = getCategoryLabel(q.category);
-        triggerAutoSave(false, true);
+      card.querySelector(`[data-collapse-q="${qIdx}"]`).addEventListener("click", () => {
+        expandedUploaderQuestionIndex = null;
+        triggerAutoSave(true, true);
+        renderUploaderQuestionBank(mod);
       });
 
       card.querySelector(`[data-edit-qtext="${qIdx}"]`).addEventListener("input", e => {
@@ -1635,35 +1631,10 @@
         });
       });
 
-      const btnUp = card.querySelector(`[data-move-up="${qIdx}"]`);
-      if (btnUp) {
-        btnUp.addEventListener("click", () => {
-          if (qIdx > 0) {
-            const tmp = qList[qIdx - 1];
-            qList[qIdx - 1] = qList[qIdx];
-            qList[qIdx] = tmp;
-            triggerAutoSave(true, true);
-            renderUploaderQuestionBank(mod);
-          }
-        });
-      }
-
-      const btnDown = card.querySelector(`[data-move-down="${qIdx}"]`);
-      if (btnDown) {
-        btnDown.addEventListener("click", () => {
-          if (qIdx < qList.length - 1) {
-            const tmp = qList[qIdx + 1];
-            qList[qIdx + 1] = qList[qIdx];
-            qList[qIdx] = tmp;
-            triggerAutoSave(true, true);
-            renderUploaderQuestionBank(mod);
-          }
-        });
-      }
-
       card.querySelector(`[data-del-q="${qIdx}"]`).addEventListener("click", () => {
-        if (confirm(`Bạn có chắc muốn xóa Câu ${qIdx + 1} không?`)) {
+        if (confirm(`Xóa Câu ${qIdx + 1}?`)) {
           qList.splice(qIdx, 1);
+          expandedUploaderQuestionIndex = null;
           triggerAutoSave(true, true);
           renderUploaderQuestionBank(mod);
           renderSidebar();
@@ -2926,7 +2897,7 @@
         id: `q-man-${Date.now().toString(36)}`,
         category: "xu_ly_tinh_huong",
         categoryLabel: "4. Xử lý tình huống",
-        question: "Câu hỏi tình huống tư vấn Chủ trường / Hiệu trưởng mới?",
+        question: "Nhập nội dung câu hỏi trắc nghiệm mới...",
         options: [
           "Phương án A",
           "Phương án B (Đáp án đúng)",
@@ -2934,8 +2905,9 @@
           "Phương án D"
         ],
         correctIndex: 1,
-        explanation: "Giải thích căn cứ theo tài liệu gốc và gợi ý câu nói mẫu để Sale tư vấn."
+        explanation: "Giải thích căn cứ theo tài liệu gốc."
       });
+      expandedUploaderQuestionIndex = mod.questions.length - 1;
       triggerAutoSave(true, true);
       renderUploaderQuestionBank(mod);
       renderSidebar();
@@ -2951,19 +2923,22 @@
       const mod = getCurrentModule();
       if (!mod) return;
       syncUploaderDocFieldsToModule(mod);
+      expandedUploaderQuestionIndex = null;
       triggerAutoSave(true, true);
       renderSidebar();
       renderUploaderWorkspace();
       const btn = document.getElementById("btnUploaderSaveModule");
       if (btn) {
         const orig = btn.textContent;
-        btn.textContent = "✓ Đã lưu & Xuất bản!";
+        btn.textContent = "✓ Đã lưu bài học!";
         setTimeout(() => { btn.textContent = orig; }, 1800);
       }
     }
 
-    document.getElementById("btnUploaderSaveModule").addEventListener("click", saveCurrentModuleAndNotify);
-    document.getElementById("btnUploaderSaveBottom").addEventListener("click", saveCurrentModuleAndNotify);
+    const btnSaveTop = document.getElementById("btnUploaderSaveModule");
+    const btnSaveBot = document.getElementById("btnUploaderSaveBottom");
+    if (btnSaveTop) btnSaveTop.addEventListener("click", saveCurrentModuleAndNotify);
+    if (btnSaveBot) btnSaveBot.addEventListener("click", saveCurrentModuleAndNotify);
 
     // Preview as Sale Buttons
     function previewCurrentModuleAsSale() {
@@ -2976,16 +2951,20 @@
       renderAll();
     }
 
-    document.getElementById("btnUploaderPreviewAsSale").addEventListener("click", previewCurrentModuleAsSale);
-    document.getElementById("btnUploaderPreviewBottom").addEventListener("click", () => {
-      const mod = getCurrentModule();
-      if (mod) syncUploaderDocFieldsToModule(mod);
-      triggerAutoSave(true, true);
-      activeWorkspaceView = "sale";
-      activeSaleTab = "quiz";
-      resetActiveQuizState();
-      renderAll();
-    });
+    const btnPrevTop = document.getElementById("btnUploaderPreviewAsSale");
+    const btnPrevBot = document.getElementById("btnUploaderPreviewBottom");
+    if (btnPrevTop) btnPrevTop.addEventListener("click", previewCurrentModuleAsSale);
+    if (btnPrevBot) {
+      btnPrevBot.addEventListener("click", () => {
+        const mod = getCurrentModule();
+        if (mod) syncUploaderDocFieldsToModule(mod);
+        triggerAutoSave(true, true);
+        activeWorkspaceView = "sale";
+        activeSaleTab = "quiz";
+        resetActiveQuizState();
+        renderAll();
+      });
+    }
 
     // Delete Module Button
     document.getElementById("btnUploaderDeleteModule").addEventListener("click", () => {
