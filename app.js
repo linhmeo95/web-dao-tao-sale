@@ -57,7 +57,7 @@
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        if (parsed && Array.isArray(parsed.modules) && parsed.modules.length > 0) {
+        if (parsed && Array.isArray(parsed.modules)) {
           result = parsed;
         }
       } catch (e) {}
@@ -74,25 +74,18 @@
       };
     }
 
-    // Ensure canonical users exist
-    if (window.INITIAL_TRAINING_DB && Array.isArray(window.INITIAL_TRAINING_DB.users)) {
-      if (!Array.isArray(result.users)) result.users = [];
-      window.INITIAL_TRAINING_DB.users.forEach(cu => {
-        const exists = result.users.find(u => u.id === cu.id);
-        if (!exists) result.users.push(JSON.parse(JSON.stringify(cu)));
-      });
+    if (!Array.isArray(result.users)) {
+      result.users = (window.INITIAL_TRAINING_DB && Array.isArray(window.INITIAL_TRAINING_DB.users))
+        ? JSON.parse(JSON.stringify(window.INITIAL_TRAINING_DB.users))
+        : [];
     }
-
-    // Ensure canonical modules exist
-    if (window.INITIAL_TRAINING_DB && Array.isArray(window.INITIAL_TRAINING_DB.modules)) {
-      if (!Array.isArray(result.modules)) result.modules = [];
-      window.INITIAL_TRAINING_DB.modules.forEach(cm => {
-        const exists = result.modules.find(m => m.id === cm.id);
-        if (!exists) result.modules.push(JSON.parse(JSON.stringify(cm)));
-      });
+    if (!Array.isArray(result.modules)) {
+      result.modules = (window.INITIAL_TRAINING_DB && Array.isArray(window.INITIAL_TRAINING_DB.modules))
+        ? JSON.parse(JSON.stringify(window.INITIAL_TRAINING_DB.modules))
+        : [];
     }
-
     if (!Array.isArray(result.progress)) result.progress = [];
+
     localStorage.setItem(STORAGE_KEY, JSON.stringify(result));
     return result;
   }
@@ -211,32 +204,29 @@
       });
 
       if (cloudConfig) {
-        if (cloudConfig.meta) {
-          db.meta = { ...db.meta, ...cloudConfig.meta };
-        }
-        if (Array.isArray(cloudConfig.users) && cloudConfig.users.length > 0) {
-          const uMap = new Map();
-          (db.users || []).forEach(u => uMap.set(u.id, u));
-          cloudConfig.users.forEach(cu => uMap.set(cu.id, cu));
-          db.users = Array.from(uMap.values());
-        }
-        if (Array.isArray(cloudConfig.modules) && cloudConfig.modules.length > 0) {
-          const mMap = new Map();
-          (db.modules || []).forEach(m => mMap.set(m.id, m));
-          cloudConfig.modules.forEach(cm => {
-            const existing = mMap.get(cm.id);
-            if (!existing) {
-              mMap.set(cm.id, cm);
-            } else {
-              // Preserve structuredData if cloud payload stripped it or merge latest questions
-              mMap.set(cm.id, {
-                ...existing,
-                ...cm,
-                structuredData: cm.structuredData || existing.structuredData
-              });
-            }
-          });
-          db.modules = Array.from(mMap.values());
+        const cloudTime = Date.parse((cloudConfig.meta && cloudConfig.meta.updatedAt) || "") || 0;
+        const localTime = Date.parse((db.meta && db.meta.updatedAt) || "") || 0;
+
+        if (cloudTime >= localTime) {
+          if (cloudConfig.meta) {
+            db.meta = { ...db.meta, ...cloudConfig.meta };
+          }
+          if (Array.isArray(cloudConfig.users)) {
+            db.users = cloudConfig.users;
+          }
+          if (Array.isArray(cloudConfig.modules) && cloudConfig.modules.length > 0) {
+            const localStructMap = new Map();
+            (db.modules || []).forEach(m => {
+              if (m.structuredData) localStructMap.set(m.id, m.structuredData);
+            });
+            db.modules = cloudConfig.modules.map(cm => ({
+              ...cm,
+              structuredData: cm.structuredData || localStructMap.get(cm.id)
+            }));
+          }
+        } else {
+          // Local changes are newer than cloud; push local config to cloud
+          triggerAutoSave(true, true);
         }
       }
 
@@ -285,9 +275,20 @@
       if (res.ok) {
         const serverDb = await res.json();
         if (serverDb && Array.isArray(serverDb.modules)) {
-          db = serverDb;
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
-          renderAll();
+          const srvTime = Date.parse((serverDb.meta && serverDb.meta.updatedAt) || "") || 0;
+          const locTime = Date.parse((db.meta && db.meta.updatedAt) || "") || 0;
+          if (srvTime > locTime) {
+            db = serverDb;
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
+            renderAll();
+          } else if (locTime > srvTime) {
+            // Local has newer changes; sync them back to local server
+            fetch("/api/save", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(db)
+            }).catch(() => {});
+          }
         }
       }
     } catch (e) {}
