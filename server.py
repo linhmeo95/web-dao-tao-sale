@@ -380,7 +380,7 @@ class TrainingRequestHandler(http.server.SimpleHTTPRequestHandler):
 
 
 if __name__ == "__main__":
-    http.server.HTTPServer.allow_reuse_address = True
-    with http.server.HTTPServer(("127.0.0.1", PORT), TrainingRequestHandler) as httpd:
-        print(f"Serving NovaStars Sale Training App on http://localhost:{PORT}")
+    http.server.ThreadingHTTPServer.allow_reuse_address = True
+    with http.server.ThreadingHTTPServer(("127.0.0.1", PORT), TrainingRequestHandler) as httpd:
+        print(f"Serving NovaStars Sale Training App on http://localhost:{PORT}", flush=True)
         httpd.serve_forever()

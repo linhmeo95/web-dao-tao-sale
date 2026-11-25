@@ -275,14 +275,16 @@
       if (res.ok) {
         const serverDb = await res.json();
         if (serverDb && Array.isArray(serverDb.modules)) {
+          // Only adopt serverDb if local storage has never been modified by user AND server is newer
           const srvTime = Date.parse((serverDb.meta && serverDb.meta.updatedAt) || "") || 0;
           const locTime = Date.parse((db.meta && db.meta.updatedAt) || "") || 0;
-          if (srvTime > locTime) {
+          const localModified = Boolean(db.meta && db.meta.localModified);
+          if (!localModified && srvTime > locTime) {
             db = serverDb;
             localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
             renderAll();
-          } else if (locTime > srvTime) {
-            // Local has newer changes; sync them back to local server
+          } else {
+            // Local has user changes; sync them back to local server immediately
             fetch("/api/save", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
@@ -316,11 +318,22 @@
   function triggerAutoSave(immediate = false, saveConfig = false, specificProg = null) {
     if (!db.meta) db.meta = {};
     db.meta.updatedAt = new Date().toISOString();
+    db.meta.localModified = true;
     localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
 
     const saveText = document.getElementById("saveText");
     const nowStr = new Date().toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" });
     if (saveText) saveText.textContent = "☁️ Đang lưu...";
+
+    // Always send to local server right away when immediate is true
+    if (immediate) {
+      fetch("/api/save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(db),
+        keepalive: true
+      }).catch(() => {});
+    }
 
     if (saveTimer) clearTimeout(saveTimer);
     saveTimer = setTimeout(async () => {
@@ -2357,28 +2370,43 @@
             <div class="inline-edit-group">
               <input type="text" class="inline-edit-input" data-edit-u-name value="${escapeHtml(u.name)}" placeholder="Họ và tên">
               <input type="text" class="inline-edit-input mono-input" data-edit-u-pin value="${escapeHtml(u.pin)}" placeholder="PIN" style="max-width:90px;">
-              <button type="button" class="btn-row-act save" data-save-u>✓ Lưu</button>
-              <button type="button" class="btn-row-act" data-cancel-u>Hủy</button>
+              <button type="button" class="btn-row-act save" data-save-u>✓ Xong</button>
             </div>
           `;
           const nameInp = row.querySelector("[data-edit-u-name]");
           const pinInp = row.querySelector("[data-edit-u-pin]");
-          row.querySelector("[data-save-u]").onclick = () => {
+
+          // Auto-save live on every keystroke so pressing F5 or closing never loses edits
+          const applyLiveEdit = () => {
             const newName = nameInp.value.trim();
-            const newPin = pinInp.value.trim() || u.pin;
-            if (!newName) return;
-            u.name = newName;
-            u.pin = newPin;
-            editingUserId = null;
+            const newPin = pinInp.value.trim();
+            if (newName) u.name = newName;
+            if (newPin) u.pin = newPin;
             triggerAutoSave(true, true);
-            renderManageUsersModal();
             populateAuthSelects();
+          };
+          nameInp.addEventListener("input", applyLiveEdit);
+          pinInp.addEventListener("input", applyLiveEdit);
+
+          const finishEdit = () => {
+            applyLiveEdit();
+            editingUserId = null;
+            renderManageUsersModal();
             renderAll();
           };
-          row.querySelector("[data-cancel-u]").onclick = () => {
-            editingUserId = null;
-            renderManageUsersModal();
-          };
+          row.querySelector("[data-save-u]").onclick = finishEdit;
+          nameInp.addEventListener("keydown", e => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              finishEdit();
+            }
+          });
+          pinInp.addEventListener("keydown", e => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              finishEdit();
+            }
+          });
         } else {
           row.innerHTML = `
             <div><strong>${escapeHtml(u.name)}</strong> — Mã PIN: <code>${escapeHtml(u.pin)}</code></div>
@@ -3027,14 +3055,14 @@
     if (tUps) tUps.onclick = () => switchManageTab("uploaders");
     if (tSet) tSet.onclick = () => switchManageTab("settings");
 
-    document.getElementById("btnAddSale").addEventListener("click", () => {
+    function handleAddSale() {
       const nameInp = document.getElementById("newSaleName");
       const pinInp = document.getElementById("newSalePin");
-      const name = nameInp.value.trim();
-      const pin = pinInp.value.trim() || "1234";
+      const name = nameInp ? nameInp.value.trim() : "";
+      const pin = (pinInp ? pinInp.value.trim() : "") || "1234";
       if (!name) return;
       db.users.push({
-        id: "sale-" + Date.now().toString(36),
+        id: "sale-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 5),
         name,
         pin,
         role: "sale",
@@ -3046,16 +3074,16 @@
       renderManageUsersModal();
       populateAuthSelects();
       renderAll();
-    });
+    }
 
-    document.getElementById("btnAddUploader").addEventListener("click", () => {
+    function handleAddUploader() {
       const nameInp = document.getElementById("newUploaderName");
       const pinInp = document.getElementById("newUploaderPin");
-      const name = nameInp.value.trim();
-      const pin = pinInp.value.trim() || "7777";
+      const name = nameInp ? nameInp.value.trim() : "";
+      const pin = (pinInp ? pinInp.value.trim() : "") || "7777";
       if (!name) return;
       db.users.push({
-        id: "up-" + Date.now().toString(36),
+        id: "up-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 5),
         name,
         pin,
         role: "uploader",
@@ -3067,7 +3095,45 @@
       renderManageUsersModal();
       populateAuthSelects();
       renderAll();
+    }
+
+    document.getElementById("btnAddSale").addEventListener("click", handleAddSale);
+    ["newSaleName", "newSalePin"].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.addEventListener("keydown", e => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            handleAddSale();
+          }
+        });
+      }
     });
+
+    document.getElementById("btnAddUploader").addEventListener("click", handleAddUploader);
+    ["newUploaderName", "newUploaderPin"].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.addEventListener("keydown", e => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            handleAddUploader();
+          }
+        });
+      }
+    });
+
+    const manageDlg = document.getElementById("manageDialog");
+    if (manageDlg) {
+      manageDlg.addEventListener("close", () => {
+        handleAddSale();
+        handleAddUploader();
+        editingUserId = null;
+        triggerAutoSave(true, true);
+        populateAuthSelects();
+        renderAll();
+      });
+    }
 
     document.getElementById("btnSaveAdminSettings").addEventListener("click", () => {
       const newPin = document.getElementById("settingAdminPin").value.trim() || "8888";
