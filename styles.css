@@ -3048,3 +3048,104 @@ dialog::backdrop {
   text-overflow: ellipsis;
   flex-shrink: 0;
 }
+
+
+/* ========================================================================= */
+/* 11. ANTI-CHEAT EXAM MODE (TIMER, DOCUMENT LOCK, TAB-SWITCH MONITOR)       */
+/* ========================================================================= */
+.exam-start-card {
+  background: #FFFFFF;
+  border: 1.5px solid var(--border-strong);
+  border-radius: 16px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+.exam-rules-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: #FFF9FB;
+  border: 1px solid #FCE7F3;
+  padding: 14px 16px;
+  border-radius: 12px;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: #334155;
+}
+
+.exam-rules-list li {
+  padding-left: 14px;
+  position: relative;
+}
+
+.exam-rules-list li::before {
+  content: "•";
+  position: absolute;
+  left: 0;
+  color: #EC4899;
+  font-weight: 800;
+}
+
+.exam-hud-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  background: #0F172A;
+  color: #FFFFFF;
+  padding: 10px 16px;
+  border-radius: 12px;
+}
+
+.exam-timer-pill {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 800;
+  background: rgba(255, 255, 255, 0.14);
+  padding: 5px 12px;
+  border-radius: 8px;
+  color: #F8FAFC;
+}
+
+.exam-timer-pill.urgent {
+  background: #DC2626;
+  color: #FFFFFF;
+}
+
+.exam-violation-pill {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.12);
+  color: #E2E8F0;
+}
+
+.exam-violation-pill.warn {
+  background: #FEF3C7;
+  color: #92400E;
+}
+
+.exam-warning-toast {
+  background: #FEF2F2;
+  border: 1.5px solid #EF4444;
+  color: #991B1B;
+  padding: 11px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.sale-mode-tab.locked-tab {
+  opacity: 0.6;
+  background: #F1F5F9;
+  border-color: #CBD5E1;
+}

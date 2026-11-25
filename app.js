@@ -699,6 +699,17 @@
         `;
 
         btn.addEventListener("click", () => {
+          if (mod.id === currentModuleId) {
+            const sb = document.getElementById("moduleSidebar");
+            const bd = document.getElementById("sidebarBackdrop");
+            if (sb) sb.classList.remove("open");
+            if (bd) bd.classList.add("hidden");
+            return;
+          }
+          if (isExamInProgress) {
+            const ok = confirm("Bạn đang trong lượt làm bài trắc nghiệm. Nếu chuyển sang học phần khác, lượt làm bài hiện tại sẽ bị hủy. Bạn có chắc muốn chuyển không?");
+            if (!ok) return;
+          }
           currentModuleId = mod.id;
           resetActiveQuizState();
           renderAll();
@@ -720,13 +731,162 @@
   let activeQuizQuestionIndex = 0;
   let expandedUploaderQuestionIndex = null;
 
+  // Anti-cheat Exam Mode State
+  const SECONDS_PER_QUESTION = 40;
+  const MAX_ALLOWED_TAB_SWITCHES = 2;
+  let isExamInProgress = false;
+  let examSecondsRemaining = 0;
+  let examTotalSeconds = 0;
+  let examTimerInterval = null;
+  let examTabSwitchCount = 0;
+  let examWarningMsg = "";
+  let lastViolationTimestamp = 0;
+  let examBroadcastChannel = null;
+
+  try {
+    if ("BroadcastChannel" in window) {
+      examBroadcastChannel = new BroadcastChannel("novastars_sale_exam_guard");
+      examBroadcastChannel.onmessage = (ev) => {
+        if (ev.data && ev.data.type === "DOC_OPENED_IN_OTHER_TAB" && isExamInProgress) {
+          recordExamTabViolation("Phát hiện mở tài liệu ở một tab trình duyệt khác");
+        }
+      };
+    }
+  } catch (e) {}
+
+  function stopExamTimer() {
+    if (examTimerInterval) {
+      clearInterval(examTimerInterval);
+      examTimerInterval = null;
+    }
+    isExamInProgress = false;
+  }
+
   function resetActiveQuizState() {
+    stopExamTimer();
     currentQuizAnswers = {};
     currentQuizSubmittedResult = null;
     activeDocStepIndex = 0;
     activeQuizQuestionIndex = 0;
     expandedUploaderQuestionIndex = null;
+    examSecondsRemaining = 0;
+    examTabSwitchCount = 0;
+    examWarningMsg = "";
   }
+
+  function formatMMSS(sec) {
+    const s = Math.max(0, Math.floor(sec));
+    const m = Math.floor(s / 60);
+    const r = s % 60;
+    return `${String(m).padStart(2, "0")}:${String(r).padStart(2, "0")}`;
+  }
+
+  function startExamSession(mod, prog) {
+    const qList = Array.isArray(mod.questions) ? mod.questions : [];
+    if (qList.length === 0) return;
+    stopExamTimer();
+    currentQuizAnswers = {};
+    currentQuizSubmittedResult = null;
+    activeQuizQuestionIndex = 0;
+    examTabSwitchCount = 0;
+    examWarningMsg = "";
+    examTotalSeconds = qList.length * SECONDS_PER_QUESTION;
+    examSecondsRemaining = examTotalSeconds;
+    isExamInProgress = true;
+
+    examTimerInterval = setInterval(() => {
+      if (!isExamInProgress) return;
+      examSecondsRemaining--;
+      const timerEl = document.getElementById("lblExamCountdown");
+      if (timerEl) {
+        timerEl.textContent = `Thời gian còn lại: ${formatMMSS(examSecondsRemaining)}`;
+        timerEl.classList.toggle("urgent", examSecondsRemaining <= 60);
+      }
+      if (examSecondsRemaining <= 0) {
+        submitActiveExam(mod, prog, "Hết thời gian làm bài");
+      }
+    }, 1000);
+
+    renderSaleWorkspace();
+  }
+
+  function submitActiveExam(mod, prog, autoReason = "") {
+    const qList = Array.isArray(mod.questions) ? mod.questions : [];
+    const thresh = Number(mod.passThreshold || 80);
+    const timeSpentSec = Math.max(1, examTotalSeconds - examSecondsRemaining);
+    stopExamTimer();
+
+    let correctCount = 0;
+    qList.forEach(item => {
+      if (currentQuizAnswers[item.id] === Number(item.correctIndex)) correctCount++;
+    });
+    const score = qList.length > 0 ? Math.round((correctCount * 100) / qList.length) : 0;
+    const passed = score >= thresh;
+
+    const attemptRecord = {
+      id: "att-" + Date.now().toString(36),
+      timestamp: new Date().toISOString(),
+      score,
+      correctCount,
+      totalCount: qList.length,
+      passed,
+      tabSwitches: examTabSwitchCount,
+      timeSpentSec,
+      note: autoReason || "",
+      answers: { ...currentQuizAnswers }
+    };
+
+    prog.docViewed = true;
+    if (!Array.isArray(prog.attempts)) prog.attempts = [];
+    prog.attempts.unshift(attemptRecord);
+    prog.bestScore = Math.max(Number(prog.bestScore || 0), score);
+    if (passed) prog.passed = true;
+    prog.updatedAt = new Date().toISOString();
+
+    currentQuizSubmittedResult = attemptRecord;
+    activeQuizQuestionIndex = 0;
+    triggerAutoSave(true, false, prog);
+    renderSaleWorkspace();
+    renderSidebar();
+  }
+
+  function recordExamTabViolation(customReason = "") {
+    if (!isExamInProgress || activeWorkspaceView !== "sale" || activeSaleTab !== "quiz") return;
+    const now = Date.now();
+    // Debounce simultaneous blur + visibilitychange within 1.2s
+    if (now - lastViolationTimestamp < 1200) return;
+    lastViolationTimestamp = now;
+
+    examTabSwitchCount++;
+    const mod = getCurrentModule();
+    const learner = getEffectiveLearnerUser();
+    const prog = mod ? getOrCreateProgress(learner.id, learner.name, mod.id) : null;
+
+    if (examTabSwitchCount > MAX_ALLOWED_TAB_SWITCHES && mod && prog) {
+      examWarningMsg = `Bài thi đã bị hệ thống tự động thu do bạn rời màn hình / chuyển tab quá ${MAX_ALLOWED_TAB_SWITCHES} lần (${examTabSwitchCount} lần).`;
+      submitActiveExam(mod, prog, `Tự động thu bài (Chuyển tab ${examTabSwitchCount} lần)`);
+      return;
+    }
+
+    const reasonText = customReason || "Phát hiện rời khỏi màn hình làm bài (chuyển sang tab hoặc cửa sổ khác)";
+    examWarningMsg = `Cảnh báo vi phạm (${examTabSwitchCount}/${MAX_ALLOWED_TAB_SWITCHES}): ${reasonText}. Hệ thống đã ghi nhận vào báo cáo của Admin. Nếu quá ${MAX_ALLOWED_TAB_SWITCHES} lần, bài thi sẽ tự động bị thu!`;
+    if (mod && prog) {
+      renderSaleQuizPanel(mod, prog);
+    }
+  }
+
+  // Listen for tab switching / window blur during active exam
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden" && isExamInProgress) {
+      recordExamTabViolation("Chuyển sang tab trình duyệt khác khi đang làm bài");
+    }
+  });
+
+  window.addEventListener("blur", () => {
+    if (isExamInProgress) {
+      recordExamTabViolation("Chuyển ra ngoài cửa sổ làm bài (mở ứng dụng hoặc tài liệu khác)");
+    }
+  });
 
   // =========================================================================
   // VIEW A: SALE WORKSPACE (STEP-BY-STEP CARD DOC & 1-BY-1 QUIZ)
@@ -779,10 +939,11 @@
     const panelQuiz = document.getElementById("salePanelQuiz");
 
     const docSteps = buildDocumentSteps(mod);
-    document.getElementById("lblSaleDocStatus").textContent = `${docSteps.length} mục`;
+    document.getElementById("lblSaleDocStatus").textContent = isExamInProgress ? "Đã khóa khi đang thi" : `${docSteps.length} mục`;
     document.getElementById("lblSaleQuizStatus").textContent = `${qList.length} câu`;
 
     btnTabDoc.classList.toggle("active", activeSaleTab === "doc");
+    btnTabDoc.classList.toggle("locked-tab", isExamInProgress);
     btnTabDoc.setAttribute("aria-selected", String(activeSaleTab === "doc"));
     btnTabQuiz.classList.toggle("active", activeSaleTab === "quiz");
     btnTabQuiz.setAttribute("aria-selected", String(activeSaleTab === "quiz"));
@@ -791,7 +952,17 @@
     panelQuiz.classList.toggle("hidden", activeSaleTab !== "quiz");
 
     btnTabDoc.onclick = () => {
+      if (isExamInProgress) {
+        const confirmCancel = confirm(
+          "Tài liệu đang bị khóa trong thời gian làm bài trắc nghiệm.\n\nNếu bạn quay lại xem tài liệu lúc này, bài làm hiện tại sẽ bị HỦY và phải làm lại từ đầu. Bạn có chắc muốn hủy bài đang làm không?"
+        );
+        if (!confirmCancel) return;
+        resetActiveQuizState();
+      }
       activeSaleTab = "doc";
+      if (examBroadcastChannel) {
+        try { examBroadcastChannel.postMessage({ type: "DOC_OPENED_IN_OTHER_TAB" }); } catch (e) {}
+      }
       renderSaleWorkspace();
     };
     btnTabQuiz.onclick = () => {
@@ -806,6 +977,9 @@
     };
 
     if (activeSaleTab === "doc") {
+      if (examBroadcastChannel) {
+        try { examBroadcastChannel.postMessage({ type: "DOC_OPENED_IN_OTHER_TAB" }); } catch (e) {}
+      }
       renderSaleDocumentPanel(mod, prog, docSteps);
     } else {
       renderSaleQuizPanel(mod, prog);
@@ -1164,30 +1338,75 @@
       return;
     }
 
+    const isSubmitted = Boolean(currentQuizSubmittedResult);
+
+    // State 1: Neither started exam nor submitted yet -> Show Exam Rules & Start Button
+    if (!isExamInProgress && !isSubmitted) {
+      resultBanner.classList.add("hidden");
+      const totalTimeStr = formatMMSS(qList.length * SECONDS_PER_QUESTION);
+      const attCnt = Array.isArray(prog.attempts) ? prog.attempts.length : 0;
+      stageContainer.innerHTML = `
+        <div class="exam-start-card">
+          <div>
+            <h3 style="font-family:var(--font-display);font-size:18px;font-weight:800;color:#0F172A;margin-bottom:4px;">
+              Bài kiểm tra trắc nghiệm: ${escapeHtml(mod.title)}
+            </h3>
+            <p style="font-size:13px;color:#64748B;">
+              Số lượng: <strong>${qList.length} câu hỏi</strong> · Thời gian làm bài: <strong>${totalTimeStr} phút</strong> (${SECONDS_PER_QUESTION} giây/câu) · Điểm đạt: <strong>&ge; ${thresh}%</strong>
+              ${attCnt > 0 ? ` · Điểm cao nhất hiện tại: <strong>${prog.bestScore}%</strong>` : ""}
+            </p>
+          </div>
+
+          <ul class="exam-rules-list">
+            <li><strong>Khóa tài liệu khi làm bài:</strong> Ngay khi bấm bắt đầu, mục <em>Xem Tài liệu</em> sẽ bị khóa. Nếu thoát ra mở lại tài liệu, bài đang làm sẽ bị hủy.</li>
+            <li><strong>Giới hạn thời gian đếm ngược:</strong> Đồng hồ đếm ngược <strong>${totalTimeStr}</strong>. Hết giờ hệ thống sẽ tự động thu bài và chấm điểm.</li>
+            <li><strong>Chống chuyển tab / mở tài liệu khác:</strong> Hệ thống tự động phát hiện khi bạn chuyển sang tab khác hoặc mở cửa sổ ứng dụng khác trên máy. Mọi lần chuyển tab đều được ghi nhận báo cáo cho Admin và bài thi sẽ tự động bị thu nếu rời màn hình quá ${MAX_ALLOWED_TAB_SWITCHES} lần.</li>
+          </ul>
+
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
+            <button type="button" class="btn-secondary" id="btnExamBackToDoc">
+              ← Ôn lại tài liệu trước khi thi
+            </button>
+            <button type="button" class="btn-submit-quiz" id="btnStartExamNow">
+              Bắt đầu làm bài (${totalTimeStr})
+            </button>
+          </div>
+        </div>
+      `;
+
+      document.getElementById("btnExamBackToDoc").onclick = () => {
+        activeSaleTab = "doc";
+        renderSaleWorkspace();
+      };
+      document.getElementById("btnStartExamNow").onclick = () => {
+        startExamSession(mod, prog);
+      };
+      return;
+    }
+
     if (activeQuizQuestionIndex >= qList.length) activeQuizQuestionIndex = 0;
     if (activeQuizQuestionIndex < 0) activeQuizQuestionIndex = 0;
-
-    const isSubmitted = Boolean(currentQuizSubmittedResult);
 
     if (isSubmitted) {
       const res = currentQuizSubmittedResult;
       resultBanner.classList.remove("hidden", "passed", "failed");
       resultBanner.classList.add(res.passed ? "passed" : "failed");
+      const tabNote = res.tabSwitches > 0 ? ` · Chuyển tab/cửa sổ: ${res.tabSwitches} lần` : " · Nghiêm túc (0 lần chuyển tab)";
+      const autoNote = res.note ? ` (${escapeHtml(res.note)})` : "";
       resultBanner.innerHTML = `
         <div class="qrb-left">
           <div class="qrb-score-circle">${res.score}%</div>
           <div class="qrb-text">
-            <h3>${res.passed ? "ĐẠT YÊU CẦU!" : "CHƯA ĐẠT — HÃY XEM LẠI CÂU SAI & LÀM LẠI"}</h3>
-            <p>Đúng <strong>${res.correctCount}/${res.totalCount} câu</strong> (Chuẩn cần đạt &ge; ${thresh}%). Bấm vào từng số câu bên dưới để xem đáp án và giải thích.</p>
+            <h3>${res.passed ? "ĐẠT YÊU CẦU!" : "CHƯA ĐẠT — HÃY ÔN LẠI TÀI LIỆU & LÀM LẠI"}${autoNote}</h3>
+            <p>Đúng <strong>${res.correctCount}/${res.totalCount} câu</strong> (Chuẩn cần đạt &ge; ${thresh}%)${escapeHtml(tabNote)}. Bấm vào từng số câu bên dưới để xem lại bài làm.</p>
           </div>
         </div>
         <button type="button" class="btn-primary" id="btnRetakeQuizBanner">
-          Làm lại
+          Làm lại bài mới
         </button>
       `;
       document.getElementById("btnRetakeQuizBanner").onclick = () => {
-        resetActiveQuizState();
-        renderSaleQuizPanel(mod, prog);
+        startExamSession(mod, prog);
       };
     } else {
       resultBanner.classList.add("hidden");
@@ -1196,7 +1415,6 @@
     const answeredCount = qList.filter(q => currentQuizAnswers[q.id] !== undefined).length;
     const letters = ["A", "B", "C", "D"];
 
-    // Question number pills strip [1] [2] ... [N]
     const numPillsHtml = qList.map((item, idx) => {
       const hasAns = currentQuizAnswers[item.id] !== undefined;
       let cls = "q-num-pill";
@@ -1210,7 +1428,6 @@
       return `<button type="button" class="${cls}" data-goto-q="${idx}">${idx + 1}</button>`;
     }).join("");
 
-    // Render ONLY the 1 active question
     const q = qList[activeQuizQuestionIndex];
     const selectedIdx = currentQuizAnswers[q.id];
     const isCorrect = isSubmitted && selectedIdx === Number(q.correctIndex);
@@ -1253,7 +1470,21 @@
 
     const isLastQ = activeQuizQuestionIndex === qList.length - 1;
 
+    const hudHtml = !isSubmitted ? `
+      <div class="exam-hud-bar">
+        <span class="exam-timer-pill ${examSecondsRemaining <= 60 ? 'urgent' : ''}" id="lblExamCountdown">
+          Thời gian còn lại: ${formatMMSS(examSecondsRemaining)}
+        </span>
+        <span class="exam-violation-pill ${examTabSwitchCount > 0 ? 'warn' : ''}">
+          Chuyển tab / Rời màn hình: ${examTabSwitchCount}/${MAX_ALLOWED_TAB_SWITCHES} lần
+        </span>
+      </div>
+      ${examWarningMsg ? `<div class="exam-warning-toast">${escapeHtml(examWarningMsg)}</div>` : ""}
+    ` : "";
+
     stageContainer.innerHTML = `
+      ${hudHtml}
+
       <div class="quiz-num-strip-bar">
         <div class="quiz-num-pills">${numPillsHtml}</div>
         <span style="font-size:12.5px;font-weight:700;color:#64748B;">
@@ -1300,10 +1531,9 @@
         if (currentQuizSubmittedResult) return;
         currentQuizAnswers[q.id] = Number(btn.dataset.optIdx);
         renderSaleQuizPanel(mod, prog);
-        // Auto-advance to next question if not on the last question
         if (activeQuizQuestionIndex < qList.length - 1) {
           setTimeout(() => {
-            if (!currentQuizSubmittedResult && activeSaleTab === "quiz") {
+            if (!currentQuizSubmittedResult && activeSaleTab === "quiz" && isExamInProgress) {
               activeQuizQuestionIndex++;
               renderSaleQuizPanel(mod, prog);
             }
@@ -1340,36 +1570,7 @@
           const ok = confirm(`Bạn mới chọn ${curAnswered}/${qList.length} câu. Nộp bài ngay?`);
           if (!ok) return;
         }
-
-        let correctCount = 0;
-        qList.forEach(item => {
-          if (currentQuizAnswers[item.id] === Number(item.correctIndex)) correctCount++;
-        });
-        const score = Math.round((correctCount * 100) / qList.length);
-        const passed = score >= thresh;
-
-        const attemptRecord = {
-          id: "att-" + Date.now().toString(36),
-          timestamp: new Date().toISOString(),
-          score,
-          correctCount,
-          totalCount: qList.length,
-          passed,
-          answers: { ...currentQuizAnswers }
-        };
-
-        prog.docViewed = true;
-        if (!Array.isArray(prog.attempts)) prog.attempts = [];
-        prog.attempts.unshift(attemptRecord);
-        prog.bestScore = Math.max(Number(prog.bestScore || 0), score);
-        if (passed) prog.passed = true;
-        prog.updatedAt = new Date().toISOString();
-
-        currentQuizSubmittedResult = attemptRecord;
-        activeQuizQuestionIndex = 0;
-        triggerAutoSave(true, false, prog);
-        renderSaleQuizPanel(mod, prog);
-        renderSidebar();
+        submitActiveExam(mod, prog, "");
       };
     }
   }
@@ -2102,11 +2303,15 @@
         `;
       }).join("");
 
-      const historyHtml = prog.attempts.map((a, i) => `
-        <span class="sidebar-item-status ${a.passed ? 'done' : 'failed'}">
-          Lần #${prog.attempts.length - i}: ${a.score}% (${a.correctCount}/${a.totalCount}) · ${new Date(a.timestamp).toLocaleString("vi-VN")}
-        </span>
-      `).join(" ");
+      const historyHtml = prog.attempts.map((a, i) => {
+        const tabBadge = a.tabSwitches > 0 ? ` · Chuyển tab: ${a.tabSwitches} lần` : "";
+        const timeBadge = a.timeSpentSec ? ` · ${formatMMSS(a.timeSpentSec)}` : "";
+        return `
+          <span class="sidebar-item-status ${a.passed ? 'done' : 'failed'}">
+            Lần #${prog.attempts.length - i}: ${a.score}% (${a.correctCount}/${a.totalCount})${timeBadge}${tabBadge} · ${new Date(a.timestamp).toLocaleString("vi-VN")}
+          </span>
+        `;
+      }).join(" ");
 
       bodyEl.innerHTML = `
         <div style="display:flex;flex-direction:column;gap:12px;">
