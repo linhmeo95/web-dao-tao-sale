@@ -104,7 +104,7 @@
     const adminPin = (db.meta && db.meta.adminPin) ? String(db.meta.adminPin).trim() : "8888";
 
     if (userParam === "admin" && pinParam === adminPin) {
-      const adminObj = { id: "admin", name: "Ban Quản lý", role: "admin" };
+      const adminObj = { id: "admin", name: "Admin", role: "admin" };
       localStorage.setItem(SESSION_KEY, JSON.stringify(adminObj));
       return adminObj;
     }
@@ -383,7 +383,7 @@
 
     if (selSale) {
       const cur = selSale.value;
-      selSale.innerHTML = `<option value="" disabled selected>-- Chọn tên Nhân viên Sale --</option>`;
+      selSale.innerHTML = `<option value="" disabled selected>-- Chọn tên Sale --</option>`;
       (db.users || []).filter(u => u.role === "sale").forEach(u => {
         const opt = document.createElement("option");
         opt.value = u.id;
@@ -395,7 +395,7 @@
 
     if (selUploader) {
       const cur = selUploader.value;
-      selUploader.innerHTML = `<option value="" disabled selected>-- Chọn tên Người up nội dung --</option>`;
+      selUploader.innerHTML = `<option value="" disabled selected>-- Chọn tên nhân sự Đào tạo --</option>`;
       (db.users || []).filter(u => u.role === "uploader").forEach(u => {
         const opt = document.createElement("option");
         opt.value = u.id;
@@ -469,7 +469,7 @@
         const adminPin = (db.meta && db.meta.adminPin) ? String(db.meta.adminPin).trim() : "8888";
         const user = (db.users || []).find(u => u.id === userId && u.role === "uploader");
         if (!user || (String(user.pin).trim() !== pin && pin !== adminPin)) {
-          errUploader.textContent = "Mã PIN Người up nội dung chưa đúng.";
+          errUploader.textContent = "Mã PIN Đào tạo chưa đúng.";
           errUploader.classList.remove("hidden");
           return;
         }
@@ -488,12 +488,12 @@
         const pin = document.getElementById("authAdminPin").value.trim();
         const adminPin = (db.meta && db.meta.adminPin) ? String(db.meta.adminPin).trim() : "8888";
         if (pin !== adminPin) {
-          errAdmin.textContent = "Mã PIN Quản lý không chính xác.";
+          errAdmin.textContent = "Mã PIN Admin không chính xác.";
           errAdmin.classList.remove("hidden");
           return;
         }
         errAdmin.classList.add("hidden");
-        currentUser = { id: "admin", name: "Ban Quản lý", role: "admin" };
+        currentUser = { id: "admin", name: "Admin", role: "admin" };
         impersonatedSaleUser = null;
         activeWorkspaceView = "admin";
         localStorage.setItem(SESSION_KEY, JSON.stringify(currentUser));
@@ -531,21 +531,21 @@
     const btnToggleSidebar = document.getElementById("btnToggleSidebar");
 
     if (currentUser.role === "admin") {
-      nameEl.textContent = "🛡️ Ban Quản lý";
+      nameEl.textContent = "🛡️ Admin";
       if (dotEl) dotEl.style.background = "#FCD34D";
       switcher.classList.remove("hidden");
       btnAdmin.classList.remove("hidden");
       btnUploader.classList.remove("hidden");
       btnSale.classList.remove("hidden");
     } else if (currentUser.role === "uploader") {
-      nameEl.textContent = "✍️ " + currentUser.name;
+      nameEl.textContent = "✍️ Đào tạo · " + currentUser.name;
       if (dotEl) dotEl.style.background = "#A5B4FC";
       switcher.classList.remove("hidden");
       btnAdmin.classList.add("hidden");
       btnUploader.classList.remove("hidden");
       btnSale.classList.remove("hidden");
     } else {
-      nameEl.textContent = "💼 " + currentUser.name;
+      nameEl.textContent = "💼 Sale · " + currentUser.name;
       if (dotEl) dotEl.style.background = "#4ADE80";
       switcher.classList.add("hidden");
     }
@@ -2481,7 +2481,7 @@
 
       ctx.fillStyle = u.role === "uploader" ? "#3730A3" : "#065F46";
       ctx.font = "600 13px 'Be Vietnam Pro', sans-serif";
-      ctx.fillText(u.role === "uploader" ? "✍️ Người up nội dung" : "💼 Người học (Sale)", tableX + 330, curY + 27);
+      ctx.fillText(u.role === "uploader" ? "✍️ Đào tạo" : "💼 Sale", tableX + 330, curY + 27);
 
       ctx.fillStyle = "#BE185D";
       ctx.font = "bold 15.5px 'JetBrains Mono', monospace";

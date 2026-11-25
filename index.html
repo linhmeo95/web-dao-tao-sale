@@ -22,20 +22,20 @@
       <!-- 3 ROLE SELECTOR TABS -->
       <div class="auth-tabs" role="tablist" aria-label="Chọn đối tượng đăng nhập">
         <button type="button" class="auth-tab-btn active" id="authTabSale" role="tab" aria-selected="true">
-          💼 Người học (Sale)
+          💼 Sale
         </button>
         <button type="button" class="auth-tab-btn" id="authTabUploader" role="tab" aria-selected="false">
-          ✍️ Người up nội dung
+          ✍️ Đào tạo
         </button>
         <button type="button" class="auth-tab-btn" id="authTabAdmin" role="tab" aria-selected="false">
-          🛡️ Quản lý
+          🛡️ Admin
         </button>
       </div>
 
-      <!-- FORM 1: SALE (LEARNER) LOGIN -->
+      <!-- FORM 1: SALE LOGIN -->
       <form class="auth-form" id="formSaleLogin">
         <div class="auth-field">
-          <label for="authSelectSale">Họ và tên Nhân viên Sale:</label>
+          <label for="authSelectSale">Họ và tên Sale:</label>
           <select id="authSelectSale" class="auth-input" required>
             <option value="" disabled selected>-- Chọn tên của bạn --</option>
           </select>
@@ -53,43 +53,43 @@
         </button>
       </form>
 
-      <!-- FORM 2: CONTENT UPLOADER LOGIN -->
+      <!-- FORM 2: TRAINING (UPLOADER) LOGIN -->
       <form class="auth-form hidden" id="formUploaderLogin">
         <div class="auth-field">
-          <label for="authSelectUploader">Người phụ trách nội dung:</label>
+          <label for="authSelectUploader">Nhân sự Đào tạo:</label>
           <select id="authSelectUploader" class="auth-input" required>
-            <option value="" disabled selected>-- Chọn tên người up nội dung --</option>
+            <option value="" disabled selected>-- Chọn tên nhân sự Đào tạo --</option>
           </select>
         </div>
 
         <div class="auth-field">
-          <label for="authUploaderPin">Mã PIN Nội dung:</label>
+          <label for="authUploaderPin">Mã PIN Đào tạo:</label>
           <input type="password" id="authUploaderPin" class="auth-input mono-input" maxlength="8" placeholder="Nhập mã PIN (VD: 4444)" required autocomplete="current-password">
         </div>
 
         <p class="auth-error-msg hidden" id="authUploaderError"></p>
 
         <button type="submit" class="btn-auth-submit uploader">
-          Vào Quản lý Tài liệu &amp; Câu hỏi ➔
+          Vào Cập nhật Tài liệu &amp; Câu hỏi ➔
         </button>
       </form>
 
-      <!-- FORM 3: ADMIN (MANAGER) LOGIN -->
+      <!-- FORM 3: ADMIN LOGIN -->
       <form class="auth-form hidden" id="formAdminLogin">
         <div class="auth-field">
-          <label for="authAdminPin">Mã PIN Quản lý:</label>
-          <input type="password" id="authAdminPin" class="auth-input mono-input" maxlength="8" placeholder="Nhập mã PIN Quản trị" required autocomplete="current-password">
+          <label for="authAdminPin">Mã PIN Admin:</label>
+          <input type="password" id="authAdminPin" class="auth-input mono-input" maxlength="8" placeholder="Nhập mã PIN Admin" required autocomplete="current-password">
         </div>
 
         <p class="auth-error-msg hidden" id="authAdminError"></p>
 
         <button type="submit" class="btn-auth-submit admin">
-          Đăng nhập Quản lý ➔
+          Đăng nhập Admin ➔
         </button>
       </form>
 
       <div class="auth-footer-hint">
-        💡 Nhân viên Sale và Người up nội dung sử dụng mã PIN do Quản lý cấp. Nếu quên mã PIN, vui lòng liên hệ Quản lý.
+        💡 Sale và Đào tạo sử dụng mã PIN do Admin cấp. Nếu quên mã PIN, vui lòng liên hệ Admin.
       </div>
     </div>
   </section>
@@ -109,13 +109,13 @@
       <!-- ROLE WORKSPACE SWITCHER (Visible for Admin & Uploader to preview or switch views) -->
       <div class="workspace-mode-pills hidden" id="topWorkspaceSwitcher">
         <button type="button" class="ws-mode-pill" id="btnSwitchViewAdmin" data-target-view="admin">
-          📊 Quản lý Tiến độ
+          🛡️ Admin
         </button>
         <button type="button" class="ws-mode-pill" id="btnSwitchViewUploader" data-target-view="uploader">
-          ✍️ Up Tài liệu &amp; Trắc nghiệm
+          ✍️ Đào tạo
         </button>
         <button type="button" class="ws-mode-pill" id="btnSwitchViewSale" data-target-view="sale">
-          💼 Giao diện Học của Sale
+          💼 Sale
         </button>
       </div>
 
@@ -668,13 +668,13 @@
 
       <div class="modal-tab-bar" role="tablist">
         <button type="button" class="modal-tab-btn active" id="tabBtnManageSales" role="tab" aria-selected="true">
-          💼 Nhân viên Sale (Người học)
+          💼 Sale
         </button>
         <button type="button" class="modal-tab-btn" id="tabBtnManageUploaders" role="tab" aria-selected="false">
-          ✍️ Người up nội dung
+          ✍️ Đào tạo
         </button>
         <button type="button" class="modal-tab-btn" id="tabBtnManageSettings" role="tab" aria-selected="false">
-          🛡️ Cài đặt Quản lý
+          🛡️ Admin
         </button>
       </div>
 
@@ -701,14 +701,14 @@
       <!-- TAB 2: MANAGE CONTENT UPLOADERS -->
       <div class="modal-tab-panel hidden" id="tabPanelManageUploaders">
         <p style="font-size: 13px; color: var(--ink-muted); margin-bottom: 10px;">
-          Người up nội dung có quyền đăng tải tài liệu học tập, dùng công cụ chuyển tài liệu thành trắc nghiệm, tải bộ câu hỏi có sẵn và chỉnh sửa/duyệt câu hỏi.
+          Đào tạo có quyền đăng tải tài liệu học tập, dùng công cụ chuyển tài liệu thành trắc nghiệm, tải bộ câu hỏi có sẵn và chỉnh sửa/duyệt câu hỏi.
         </p>
         <div class="teacher-list-box" id="manageUploaderList"></div>
 
         <div class="add-row-form">
-          <input type="text" id="newUploaderName" class="input-control" placeholder="Tên Người up nội dung mới">
+          <input type="text" id="newUploaderName" class="input-control" placeholder="Tên nhân sự Đào tạo mới">
           <input type="text" id="newUploaderPin" class="input-control mono-input" placeholder="Mã PIN (VD: 7777)" style="max-width: 150px;">
-          <button type="button" class="btn-primary" id="btnAddUploader">+ Thêm Người up</button>
+          <button type="button" class="btn-primary" id="btnAddUploader">+ Thêm Đào tạo</button>
         </div>
       </div>
 
@@ -716,7 +716,7 @@
       <div class="modal-tab-panel hidden" id="tabPanelManageSettings">
         <div class="up-form-grid" style="padding: 10px 0;">
           <div class="form-group">
-            <label for="settingAdminPin">Mã PIN Quản lý (Admin):</label>
+            <label for="settingAdminPin">Mã PIN Admin:</label>
             <input type="text" id="settingAdminPin" class="input-control mono-input" value="8888">
           </div>
           <div class="form-group">
@@ -785,7 +785,7 @@
   </dialog>
 
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
-  <script src="data/initial_data.js?v=3"></script>
-  <script src="app.js?v=3"></script>
+  <script src="data/initial_data.js?v=4"></script>
+  <script src="app.js?v=4"></script>
 </body>
 </html>
