@@ -22,13 +22,13 @@
       <!-- 3 ROLE SELECTOR TABS -->
       <div class="auth-tabs" role="tablist" aria-label="Chọn đối tượng đăng nhập">
         <button type="button" class="auth-tab-btn active" id="authTabSale" role="tab" aria-selected="true">
-          💼 Sale
+          Sale
         </button>
         <button type="button" class="auth-tab-btn" id="authTabUploader" role="tab" aria-selected="false">
-          ✍️ Đào tạo
+          Đào tạo
         </button>
         <button type="button" class="auth-tab-btn" id="authTabAdmin" role="tab" aria-selected="false">
-          🛡️ Admin
+          Admin
         </button>
       </div>
 
@@ -49,7 +49,7 @@
         <p class="auth-error-msg hidden" id="authSaleError"></p>
 
         <button type="submit" class="btn-auth-submit">
-          Vào Học &amp; Làm Trắc Nghiệm ➔
+          Vào Học &amp; Làm Trắc Nghiệm
         </button>
       </form>
 
@@ -70,7 +70,7 @@
         <p class="auth-error-msg hidden" id="authUploaderError"></p>
 
         <button type="submit" class="btn-auth-submit uploader">
-          Vào Cập nhật Tài liệu &amp; Câu hỏi ➔
+          Vào Cập nhật Tài liệu &amp; Câu hỏi
         </button>
       </form>
 
@@ -84,12 +84,12 @@
         <p class="auth-error-msg hidden" id="authAdminError"></p>
 
         <button type="submit" class="btn-auth-submit admin">
-          Đăng nhập Admin ➔
+          Đăng nhập Admin
         </button>
       </form>
 
       <div class="auth-footer-hint">
-        💡 Sale và Đào tạo sử dụng mã PIN do Admin cấp. Nếu quên mã PIN, vui lòng liên hệ Admin.
+        Sale và Đào tạo sử dụng mã PIN do Admin cấp. Nếu quên mã PIN, vui lòng liên hệ Admin.
       </div>
     </div>
   </section>
@@ -109,24 +109,24 @@
       <!-- ROLE WORKSPACE SWITCHER (Visible for Admin & Uploader to preview or switch views) -->
       <div class="workspace-mode-pills hidden" id="topWorkspaceSwitcher">
         <button type="button" class="ws-mode-pill" id="btnSwitchViewAdmin" data-target-view="admin">
-          🛡️ Admin
+          Admin
         </button>
         <button type="button" class="ws-mode-pill" id="btnSwitchViewUploader" data-target-view="uploader">
-          ✍️ Đào tạo
+          Đào tạo
         </button>
         <button type="button" class="ws-mode-pill" id="btnSwitchViewSale" data-target-view="sale">
-          💼 Sale
+          Sale
         </button>
       </div>
 
       <button type="button" class="btn-top-save" id="btnTopSave" title="Bấm để đồng bộ dữ liệu ngay lập tức">
-        💾 <span class="save-badge" id="saveText">Tự động lưu</span>
+        <span class="save-badge" id="saveText">Tự động lưu</span>
       </button>
 
       <div class="user-switcher">
         <span class="user-dot" id="currentUserDot"></span>
         <strong id="currentUserName">Người dùng</strong>
-        <button type="button" class="btn-signout" id="btnSignOut" title="Đăng xuất khỏi hệ thống">🚪 Đăng xuất</button>
+        <button type="button" class="btn-signout" id="btnSignOut" title="Đăng xuất khỏi hệ thống">Đăng xuất</button>
       </div>
     </div>
   </header>
@@ -138,11 +138,11 @@
       <div class="sidebar-header">
         <div class="sidebar-header-top">
           <div class="sidebar-title-group">
-            <span class="sidebar-heading">📚 Lộ Trình Đào Tạo</span>
+            <span class="sidebar-heading">Danh sách bài học</span>
             <span class="sidebar-count-badge" id="lblSidebarTotalModules">4 bài</span>
           </div>
           <button type="button" class="btn-collapse-sidebar" id="btnCollapseSidebar" title="Thu gọn danh sách sang bên trái">
-            ◀ Thu gọn
+            Thu gọn
           </button>
         </div>
 
@@ -160,12 +160,11 @@
 
         <!-- UPLOADER QUICK CREATE MODULE BUTTON -->
         <button type="button" class="btn-new-module-sidebar hidden" id="btnSidebarCreateModule">
-          ➕ Tạo Học phần / Up Tài liệu mới
+          + Thêm bài học mới
         </button>
 
         <div class="sidebar-search-wrap">
-          <span class="search-icon" aria-hidden="true">🔍</span>
-          <input type="text" id="sidebarSearchInput" class="sidebar-search-input" placeholder="Tìm mã bài, chủ đề..." autocomplete="off">
+          <input type="text" id="sidebarSearchInput" class="sidebar-search-input" style="padding-left:10px;" placeholder="Tìm mã bài, chủ đề..." autocomplete="off">
           <button type="button" class="btn-clear-search hidden" id="btnSidebarClearSearch" title="Xóa tìm kiếm">✕</button>
         </div>
       </div>
@@ -189,11 +188,11 @@
           <!-- ADMIN/UPLOADER PREVIEW BANNER -->
           <div class="impersonation-banner hidden" id="impersonationBanner">
             <div class="imp-left">
-              <span class="imp-badge">👁️ XEM THỬ</span>
+              <span class="imp-badge">XEM THỬ</span>
               <span id="lblImpersonationText">Đang xem giao diện của Sale.</span>
             </div>
             <button type="button" class="btn-imp-back" id="btnExitImpersonation">
-              ← Quay lại
+              Quay lại
             </button>
           </div>
 
@@ -202,7 +201,7 @@
             <div class="compact-hero-row">
               <div class="compact-hero-title-group">
                 <button type="button" class="btn-inline-open-sidebar hidden" id="btnInlineOpenSidebar">
-                  📚 Danh sách bài
+                  Danh sách bài
                 </button>
                 <span class="lesson-code-tag" id="saleModCode">HP01</span>
                 <h2 class="module-main-title" id="saleModTitle">Tên bài học</h2>
@@ -214,12 +213,12 @@
             <div class="sale-mode-tabs compact-tabs" role="tablist">
               <button type="button" class="sale-mode-tab active" id="btnSaleTabDoc" role="tab" aria-selected="true">
                 <span class="tab-step-num">1</span>
-                <strong>📖 Xem Tài liệu</strong>
+                <strong>Xem Tài liệu</strong>
                 <span class="tab-inline-sub" id="lblSaleDocStatus"></span>
               </button>
               <button type="button" class="sale-mode-tab" id="btnSaleTabQuiz" role="tab" aria-selected="false">
                 <span class="tab-step-num">2</span>
-                <strong>📝 Làm Trắc nghiệm</strong>
+                <strong>Làm Trắc nghiệm</strong>
                 <span class="tab-inline-sub" id="lblSaleQuizStatus"></span>
               </button>
             </div>
@@ -254,22 +253,22 @@
           <div class="up-compact-topbar">
             <div class="up-subtabs-inline" role="tablist">
               <button type="button" class="up-pill-tab active" id="btnUpTabDoc" role="tab" aria-selected="true">
-                📄 1. Tài liệu học
+                1. Tài liệu học
               </button>
               <button type="button" class="up-pill-tab" id="btnUpTabQuiz" role="tab" aria-selected="false">
-                🎯 2. Câu hỏi trắc nghiệm (<span id="lblUpQuestionCount">10</span>)
+                2. Câu hỏi trắc nghiệm (<span id="lblUpQuestionCount">10</span>)
               </button>
             </div>
 
             <div class="up-top-right-actions">
               <button type="button" class="btn-secondary" id="btnUploaderPreviewAsSale">
-                👁️ Xem thử như Sale
+                Xem thử như Sale
               </button>
               <button type="button" class="btn-q-mini danger" id="btnUploaderDeleteModule" style="padding:8px 12px;">
-                🗑️ Xóa bài
+                Xóa bài
               </button>
               <button type="button" class="btn-primary" id="btnUploaderSaveModule">
-                💾 Lưu bài học
+                Lưu bài học
               </button>
             </div>
           </div>
@@ -285,8 +284,8 @@
                 <div class="form-group" style="width:170px;">
                   <label for="upModStatus">Trạng thái:</label>
                   <select id="upModStatus" class="input-control">
-                    <option value="published">🟢 Đã xuất bản</option>
-                    <option value="draft">🟡 Bản nháp (Ẩn)</option>
+                    <option value="published">Đã xuất bản</option>
+                    <option value="draft">Bản nháp (Ẩn)</option>
                   </select>
                 </div>
               </div>
@@ -301,7 +300,7 @@
 
               <div class="up-doc-toolbar">
                 <label class="btn-upload-doc-primary">
-                  📤 Tải file tài liệu lên (.docx, .xlsx, .pdf, .txt)
+                  Tải file tài liệu (.docx, .xlsx, .pdf, .txt)
                   <input type="file" id="inputUploadDocFile" accept=".docx,.xlsx,.xls,.pdf,.txt,.md,.csv" hidden>
                 </label>
                 <span class="up-file-status hidden" id="upDocFileStatus"></span>
@@ -312,7 +311,7 @@
 
               <div class="up-step-footer">
                 <button type="button" class="btn-primary-large" id="btnGoToQuizGenerator">
-                  Tiếp theo: Tạo &amp; Duyệt Câu hỏi Trắc nghiệm ➔
+                  Tiếp theo: Câu hỏi trắc nghiệm
                 </button>
               </div>
             </div>
@@ -333,17 +332,17 @@
                   <option value="append" selected>append</option>
                 </select>
                 <button type="button" class="btn-ai-generate" id="btnRunAiQuizConverter" style="flex:none;padding:9px 15px;">
-                  ✨ Tạo tự động từ tài liệu
+                  Tạo tự động từ tài liệu
                 </button>
                 <label class="btn-qbank-tool" style="cursor:pointer;margin:0;">
-                  📁 Tải file câu hỏi có sẵn
+                  Tải file câu hỏi có sẵn
                   <input type="file" id="inputImportQuizFile" accept=".xlsx,.xls,.docx,.csv,.json,.txt,.md" hidden>
                 </label>
                 <button type="button" class="btn-qbank-tool" id="btnOpenPasteQuizModal">
-                  📋 Dán câu hỏi
+                  Dán câu hỏi
                 </button>
                 <button type="button" class="btn-qbank-tool" id="btnDownloadQuizTemplate" title="Tải file Excel mẫu">
-                  ⬇️ Mẫu Excel
+                  Tải mẫu Excel
                 </button>
               </div>
 
@@ -356,7 +355,7 @@
 
             <!-- COMPACT 1-LINE QUESTION LIST (CLICK TO EXPAND & EDIT) -->
             <div class="up-compact-hint">
-              💡 Bấm vào bất kỳ câu hỏi nào bên dưới để mở khung chỉnh sửa nội dung và đáp án của câu đó:
+              Bấm vào câu hỏi bất kỳ bên dưới để mở khung chỉnh sửa:
             </div>
             <div class="uploader-questions-list" id="uploaderQuestionsList">
               <!-- Rendered by JS: Compact 1-line rows, click to expand editor -->
@@ -372,35 +371,35 @@
         <div class="admin-shell-layout">
           <!-- LEFT ADMIN NAVIGATION SIDEBAR (2-Column Focused Layout like web-nhan-xet-gv) -->
           <aside class="admin-nav-sidebar" aria-label="Điều hướng Quản lý">
-            <div class="admin-nav-label">BẢNG ĐIỀU KHIỂN QUẢN LÝ</div>
+            <div class="admin-nav-label">BẢNG ĐIỀU KHIỂN ADMIN</div>
             <nav class="admin-dossier-tab-bar" id="adminNavTabBar" role="tablist">
               <button type="button" class="admin-nav-btn active" data-admin-tab="matrix">
-                <span>📊 Ma trận Tiến độ Sale</span>
+                <span>Tiến độ học của Sale</span>
                 <span class="admin-nav-badge" id="badgeAdminMatrixCount">5 Sale</span>
               </button>
               <button type="button" class="admin-nav-btn" data-admin-tab="dossier">
-                <span>👤 Hồ sơ từng Sale</span>
+                <span>Hồ sơ từng Sale</span>
                 <span class="admin-nav-badge" id="badgeAdminDossierCount">Chi tiết</span>
               </button>
               <button type="button" class="admin-nav-btn" data-admin-tab="analytics">
-                <span>📌 Thống kê theo Học phần</span>
+                <span>Thống kê theo Bài học</span>
                 <span class="admin-nav-badge" id="badgeAdminAnalyticsCount">4 bài</span>
               </button>
             </nav>
 
             <div class="admin-sidebar-tools">
-              <div class="admin-nav-label" style="margin-bottom:6px;">CÔNG CỤ QUẢN LÝ</div>
-              <button type="button" class="admin-tool-btn" id="btnRefreshCloud" title="Tải ngay tiến độ học & điểm thi mới nhất từ Supabase Cloud">
-                🔄 Làm mới dữ liệu Cloud
+              <div class="admin-nav-label" style="margin-bottom:6px;">CÔNG CỤ ADMIN</div>
+              <button type="button" class="admin-tool-btn" id="btnRefreshCloud" title="Tải ngay tiến độ học & điểm thi mới nhất">
+                Làm mới dữ liệu
               </button>
               <button type="button" class="admin-tool-btn" id="btnOpenManageUsersModal">
-                ⚙️ Quản lý Nhân sự &amp; Mã PIN
+                Quản lý Nhân sự &amp; Mã PIN
               </button>
               <button type="button" class="admin-tool-btn" id="btnAdminGoToUploader">
-                ✍️ Up Tài liệu &amp; Duyệt Câu hỏi
+                Biên tập Tài liệu &amp; Câu hỏi
               </button>
               <button type="button" class="admin-tool-btn primary" id="btnExportExcel">
-                📊 Xuất Báo cáo Excel (.xlsx)
+                Xuất Báo cáo Excel (.xlsx)
               </button>
             </div>
           </aside>
@@ -415,13 +414,13 @@
               <div class="admin-card">
                 <div class="admin-card-head">
                   <div>
-                    <h2 class="admin-title">📊 Bảng Ma trận Tiến độ Học tập &amp; Điểm Trắc nghiệm của Sale</h2>
-                    <p class="admin-sub">Bấm vào từng ô kết quả để xem chi tiết lịch sử làm bài, các câu trả lời đúng/sai của từng nhân viên Sale.</p>
+                    <h2 class="admin-title">Bảng Ma trận Tiến độ Học tập &amp; Điểm Trắc nghiệm của Sale</h2>
+                    <p class="admin-sub">Bấm vào từng ô kết quả để xem chi tiết lịch sử làm bài và các câu trả lời đúng/sai của từng Sale.</p>
                   </div>
                   <div class="matrix-legend">
-                    <span class="legend-chip done">✓ Đã đạt (&ge;80%)</span>
-                    <span class="legend-chip failed">⚠️ Chưa đạt (&lt;80%)</span>
-                    <span class="legend-chip reading">📖 Đang đọc tài liệu</span>
+                    <span class="legend-chip done">Đã đạt (&ge;80%)</span>
+                    <span class="legend-chip failed">Chưa đạt (&lt;80%)</span>
+                    <span class="legend-chip reading">Đang đọc tài liệu</span>
                     <span class="legend-chip empty">Chưa học</span>
                   </div>
                 </div>
@@ -464,10 +463,10 @@
       </div>
       <div class="dialog-footer inspect-dialog-footer">
         <button type="button" class="btn-act-as-teacher-inspect" id="btnInspectActAsSale">
-          🔑 Xem giao diện học &amp; thi dưới quyền Sale này ➔
+          Xem giao diện học &amp; thi dưới quyền Sale này
         </button>
         <button type="button" class="btn-primary" data-close-dialog="adminQuickInspectModal" style="padding: 8px 18px;">
-          Đóng (Esc)
+          Đóng
         </button>
       </div>
     </div>
@@ -479,19 +478,19 @@
   <dialog id="manageDialog" closedby="any" aria-labelledby="manageDialogTitle">
     <div class="dialog-inner dialog-manage">
       <div class="dialog-header">
-        <h2 id="manageDialogTitle">⚙️ Quản lý Nhân sự, Phân quyền &amp; Mã PIN</h2>
+        <h2 id="manageDialogTitle">Quản lý Nhân sự, Phân quyền &amp; Mã PIN</h2>
         <button type="button" class="btn-close-dialog" data-close-dialog="manageDialog" aria-label="Đóng">✕</button>
       </div>
 
       <div class="modal-tab-bar" role="tablist">
         <button type="button" class="modal-tab-btn active" id="tabBtnManageSales" role="tab" aria-selected="true">
-          💼 Sale
+          Sale
         </button>
         <button type="button" class="modal-tab-btn" id="tabBtnManageUploaders" role="tab" aria-selected="false">
-          ✍️ Đào tạo
+          Đào tạo
         </button>
         <button type="button" class="modal-tab-btn" id="tabBtnManageSettings" role="tab" aria-selected="false">
-          🛡️ Admin
+          Admin
         </button>
       </div>
 
@@ -499,10 +498,10 @@
       <div class="modal-tab-panel" id="tabPanelManageSales">
         <div class="share-banner">
           <button type="button" class="btn-copy-card-img" id="btnCopyPinCardImg">
-            📸 Copy ảnh Bảng Tên + Mã PIN (Paste vào nhóm chat)
+            Copy ảnh Bảng Tên + Mã PIN (Paste vào nhóm chat)
           </button>
           <button type="button" class="btn-secondary" id="btnCopySharedUrl">
-            🔗 Copy Link Web đào tạo
+            Copy Link Web
           </button>
         </div>
 
@@ -558,12 +557,12 @@
   <dialog id="pasteQuizDialog" closedby="any" aria-labelledby="pasteQuizDialogTitle">
     <div class="dialog-inner dialog-manage">
       <div class="dialog-header">
-        <h2 id="pasteQuizDialogTitle">📋 Dán Bộ Câu hỏi Trắc nghiệm có sẵn</h2>
+        <h2 id="pasteQuizDialogTitle">Dán Bộ Câu hỏi Trắc nghiệm có sẵn</h2>
         <button type="button" class="btn-close-dialog" data-close-dialog="pasteQuizDialog" aria-label="Đóng">✕</button>
       </div>
       <div style="display:flex;flex-direction:column;gap:12px;">
         <p style="font-size:13px;color:var(--ink-secondary);line-height:1.5;">
-          Bạn có thể copy và dán bộ câu hỏi từ <strong>file Word, Google Docs, Excel</strong> hoặc kết quả do <strong>Antigravity</strong> tạo vào ô dưới đây. Hệ thống tự động nhận diện câu hỏi, 4 đáp án A/B/C/D, đáp án đúng và lời giải thích:
+          Bạn có thể copy và dán bộ câu hỏi từ <strong>file Word, Google Docs, Excel</strong> hoặc kết quả do <strong>Antigravity</strong> tạo vào ô dưới đây:
         </p>
         <div class="paste-format-example">
           <strong>Mẫu văn bản tự động nhận diện:</strong><br>
@@ -579,7 +578,7 @@
           </label>
           <div style="display:flex;gap:8px;">
             <button type="button" class="btn-secondary" data-close-dialog="pasteQuizDialog">Hủy</button>
-            <button type="button" class="btn-primary" id="btnConfirmPasteQuiz">📥 Nhập vào danh sách Xem trước &amp; Sửa</button>
+            <button type="button" class="btn-primary" id="btnConfirmPasteQuiz">Nhập vào danh sách</button>
           </div>
         </div>
       </div>
@@ -602,7 +601,7 @@
   </dialog>
 
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
-  <script src="data/initial_data.js?v=7"></script>
-  <script src="app.js?v=7"></script>
+  <script src="data/initial_data.js?v=8"></script>
+  <script src="app.js?v=8"></script>
 </body>
 </html>

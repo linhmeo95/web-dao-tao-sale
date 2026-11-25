@@ -323,7 +323,7 @@
 
     const saveText = document.getElementById("saveText");
     const nowStr = new Date().toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" });
-    if (saveText) saveText.textContent = "☁️ Đang lưu...";
+    if (saveText) saveText.textContent = "Đang lưu...";
 
     // Always send to local server right away when immediate is true
     if (immediate) {
@@ -383,7 +383,7 @@
       } catch (e) {}
 
       if (saveText) {
-        saveText.textContent = cloudSaved ? `☁️ Đã lưu Cloud ${nowStr}` : `✓ Đã lưu ${nowStr}`;
+        saveText.textContent = cloudSaved ? `Đã lưu Cloud ${nowStr}` : `✓ Đã lưu ${nowStr}`;
       }
     }, immediate ? 40 : 300);
   }
@@ -545,21 +545,21 @@
     const btnToggleSidebar = document.getElementById("btnToggleSidebar");
 
     if (currentUser.role === "admin") {
-      nameEl.textContent = "🛡️ Admin";
+      nameEl.textContent = "Admin";
       if (dotEl) dotEl.style.background = "#FCD34D";
       switcher.classList.remove("hidden");
       btnAdmin.classList.remove("hidden");
       btnUploader.classList.remove("hidden");
       btnSale.classList.remove("hidden");
     } else if (currentUser.role === "uploader") {
-      nameEl.textContent = "✍️ Đào tạo · " + currentUser.name;
+      nameEl.textContent = "Đào tạo · " + currentUser.name;
       if (dotEl) dotEl.style.background = "#A5B4FC";
       switcher.classList.remove("hidden");
       btnAdmin.classList.add("hidden");
       btnUploader.classList.remove("hidden");
       btnSale.classList.remove("hidden");
     } else {
-      nameEl.textContent = "💼 Sale · " + currentUser.name;
+      nameEl.textContent = "Sale · " + currentUser.name;
       if (dotEl) dotEl.style.background = "#4ADE80";
       switcher.classList.add("hidden");
     }
@@ -670,16 +670,16 @@
           if (mod.status === "draft") {
             statusHtml = `<span class="sidebar-item-status draft">✎ Bản nháp</span>`;
           } else {
-            statusHtml = `<span class="sidebar-item-status done">🟢 ${qCount} câu hỏi</span>`;
+            statusHtml = `<span class="sidebar-item-status done">${qCount} câu hỏi</span>`;
           }
         } else {
           const prog = (db.progress || []).find(p => p.userId === learner.id && p.moduleId === mod.id);
           if (prog && prog.passed) {
             statusHtml = `<span class="sidebar-item-status done">✓ Đạt ${prog.bestScore}%</span>`;
           } else if (prog && Array.isArray(prog.attempts) && prog.attempts.length > 0) {
-            statusHtml = `<span class="sidebar-item-status failed">⚠️ ${prog.bestScore}% (Làm lại)</span>`;
+            statusHtml = `<span class="sidebar-item-status failed">${prog.bestScore}% (Làm lại)</span>`;
           } else if (prog && prog.docViewed) {
-            statusHtml = `<span class="sidebar-item-status reading">📖 Đã đọc bài</span>`;
+            statusHtml = `<span class="sidebar-item-status reading">Đã đọc bài</span>`;
           } else {
             statusHtml = `<span class="sidebar-item-status empty">Chưa học</span>`;
           }
@@ -692,9 +692,9 @@
           </div>
           <div class="sidebar-item-title">${escapeHtml(mod.title)}</div>
           <div class="sidebar-item-meta">
-            <span>📝 ${qCount} câu trắc nghiệm</span>
+            <span>${qCount} câu trắc nghiệm</span>
             <span>·</span>
-            <span>🎯 Chuẩn &ge;${mod.passThreshold || 80}%</span>
+            <span>Chuẩn &ge;${mod.passThreshold || 80}%</span>
           </div>
         `;
 
@@ -768,7 +768,7 @@
     if (prog.passed) {
       statusArea.innerHTML = `<span class="sidebar-item-status done" style="font-size:12px;padding:4px 10px;">✓ Đã đạt (${prog.bestScore}%)</span>`;
     } else if (prog.attempts && prog.attempts.length > 0) {
-      statusArea.innerHTML = `<span class="sidebar-item-status failed" style="font-size:12px;padding:4px 10px;">⚠️ Điểm cao nhất: ${prog.bestScore}% (Chuẩn &ge;${thresh}%)</span>`;
+      statusArea.innerHTML = `<span class="sidebar-item-status failed" style="font-size:12px;padding:4px 10px;">Điểm cao nhất: ${prog.bestScore}% (Chuẩn &ge;${thresh}%)</span>`;
     } else {
       statusArea.innerHTML = `<span class="sidebar-item-status empty" style="font-size:12px;padding:4px 10px;">Chuẩn hoàn thành &ge;${thresh}%</span>`;
     }
@@ -828,19 +828,19 @@
             </div>
             <div class="stc-grid-2">
               <div class="stc-box traditional">
-                <div class="stc-box-label">🏫 Chương trình Bộ GD&amp;ĐT</div>
+                <div class="stc-box-label">Chương trình Bộ GD&amp;ĐT</div>
                 <div class="stc-box-content">${escapeHtml(item.bo_gddt)}</div>
               </div>
               <div class="stc-box novastars">
-                <div class="stc-box-label">🌟 Chương trình KNS Novastars</div>
+                <div class="stc-box-label">Chương trình KNS Novastars</div>
                 <div class="stc-box-content">${escapeHtml(item.novastars)}</div>
               </div>
               <div class="stc-box usp">
-                <div class="stc-box-label">💎 Điểm khác biệt ăn tiền</div>
+                <div class="stc-box-label">Điểm khác biệt ăn tiền</div>
                 <div class="stc-box-content">${escapeHtml(item.khac_biet_an_tien)}</div>
               </div>
               <div class="stc-box pitch">
-                <div class="stc-box-label">🗣️ Câu chốt nói với Chủ trường / Hiệu trưởng</div>
+                <div class="stc-box-label">Câu chốt nói với Chủ trường / Hiệu trưởng</div>
                 <div class="stc-box-content"><strong>"${escapeHtml(item.sale_pitch)}"</strong></div>
               </div>
             </div>
@@ -864,15 +864,15 @@
             </div>
             <div class="stc-grid-2">
               <div class="stc-box traditional">
-                <div class="stc-box-label">🧠 Tâm lý trẻ &amp; Cách trường thường dạy</div>
+                <div class="stc-box-label">Tâm lý trẻ &amp; Cách trường thường dạy</div>
                 <div class="stc-box-content"><strong>• Tâm lý trẻ:</strong> ${escapeHtml(item.tam_ly_tre)}\n\n<strong>• Trường thường dạy:</strong> ${escapeHtml(item.cach_truong_thuong_day)}</div>
               </div>
               <div class="stc-box novastars">
-                <div class="stc-box-label">✨ Cách Novastars thiết kế sẵn</div>
+                <div class="stc-box-label">Cách Novastars thiết kế sẵn</div>
                 <div class="stc-box-content">${escapeHtml(item.cach_novastars)}</div>
               </div>
               <div class="stc-box pitch" style="grid-column: 1 / -1;">
-                <div class="stc-box-label">🗣️ Câu trả lời mẫu thuyết phục Chủ trường / Hiệu trưởng</div>
+                <div class="stc-box-label">Câu trả lời mẫu thuyết phục Chủ trường / Hiệu trưởng</div>
                 <div class="stc-box-content"><strong>"${escapeHtml(item.sale_pitch)}"</strong></div>
               </div>
             </div>
@@ -894,21 +894,21 @@
                 <h4 class="stc-title">${escapeHtml(item.bai_hoc)}</h4>
               </div>
               <div class="stc-badges">
-                <span class="stc-badge">💻 ${escapeHtml(item.cong_nghe)}</span>
-                <span class="stc-badge">🎤 Thuyết trình: ${escapeHtml(item.co_thuyet_trinh)}</span>
+                <span class="stc-badge">${escapeHtml(item.cong_nghe)}</span>
+                <span class="stc-badge">Thuyết trình: ${escapeHtml(item.co_thuyet_trinh)}</span>
               </div>
             </div>
             <div class="stc-grid-2">
               <div class="stc-box traditional">
-                <div class="stc-box-label">🏫 Cách trường thường dạy (${escapeHtml(item.de_tai_quen_thuoc)})</div>
+                <div class="stc-box-label">Cách trường thường dạy (${escapeHtml(item.de_tai_quen_thuoc)})</div>
                 <div class="stc-box-content">${escapeHtml(item.cach_truong_thuong_day)}</div>
               </div>
               <div class="stc-box novastars">
-                <div class="stc-box-label">🌟 Nội dung &amp; Cách triển khai của Novastars</div>
+                <div class="stc-box-label">Nội dung &amp; Cách triển khai của Novastars</div>
                 <div class="stc-box-content">${escapeHtml(item.noi_dung_novastars)}\n\n${escapeHtml(item.cach_trien_khai)}</div>
               </div>
               <div class="stc-box pitch" style="grid-column: 1 / -1;">
-                <div class="stc-box-label">💎 Điểm ăn tiền để Sale thuyết phục Chủ trường</div>
+                <div class="stc-box-label">Điểm ăn tiền để Sale thuyết phục Chủ trường</div>
                 <div class="stc-box-content">${escapeHtml(item.diem_an_tien)}</div>
               </div>
             </div>
@@ -934,15 +934,15 @@
             </div>
             <div class="stc-grid-2">
               <div class="stc-box traditional">
-                <div class="stc-box-label">🏫 Nội dung trường vẫn dạy theo khung Bộ</div>
+                <div class="stc-box-label">Nội dung trường vẫn dạy theo khung Bộ</div>
                 <div class="stc-box-content">${escapeHtml(a.noi_dung_bo)}</div>
               </div>
               <div class="stc-box novastars">
-                <div class="stc-box-label">🌟 Nội dung nâng cấp của Novastars</div>
+                <div class="stc-box-label">Nội dung nâng cấp của Novastars</div>
                 <div class="stc-box-content">${escapeHtml(a.noi_dung_novastars)}</div>
               </div>
               <div class="stc-box pitch" style="grid-column: 1 / -1;">
-                <div class="stc-box-label">🗣️ Điểm nhấn để Sale nói với Hiệu trưởng</div>
+                <div class="stc-box-label">Điểm nhấn để Sale nói với Hiệu trưởng</div>
                 <div class="stc-box-content"><strong>"${escapeHtml(a.diem_nhan_sale)}"</strong></div>
               </div>
             </div>
@@ -977,7 +977,7 @@
         title: "Danh sách đủ 72 tiết × 3 khối",
         html: `
           <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
-            <input type="text" id="inputHp04Search" class="input-control" style="width:240px;padding:7px 11px;font-size:13px;" placeholder="🔍 Tìm tên bài trong 72 tiết..." value="${escapeHtml(hp04SearchQuery)}">
+            <input type="text" id="inputHp04Search" class="input-control" style="width:240px;padding:7px 11px;font-size:13px;" placeholder="Tìm tên bài trong 72 tiết..." value="${escapeHtml(hp04SearchQuery)}">
             <div style="display:flex;gap:6px;">
               <button type="button" class="study-filter-pill ${hp04TermFilter === 'ALL' ? 'active' : ''}" data-hp04-term="ALL">Cả năm (72)</button>
               <button type="button" class="study-filter-pill ${hp04TermFilter === 'Học kì I' ? 'active' : ''}" data-hp04-term="Học kì I">Học kì I (35)</button>
@@ -1062,7 +1062,7 @@
     `).join("");
 
     const downloadBtnHtml = (mod.sourceFile && mod.sourceFile.url)
-      ? `<a href="${escapeHtml(mod.sourceFile.url)}" download="${escapeHtml(mod.sourceFile.name || 'Tai_lieu.xlsx')}" class="btn-download-source">📥 Tải file gốc</a>`
+      ? `<a href="${escapeHtml(mod.sourceFile.url)}" download="${escapeHtml(mod.sourceFile.name || 'Tai_lieu.xlsx')}" class="btn-download-source">Tải file gốc</a>`
       : "";
 
     const isLastStep = activeDocStepIndex === steps.length - 1;
@@ -1084,7 +1084,7 @@
         <span class="doc-pager-counter">Mục ${activeDocStepIndex + 1} / ${steps.length}</span>
         ${!isLastStep
           ? `<button type="button" class="btn-primary" id="btnDocNextStep">Mục tiếp theo ▶</button>`
-          : `<button type="button" class="btn-start-quiz-cta" id="btnDocStartQuiz">📝 Làm bài Trắc nghiệm ngay ➔</button>`
+          : `<button type="button" class="btn-start-quiz-cta" id="btnDocStartQuiz">Làm bài Trắc nghiệm ngay ➔</button>`
         }
       </div>
     `;
@@ -1177,12 +1177,12 @@
         <div class="qrb-left">
           <div class="qrb-score-circle">${res.score}%</div>
           <div class="qrb-text">
-            <h3>${res.passed ? "🎉 ĐẠT YÊU CẦU!" : "⚠️ CHƯA ĐẠT — HÃY XEM LẠI CÂU SAI & LÀM LẠI"}</h3>
+            <h3>${res.passed ? "ĐẠT YÊU CẦU!" : "CHƯA ĐẠT — HÃY XEM LẠI CÂU SAI & LÀM LẠI"}</h3>
             <p>Đúng <strong>${res.correctCount}/${res.totalCount} câu</strong> (Chuẩn cần đạt &ge; ${thresh}%). Bấm vào từng số câu bên dưới để xem đáp án và giải thích.</p>
           </div>
         </div>
         <button type="button" class="btn-primary" id="btnRetakeQuizBanner">
-          🔄 Làm lại
+          Làm lại
         </button>
       `;
       document.getElementById("btnRetakeQuizBanner").onclick = () => {
@@ -1246,7 +1246,7 @@
       explanationHtml = `
         <div class="qq-explanation-box">
           <div style="margin-bottom:4px;">${statusTag}</div>
-          <div>💡 <strong>Giải thích:</strong> ${escapeHtml(q.explanation || "")}</div>
+          <div><strong>Giải thích:</strong> ${escapeHtml(q.explanation || "")}</div>
         </div>
       `;
     }
@@ -1281,7 +1281,7 @@
             : ""
           }
           ${!isSubmitted && (isLastQ || answeredCount === qList.length)
-            ? `<button type="button" class="btn-submit-quiz" id="btnSubmitSaleQuiz">🚀 Nộp bài &amp; Chấm điểm</button>`
+            ? `<button type="button" class="btn-submit-quiz" id="btnSubmitSaleQuiz">Nộp bài &amp; Chấm điểm</button>`
             : ""
           }
         </div>
@@ -1502,7 +1502,7 @@
     if (qList.length === 0) {
       listContainer.innerHTML = `
         <div class="up-card" style="text-align:center;padding:28px;color:#64748B;">
-          Chưa có câu hỏi nào. Hãy bấm <strong>"✨ Tạo tự động từ tài liệu"</strong> hoặc <strong>"📁 Tải file câu hỏi có sẵn"</strong> ở thanh công cụ phía trên.
+          Chưa có câu hỏi nào. Hãy bấm <strong>"Tạo tự động từ tài liệu"</strong> hoặc <strong>"📁 Tải file câu hỏi có sẵn"</strong> ở thanh công cụ phía trên.
         </div>
       `;
       return;
@@ -1527,8 +1527,8 @@
             <span class="up-q-row-ans" title="Đáp án đúng: ${letters[cIdx]}. ${escapeHtml(correctText)}">
               ✓ ${letters[cIdx]}. ${escapeHtml(correctText)}
             </span>
-            <button type="button" class="btn-q-mini" data-expand-q="${qIdx}">✏️ Sửa</button>
-            <button type="button" class="btn-q-mini danger" data-del-q="${qIdx}" title="Xóa câu này">🗑️</button>
+            <button type="button" class="btn-q-mini" data-expand-q="${qIdx}">Sửa</button>
+            <button type="button" class="btn-q-mini danger" data-del-q="${qIdx}" title="Xóa câu này"></button>
           </div>
         `;
 
@@ -1576,7 +1576,7 @@
             <span class="qq-num-badge">Đang sửa Câu ${qIdx + 1}</span>
           </div>
           <div class="up-q-actions">
-            <button type="button" class="btn-q-mini danger" data-del-q="${qIdx}">🗑️ Xóa câu</button>
+            <button type="button" class="btn-q-mini danger" data-del-q="${qIdx}">Xóa câu</button>
             <button type="button" class="btn-primary" data-collapse-q="${qIdx}" style="padding:5px 12px;font-size:12px;">✓ Xong (Thu gọn)</button>
           </div>
         </div>
@@ -1591,7 +1591,7 @@
         </div>
 
         <div class="form-group">
-          <label>💡 Giải thích &amp; Gợi ý tư vấn:</label>
+          <label>Giải thích &amp; Gợi ý tư vấn:</label>
           <textarea class="input-control" rows="2" data-edit-exp="${qIdx}">${escapeHtml(q.explanation || "")}</textarea>
         </div>
       `;
@@ -2004,7 +2004,7 @@
 
       tbody += `
         <tr>
-          <td><strong>💼 ${escapeHtml(s.name)}</strong></td>
+          <td><strong>${escapeHtml(s.name)}</strong></td>
           <td><code>${escapeHtml(s.pin)}</code></td>
           <td>
             <span class="sidebar-item-status ${sPassed === pubMods.length && pubMods.length > 0 ? 'done' : 'reading'}">
@@ -2026,11 +2026,11 @@
           sub = `${attCount} lần thi`;
         } else if (attCount > 0) {
           cls = "failed";
-          label = `⚠️ ${p.bestScore}% (Chưa đạt)`;
+          label = `${p.bestScore}% (Chưa đạt)`;
           sub = `${attCount} lần thi`;
         } else if (p && p.docViewed) {
           cls = "reading";
-          label = `📖 Đã mở tài liệu`;
+          label = `Đã mở tài liệu`;
           sub = `Chưa nộp bài thi`;
         }
 
@@ -2068,7 +2068,7 @@
     const bodyEl = document.getElementById("quickInspectBody");
     const btnActAs = document.getElementById("btnInspectActAsSale");
 
-    titleEl.textContent = `💼 ${sale.name} — ${mod.code}: ${mod.title}`;
+    titleEl.textContent = `${sale.name} — ${mod.code}: ${mod.title}`;
     const attCount = (prog && Array.isArray(prog.attempts)) ? prog.attempts.length : 0;
     metaEl.textContent = `Mã PIN: ${sale.pin} · Điểm chuẩn: >= ${mod.passThreshold || 80}% · Điểm cao nhất: ${prog ? prog.bestScore : 0}% · Số lần làm bài: ${attCount}`;
 
@@ -2076,7 +2076,7 @@
       bodyEl.innerHTML = `
         <div style="padding:20px;background:#F8FAFC;border-radius:10px;border:1px solid #E2E8F0;color:#475569;font-size:13.5px;">
           ${prog && prog.docViewed
-            ? `📖 Nhân viên Sale <strong>${escapeHtml(sale.name)}</strong> đã mở xem tài liệu học phần này nhưng chưa nộp bài kiểm tra trắc nghiệm.`
+            ? `Nhân viên Sale <strong>${escapeHtml(sale.name)}</strong> đã mở xem tài liệu học phần này nhưng chưa nộp bài kiểm tra trắc nghiệm.`
             : `Nhân viên Sale <strong>${escapeHtml(sale.name)}</strong> chưa bắt đầu học phần này.`}
         </div>
       `;
@@ -2151,7 +2151,7 @@
       }).length;
       return `
         <button type="button" class="dossier-user-pill ${s.id === sale.id ? 'active' : ''}" data-dossier-sale="${escapeHtml(s.id)}">
-          💼 ${escapeHtml(s.name)}
+          ${escapeHtml(s.name)}
           <span class="sidebar-count-badge">${pCount}/${pubMods.length}</span>
         </button>
       `;
@@ -2163,8 +2163,8 @@
       const statusBadge = (p && p.passed)
         ? `<span class="sidebar-item-status done">✓ Đã đạt (${p.bestScore}%)</span>`
         : (attCnt > 0
-          ? `<span class="sidebar-item-status failed">⚠️ Chưa đạt (${p.bestScore}%)</span>`
-          : (p && p.docViewed ? `<span class="sidebar-item-status reading">📖 Đang đọc tài liệu</span>` : `<span class="sidebar-item-status empty">Chưa học</span>`));
+          ? `<span class="sidebar-item-status failed">Chưa đạt (${p.bestScore}%)</span>`
+          : (p && p.docViewed ? `<span class="sidebar-item-status reading">Đang đọc tài liệu</span>` : `<span class="sidebar-item-status empty">Chưa học</span>`));
 
       return `
         <tr>
@@ -2173,7 +2173,7 @@
           <td><strong>${attCnt > 0 ? `${p.bestScore}%` : "—"}</strong> (Chuẩn &ge;${m.passThreshold || 80}%)</td>
           <td>${attCnt} lần</td>
           <td>
-            <button type="button" class="btn-row-act" data-dossier-inspect="${escapeHtml(m.id)}">🔍 Xem bài làm</button>
+            <button type="button" class="btn-row-act" data-dossier-inspect="${escapeHtml(m.id)}">Xem bài làm</button>
           </td>
         </tr>
       `;
@@ -2184,10 +2184,10 @@
         <div class="dossier-selector-bar">${pillsHtml}</div>
         <div class="admin-card-head" style="padding-top:8px;border-top:1px solid #FCE7F3;">
           <div>
-            <h2 class="admin-title">👤 Hồ sơ Đào tạo: ${escapeHtml(sale.name)} (Mã PIN: <code>${escapeHtml(sale.pin)}</code>)</h2>
+            <h2 class="admin-title">Hồ sơ Đào tạo: ${escapeHtml(sale.name)} (Mã PIN: <code>${escapeHtml(sale.pin)}</code>)</h2>
             <p class="admin-sub">Theo dõi tiến độ đọc tài liệu và lịch sử điểm trắc nghiệm ở từng học phần.</p>
           </div>
-          <button type="button" class="btn-primary" id="btnDossierActAsSale">🔑 Xem dưới quyền ${escapeHtml(sale.name)}</button>
+          <button type="button" class="btn-primary" id="btnDossierActAsSale">Xem dưới quyền ${escapeHtml(sale.name)}</button>
         </div>
         <div class="table-responsive">
           <table class="progress-matrix-table">
@@ -2240,7 +2240,7 @@
 
     const modPills = pubMods.map(m => `
       <button type="button" class="dossier-user-pill ${m.id === mod.id ? 'active' : ''}" data-analytics-mod="${escapeHtml(m.id)}">
-        📚 ${escapeHtml(m.code)} (${(m.questions || []).length} câu)
+        ${escapeHtml(m.code)} (${(m.questions || []).length} câu)
       </button>
     `).join("");
 
@@ -2283,10 +2283,10 @@
         <div class="dossier-selector-bar">${modPills}</div>
         <div class="admin-card-head" style="padding-top:8px;border-top:1px solid #FCE7F3;">
           <div>
-            <h2 class="admin-title">📌 Phân tích Câu hỏi Trắc nghiệm — ${escapeHtml(mod.code)}: ${escapeHtml(mod.title)}</h2>
+            <h2 class="admin-title">Phân tích Câu hỏi Trắc nghiệm — ${escapeHtml(mod.code)}: ${escapeHtml(mod.title)}</h2>
             <p class="admin-sub">Giúp Quản lý nắm được câu hỏi nào Sale trả lời tốt và kiến thức nào Sale hay nhầm lẫn để đào tạo bổ sung.</p>
           </div>
-          <button type="button" class="btn-primary" id="btnAnalyticsEditQuiz">✍️ Chỉnh sửa bộ câu hỏi này</button>
+          <button type="button" class="btn-primary" id="btnAnalyticsEditQuiz">Chỉnh sửa bộ câu hỏi này</button>
         </div>
         <div class="table-responsive">
           <table class="progress-matrix-table">
@@ -2382,8 +2382,8 @@
           row.innerHTML = `
             <div><strong>${escapeHtml(u.name)}</strong> — Mã PIN: <code>${escapeHtml(u.pin)}</code></div>
             <div class="manage-row-actions">
-              <button type="button" class="btn-row-act" data-edit-u="${escapeHtml(u.id)}">✏️ Sửa tên / PIN</button>
-              <button type="button" class="btn-row-act danger" data-del-u="${escapeHtml(u.id)}">🗑️ Xóa</button>
+              <button type="button" class="btn-row-act" data-edit-u="${escapeHtml(u.id)}">Sửa tên / PIN</button>
+              <button type="button" class="btn-row-act danger" data-del-u="${escapeHtml(u.id)}">Xóa</button>
             </div>
           `;
           row.querySelector("[data-edit-u]").onclick = () => {
@@ -2481,7 +2481,7 @@
 
       ctx.fillStyle = u.role === "uploader" ? "#3730A3" : "#065F46";
       ctx.font = "600 13px 'Be Vietnam Pro', sans-serif";
-      ctx.fillText(u.role === "uploader" ? "✍️ Đào tạo" : "💼 Sale", tableX + 330, curY + 27);
+      ctx.fillText(u.role === "uploader" ? "Đào tạo" : "Sale", tableX + 330, curY + 27);
 
       ctx.fillStyle = "#BE185D";
       ctx.font = "bold 15.5px 'JetBrains Mono', monospace";
@@ -2492,7 +2492,7 @@
 
     ctx.fillStyle = "#475569";
     ctx.font = "500 12.5px 'Be Vietnam Pro', sans-serif";
-    ctx.fillText("💡 Mở link web → Chọn đúng tab Vai trò → Chọn tên của bạn và nhập Mã PIN 4 số.", 28, curY + 28);
+    ctx.fillText("Mở link web → Chọn đúng tab Vai trò → Chọn tên của bạn và nhập Mã PIN 4 số.", 28, curY + 28);
 
     return canvas;
   }
@@ -2708,7 +2708,7 @@
 
         const statusEl = document.getElementById("upDocFileStatus");
         statusEl.classList.remove("hidden");
-        statusEl.textContent = `⏳ Đang đọc và trích xuất nội dung từ file "${file.name}"...`;
+        statusEl.textContent = `Đang đọc và trích xuất nội dung từ file "${file.name}"...`;
 
         const extracted = await extractFileContentViaBackendOrFallback(file);
         mod.sourceFile = {
@@ -2760,7 +2760,7 @@
         triggerAutoSave(true, true);
         renderUploaderQuestionBank(mod);
         renderSidebar();
-        alert(`✨ Đã chuyển đổi tài liệu sang ${newQuestions.length} câu hỏi trắc nghiệm theo đúng 4 nhóm tiêu chí!\n\nBạn hãy xem trước và chỉnh sửa (nếu cần) ở danh sách bên dưới nhé.`);
+        alert(`Đã chuyển đổi tài liệu sang ${newQuestions.length} câu hỏi trắc nghiệm theo đúng 4 nhóm tiêu chí!\n\nBạn hãy xem trước và chỉnh sửa (nếu cần) ở danh sách bên dưới nhé.`);
       });
     }
 
@@ -2808,7 +2808,7 @@
         triggerAutoSave(true, true);
         renderUploaderQuestionBank(mod);
         renderSidebar();
-        alert(`📥 Đã nhập thành công ${imported.length} câu hỏi trắc nghiệm từ file "${file.name}" vào danh sách Xem trước & Chỉnh sửa!`);
+        alert(`Đã nhập thành công ${imported.length} câu hỏi trắc nghiệm từ file "${file.name}" vào danh sách Xem trước & Chỉnh sửa!`);
       });
     }
 
@@ -2987,7 +2987,7 @@
     if (btnRefreshCloud) {
       btnRefreshCloud.addEventListener("click", async () => {
         const orig = btnRefreshCloud.textContent;
-        btnRefreshCloud.textContent = "⏳ Đang đồng bộ Cloud...";
+        btnRefreshCloud.textContent = "Đang đồng bộ Cloud...";
         await fetchCloudDb(true);
         btnRefreshCloud.textContent = "✓ Đã cập nhật mới nhất";
         setTimeout(() => { btnRefreshCloud.textContent = orig; }, 1800);
