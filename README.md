@@ -1,5 +1,6 @@
 # Cẩm Nang Tư Vấn Mầm Non Chuyển Giao — NovaStars (`web-dao-tao-sale`)
 
+> **Trực tiếp (GitHub Pages):** [https://linhmeo95.github.io/web-dao-tao-sale/](https://linhmeo95.github.io/web-dao-tao-sale/)  
 > **Cơ sở dữ liệu đám mây:** Supabase (`novastars_app_state` table, namespace `sale_training__*`)  
 > **Mã PIN Quản lý (Admin):** `8888`  
 > **Điểm chuẩn Hoàn thành bài học:** `>= 80%`
