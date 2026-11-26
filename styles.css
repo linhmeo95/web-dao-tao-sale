@@ -3321,6 +3321,40 @@ dialog::backdrop {
   vertical-align: top;
 }
 
+.doc-line-block {
+  display: block;
+  line-height: 1.65;
+  margin-bottom: 6px;
+}
+
+.doc-line-block:last-child {
+  margin-bottom: 0;
+}
+
+.doc-table-banner-row {
+  background: linear-gradient(135deg, #FFF7ED, #FFEDD5) !important;
+  color: #9A3412 !important;
+  font-weight: 800 !important;
+  font-size: 13.8px !important;
+  padding: 11px 14px !important;
+  line-height: 1.5 !important;
+}
+
+.up-readonly-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  background: #FFF7ED;
+  border: 1.5px solid #FB923C;
+  color: #9A3412;
+  padding: 11px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
 .bug-paste-prompt {
   display: flex;
   flex-direction: column;

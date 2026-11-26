@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=19">
+  <link rel="stylesheet" href="styles.css?v=20">
 </head>
 <body>
   <!-- 1. AUTHENTICATION SCREEN (LOGIN PORTAL - 3 ROLES) -->
@@ -269,6 +269,9 @@
             </div>
 
             <div class="up-top-right-actions">
+              <button type="button" class="btn-primary" id="btnTopbarCreateNewModule" style="background:linear-gradient(135deg,#059669,#10B981);box-shadow:0 3px 10px rgba(16,185,129,0.28);">
+                + Tạo bài học mới
+              </button>
               <button type="button" class="btn-secondary" id="btnUploaderPreviewAsSale">
                 Xem thử như Học Viên
               </button>
@@ -287,6 +290,14 @@
           <!-- ĐÀO TẠO TAB 1: MINIMALIST DOCUMENT UPLOAD & TITLE -->
           <div class="uploader-panel" id="uploaderPanelDoc">
             <div class="up-card">
+              <div class="up-readonly-banner hidden" id="upReadOnlyNoticeBanner">
+                <div>
+                  <strong>Chế độ Chỉ xem:</strong> Học phần này do <strong id="lblReadOnlyBannerAuthor">Phạm Mỹ Linh</strong> tạo. Bạn không thể ghi đè lên học phần của người khác.
+                </div>
+                <button type="button" class="btn-primary" id="btnBannerCreateNewModule" style="padding:7px 13px;font-size:12.5px;flex-shrink:0;">
+                  + Tạo bài học mới của bạn
+                </button>
+              </div>
               <div class="up-minimal-row">
                 <div class="form-group" style="flex:1;">
                   <div class="label-row-between">
@@ -710,7 +721,7 @@
   </dialog>
 
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
-  <script src="data/initial_data.js?v=19"></script>
-  <script src="app.js?v=19"></script>
+  <script src="data/initial_data.js?v=20"></script>
+  <script src="app.js?v=20"></script>
 </body>
 </html>

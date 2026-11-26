@@ -290,13 +290,22 @@
           }
           if (Array.isArray(cloudConfig.modules) && cloudConfig.modules.length > 0) {
             const localStructMap = new Map();
+            const localModMap = new Map();
             (db.modules || []).forEach(m => {
-              if (m.structuredData) localStructMap.set(m.id, m.structuredData);
+              if (m && m.id) {
+                localModMap.set(m.id, m);
+                if (m.structuredData) localStructMap.set(m.id, m.structuredData);
+              }
             });
-            db.modules = cloudConfig.modules.map(cm => ({
+            const mergedMods = cloudConfig.modules.map(cm => ({
               ...cm,
               structuredData: cm.structuredData || localStructMap.get(cm.id)
             }));
+            const cloudIds = new Set(mergedMods.map(m => m.id));
+            localModMap.forEach((lm, lid) => {
+              if (!cloudIds.has(lid)) mergedMods.push(lm);
+            });
+            db.modules = mergedMods;
           }
         } else {
           // Local changes are newer than cloud; push local config to cloud
@@ -672,6 +681,8 @@
         currentUser = { id: user.id, name: user.name, role: "uploader" };
         impersonatedSaleUser = null;
         activeWorkspaceView = "uploader";
+        const ownMod = (db.modules || []).find(m => canCurrentUserEditModule(m));
+        if (ownMod) currentModuleId = ownMod.id;
         localStorage.setItem(SESSION_KEY, JSON.stringify(currentUser));
         logUserActivity("login", "Đăng nhập hệ thống", "Vai trò: Đào tạo");
         renderAll();
@@ -1368,8 +1379,12 @@
       str = str
         .replace(/\r\n/g, "\n")
         .replace(/([^\n])\s*([•●▪✦➢])/g, "$1\n$2")
-        .replace(/([.;!?])\s+(-\s+)/g, "$1\n$2");
-      return escapeHtml(str).replace(/\n/g, "<br>");
+        .replace(/([^\n])\s+(\*\s+\S)/g, "$1\n$2")
+        .replace(/([.;!?])\s+(-\s+)/g, "$1\n$2")
+        .replace(/([^\n])\s+((?:\d+\.)\s+(?:Phân tích|Mục đích|Kiến thức|Kĩ năng))/g, "$1\n$2");
+      const lines = str.split(/\n+/).map(l => l.trim()).filter(Boolean);
+      if (lines.length <= 1) return escapeHtml(str);
+      return lines.map(l => `<span class="doc-line-block">${escapeHtml(l)}</span>`).join("");
     }
 
     const customSteps = [];
@@ -1377,16 +1392,36 @@
       mod.uploadedTables.forEach((tbl, tIdx) => {
         const rows = tbl.rows || [];
         if (rows.length === 0) return;
+        const maxCols = rows.reduce((mx, r) => Math.max(mx, Array.isArray(r) ? r.length : 0), 1);
+
+        // Find the header row (first row with >= 2 non-empty cells or starting with STT)
+        let headerIdx = -1;
+        for (let r = 0; r < Math.min(rows.length, 6); r++) {
+          const nonEmpty = (rows[r] || []).filter(c => String(c || "").trim().length > 0);
+          if (nonEmpty.length >= 2) {
+            headerIdx = r;
+            break;
+          }
+        }
+
         const trs = rows.map((r, rIdx) => {
-          const tag = rIdx === 0 ? "th" : "td";
-          const cellClass = rIdx === 0 ? "" : ' class="doc-multiline-cell"';
+          const nonEmpty = (r || []).map(c => String(c || "").trim()).filter(Boolean);
+          if (nonEmpty.length === 0) return "";
+          if (nonEmpty.length === 1 && maxCols > 1 && rIdx < (headerIdx === -1 ? 3 : headerIdx)) {
+            return `<tr><td colspan="${maxCols}" class="doc-table-banner-row">${formatMultilineCellHtml(nonEmpty[0])}</td></tr>`;
+          }
+          const isHeader = rIdx === headerIdx || (headerIdx === -1 && rIdx === 0);
+          const tag = isHeader ? "th" : "td";
+          const cellClass = isHeader ? "" : ' class="doc-multiline-cell"';
           const cells = r.map(c => `<${tag}${cellClass}>${formatMultilineCellHtml(c)}</${tag}>`).join("");
           return `<tr>${cells}</tr>`;
         }).join("");
+
+        const sheetTitle = tbl.sheet || `Bảng dữ liệu ${tIdx + 1}`;
         customSteps.push({
-          pillLabel: tbl.sheet ? tbl.sheet.slice(0, 18) : `Bảng ${tIdx + 1}`,
-          title: tbl.sheet || `Bảng dữ liệu ${tIdx + 1}`,
-          html: `<div class="table-responsive" style="max-height:480px;overflow-y:auto;"><table class="progress-matrix-table">${trs}</table></div>`
+          pillLabel: `${tIdx + 1}. ${sheetTitle}`,
+          title: sheetTitle,
+          html: `<div class="table-responsive" style="max-height:520px;overflow-y:auto;"><table class="progress-matrix-table">${trs}</table></div>`
         });
       });
     }
@@ -1863,6 +1898,11 @@
 
     const canEdit = canCurrentUserEditModule(mod);
 
+    const roBanner = document.getElementById("upReadOnlyNoticeBanner");
+    const roAuthor = document.getElementById("lblReadOnlyBannerAuthor");
+    if (roBanner) roBanner.classList.toggle("hidden", canEdit);
+    if (roAuthor) roAuthor.textContent = mod.authorName || "Quản trị viên";
+
     document.getElementById("upModStatus").value = mod.status || "published";
     document.getElementById("upModStatus").disabled = !canEdit;
     document.getElementById("upModCode").value = mod.code || "HP";
@@ -1977,6 +2017,11 @@
     if (!Array.isArray(mod.questions)) mod.questions = [];
     const qList = mod.questions;
     const canEdit = canCurrentUserEditModule(mod);
+
+    const roBanner = document.getElementById("upReadOnlyNoticeBanner");
+    const roAuthor = document.getElementById("lblReadOnlyBannerAuthor");
+    if (roBanner) roBanner.classList.toggle("hidden", canEdit);
+    if (roAuthor) roAuthor.textContent = mod.authorName || "Quản trị viên";
     document.getElementById("lblUpQuestionCount").textContent = String(qList.length);
 
     const listContainer = document.getElementById("uploaderQuestionsList");
@@ -2469,10 +2514,10 @@
     rawLines.forEach(rawLine => {
       let l = rawLine.replace(/\t+/g, "  ").trim();
       if (!l || /^===\s*SHEET:/i.test(l)) return;
-      // Split inline options like "   B. " or " | B. " when preceded by whitespace or pipe
+      // Split inline options like "   B. " or " B. " or " | B. " when preceded by whitespace or pipe
       l = l
-        .replace(/(?:\s{2,}|\s*\|\s*)(?=(?:\*?\s*[A-D][.:)\-]\s+\S))/g, "\n")
-        .replace(/([?])(?:\s+)(?=(?:\*?\s*A[.:)\-]\s+\S))/g, "$1\n");
+        .replace(/(?:\s+|\s*\|\s*)(?=(?:\*?\s*[A-D][.:)]\s+\S))/g, "\n")
+        .replace(/([?:])(?:\s+)(?=(?:\*?\s*A[.:)\-]\s+\S))/g, "$1\n");
       l.split(/\r?\n/).forEach(sub => {
         const s = sub.trim();
         if (s) lines.push(s);
@@ -2570,6 +2615,16 @@
         curQ.hasExplicitAnswer = true;
       } else if (expMatch && curQ) {
         curQ.explanation = expMatch[1].trim();
+      } else if (curQ && curQ.question && (/\?$|:$/.test(curQ.question) || curQ.options.length > 0) && curQ.options.filter(Boolean).length < 4) {
+        // Handle Word auto-numbered options where "A.", "B.", "C.", "D." were list bullets stripped from <w:t>
+        const nextOptIdx = curQ.options.filter(Boolean).length;
+        let optContent = line.trim();
+        if (/\(Đáp án đúng\)|\(Đúng\)|✓|\*$/i.test(optContent)) {
+          curQ.correctIndex = nextOptIdx;
+          curQ.hasExplicitAnswer = true;
+          optContent = optContent.replace(/\(Đáp án đúng\)|\(Đúng\)|✓|\*+$/gi, "").trim();
+        }
+        curQ.options[nextOptIdx] = optContent;
       } else if (curQ && curQ.options.filter(Boolean).length === 0) {
         curQ.question = (curQ.question ? curQ.question + "\n" : "") + line;
       } else if (!curQ && line.length > 10 && !/^(?:ĐÁP\s*ÁN|BÀI\s*KIỂM\s*TRA|ĐỀ\s*THI)/i.test(line)) {
@@ -3387,12 +3442,27 @@
         const rowNodes = wsXml.getElementsByTagName("row");
         const rows = [];
         lines.push(`=== SHEET: ${sName} ===`);
+
+        function colRefToIdx(refStr, fallbackIdx) {
+          const m = String(refStr || "").match(/^([A-Z]+)/i);
+          if (!m) return fallbackIdx;
+          const letters = m[1].toUpperCase();
+          let colIdx = 0;
+          for (let i = 0; i < letters.length; i++) {
+            colIdx = colIdx * 26 + (letters.charCodeAt(i) - 64);
+          }
+          return Math.max(0, colIdx - 1);
+        }
+
         for (let r = 0; r < rowNodes.length; r++) {
           const cNodes = rowNodes[r].getElementsByTagName("c");
           const vals = [];
           for (let c = 0; c < cNodes.length; c++) {
             const cEl = cNodes[c];
             const cType = cEl.getAttribute("t") || "";
+            const cRef = cEl.getAttribute("r") || "";
+            const targetIdx = colRefToIdx(cRef, vals.length);
+            while (vals.length < targetIdx) vals.push("");
             const vEl = cEl.getElementsByTagName("v")[0];
             const isEl = cEl.getElementsByTagName("is")[0];
             let val = "";
@@ -3403,11 +3473,11 @@
             } else if (vEl && vEl.textContent != null) {
               val = vEl.textContent;
             }
-            vals.push(String(val).trim());
+            vals[targetIdx] = String(val).trim();
           }
           if (vals.some(Boolean)) {
             rows.push(vals);
-            lines.push(vals.filter(Boolean).join(" | "));
+            lines.push(vals.filter(Boolean).join("\n"));
           }
         }
         if (rows.length > 0) tables.push({ sheet: sName, rows });
@@ -3457,42 +3527,69 @@
     return { text: `[Đã tải lên file: ${file.name}]`, tables: [] };
   }
 
-  function setupUploaderAndAdminEvents() {
-    // Sidebar create new module button
-    const btnCreateMod = document.getElementById("btnSidebarCreateModule");
-    if (btnCreateMod) {
-      btnCreateMod.addEventListener("click", () => {
-        const nextNum = (db.modules || []).length + 1;
-        const code = `HP0${nextNum}`;
-        const newMod = {
-          id: `mod-${Date.now().toString(36)}`,
-          code,
-          category: "Chuyên đề Đào tạo mới",
-          title: `Học phần mới ${code}: Tài liệu Đào tạo Sale`,
-          subtitle: "Bối cảnh tư vấn Chủ trường và Hiệu trưởng trường mầm non",
-          durationMinutes: 20,
-          passThreshold: (db.meta && db.meta.defaultPassThreshold) || 80,
-          status: (currentUser && currentUser.role === "admin") ? "published" : "pending",
-          authorId: currentUser ? currentUser.id : "",
-          authorName: currentUser ? currentUser.name : "Đào tạo",
-          updatedAt: new Date().toISOString(),
-          summaryPoints: [
-            "Luận điểm trọng tâm 1 cần nhớ khi tư vấn Chủ trường / Hiệu trưởng.",
-            "Luận điểm trọng tâm 2 về điểm khác biệt của chương trình Novastars."
-          ],
-          contentText: "",
-          uploadedTables: [],
-          questions: []
-        };
-        db.modules.push(newMod);
-        currentModuleId = newMod.id;
-        activeWorkspaceView = "uploader";
-        activeUploaderTab = "doc";
-        logUserActivity("create_module", "Tạo học phần mới", `${newMod.code}: ${newMod.title}`, newMod.code);
-        triggerAutoSave(true, true);
-        renderAll();
-      });
+  function computeNextModuleCode() {
+    let maxNum = (db.modules || []).length;
+    (db.modules || []).forEach(m => {
+      const match = String(m.code || "").match(/(\d+)/);
+      if (match) {
+        const n = Number(match[1]);
+        if (n > maxNum) maxNum = n;
+      }
+    });
+    const nextNum = maxNum + 1;
+    return nextNum < 10 ? `HP0${nextNum}` : `HP${nextNum}`;
+  }
+
+  function createNewModuleForCurrentUser(customTitle = "") {
+    const code = computeNextModuleCode();
+    const newMod = {
+      id: `mod-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 5)}`,
+      code,
+      category: "Chuyên đề Đào tạo mới",
+      title: customTitle || `Học phần mới ${code}: Tài liệu Đào tạo`,
+      subtitle: "Bối cảnh tư vấn Chủ trường và Hiệu trưởng trường mầm non",
+      durationMinutes: 20,
+      passThreshold: (db.meta && db.meta.defaultPassThreshold) || 80,
+      status: (currentUser && currentUser.role === "admin") ? "published" : "pending",
+      authorId: currentUser ? currentUser.id : "",
+      authorName: currentUser ? currentUser.name : "Đào tạo",
+      updatedAt: new Date().toISOString(),
+      summaryPoints: [
+        "Luận điểm trọng tâm 1 cần nhớ khi tư vấn Chủ trường / Hiệu trưởng.",
+        "Luận điểm trọng tâm 2 về điểm khác biệt của chương trình Novastars."
+      ],
+      contentText: "",
+      uploadedTables: [],
+      questions: []
+    };
+    if (!Array.isArray(db.modules)) db.modules = [];
+    db.modules.push(newMod);
+    currentModuleId = newMod.id;
+    activeWorkspaceView = "uploader";
+    activeUploaderTab = "doc";
+    const statusEl = document.getElementById("upDocFileStatus");
+    if (statusEl) statusEl.classList.add("hidden");
+    logUserActivity("create_module", "Tạo học phần mới", `${newMod.code}: ${newMod.title}`, newMod.code);
+    triggerAutoSave(true, true);
+    renderAll();
+    const titleInp = document.getElementById("upModTitle");
+    if (titleInp) {
+      titleInp.focus();
+      titleInp.select();
     }
+    return newMod;
+  }
+
+  function setupUploaderAndAdminEvents() {
+    // Create new module buttons (Sidebar, Topbar, and Read-Only Banner)
+    ["btnSidebarCreateModule", "btnTopbarCreateNewModule", "btnBannerCreateNewModule"].forEach(btnId => {
+      const btn = document.getElementById(btnId);
+      if (btn) {
+        btn.addEventListener("click", () => {
+          createNewModuleForCurrentUser();
+        });
+      }
+    });
 
     // Upload Document File (.docx, .xlsx, .pdf, .txt)
     const inpDocFile = document.getElementById("inputUploadDocFile");
@@ -3500,8 +3597,19 @@
       inpDocFile.addEventListener("change", async e => {
         const file = e.target.files && e.target.files[0];
         if (!file) return;
-        const mod = getCurrentModule();
-        if (!mod) return;
+        let mod = getCurrentModule();
+        const baseFileTitle = file.name.replace(/\.[^.]+$/, "").replace(/[_-]+/g, " ").trim();
+
+        // Safeguard: Never overwrite another author's module (e.g. HP01 created by Phạm Mỹ Linh)!
+        const isCoreSeedModule = mod && ["mod-01-tong-quan", "mod-02-nen-tang-sp", "mod-03-10-bai-mau", "mod-04-lo-trinh-72-tiet"].includes(mod.id);
+        if (!mod || !canCurrentUserEditModule(mod)) {
+          mod = createNewModuleForCurrentUser(baseFileTitle);
+        } else if (isCoreSeedModule) {
+          const createNew = confirm(`Bạn đang đứng ở học phần gốc "${mod.code} — ${mod.title}".\n\nBấm OK để TẠO HỌC PHẦN MỚI cho file "${file.name}" (Khuyên dùng).\nBấm Cancel nếu bạn thực sự muốn ghi đè lên ${mod.code}.`);
+          if (createNew) {
+            mod = createNewModuleForCurrentUser(baseFileTitle);
+          }
+        }
 
         const statusEl = document.getElementById("upDocFileStatus");
         statusEl.classList.remove("hidden");
@@ -3512,6 +3620,11 @@
           name: file.name,
           type: file.name.split(".").pop().toLowerCase()
         };
+        if (/^Học phần mới HP\d+/i.test(mod.title || "") && baseFileTitle) {
+          mod.title = baseFileTitle;
+          const titleInp = document.getElementById("upModTitle");
+          if (titleInp) titleInp.value = mod.title;
+        }
         if (extracted.text) {
           mod.contentText = extracted.text;
           document.getElementById("upModContentText").value = extracted.text;
@@ -3529,12 +3642,13 @@
           mod.structuredType = ""; // Use uploadedTables rendering
         }
 
+        if (!mod.authorId && currentUser) mod.authorId = currentUser.id;
         mod.authorName = currentUser ? currentUser.name : (mod.authorName || "Đào tạo");
         if (currentUser && currentUser.role === "uploader") {
           mod.status = "pending";
         }
         logUserActivity("upload_doc", "Tải file tài liệu lên học phần", `File: ${file.name} (${(extracted.text || "").length} ký tự)`, mod.code);
-        statusEl.innerHTML = `✓ Đã bóc tách thành công tài liệu <strong>${escapeHtml(file.name)}</strong> (${(extracted.text || "").length.toLocaleString("vi-VN")} ký tự, ${(extracted.tables || []).length} bảng dữ liệu). Bạn có thể chuyển sang Bước 2 để tạo bộ câu hỏi trắc nghiệm ngay!`;
+        statusEl.innerHTML = `✓ Đã bóc tách thành công tài liệu <strong>${escapeHtml(file.name)}</strong> vào học phần <strong>${escapeHtml(mod.code)}</strong> (${(extracted.text || "").length.toLocaleString("vi-VN")} ký tự, ${(extracted.tables || []).length} bảng dữ liệu). Bạn có thể chuyển sang Bước 2 để tạo bộ câu hỏi trắc nghiệm ngay!`;
         triggerAutoSave(true, true);
         renderUploaderWorkspace();
         renderSidebar();
@@ -3595,24 +3709,39 @@
       inpQuizFile.addEventListener("change", async e => {
         const file = e.target.files && e.target.files[0];
         if (!file) return;
-        const mod = getCurrentModule();
-        if (!mod) return;
+        let mod = getCurrentModule();
+        if (!mod || !canCurrentUserEditModule(mod)) {
+          const ownMod = (db.modules || []).find(m => canCurrentUserEditModule(m));
+          mod = ownMod || createNewModuleForCurrentUser(file.name.replace(/\.[^.]+$/, ""));
+          currentModuleId = mod.id;
+        }
 
         const extracted = await extractFileContentViaBackendOrFallback(file);
-        const imported = parseImportedQuizTextOrTables(extracted.text, extracted.tables);
+        let imported = parseImportedQuizTextOrTables(extracted.text, extracted.tables);
+        if (imported.length === 0 && extracted.text && extracted.text.trim().length > 20) {
+          // Fallback: auto-convert document/text blocks into 20 multiple-choice questions so a valid file never fails
+          imported = generateQuizFromModuleDocument({
+            id: mod.id,
+            code: mod.code,
+            title: mod.title || file.name,
+            contentText: extracted.text,
+            uploadedTables: extracted.tables || []
+          }, 20);
+        }
         inpQuizFile.value = "";
 
         if (imported.length === 0) {
-          alert("Không tìm thấy câu hỏi trắc nghiệm hợp lệ trong file. Bạn có thể bấm '⬇️ Tải mẫu Excel' hoặc dùng nút '📋 Dán nhanh văn bản câu hỏi'.");
+          alert("Không tìm thấy nội dung câu hỏi trong file. Vui lòng kiểm tra lại file hoặc dùng nút 'Dán câu hỏi'.");
           return;
         }
 
         if (!Array.isArray(mod.questions)) mod.questions = [];
         mod.questions = mod.questions.concat(imported);
+        logUserActivity("import_quiz", "Tải file câu hỏi trắc nghiệm", `File: ${file.name} (${imported.length} câu hỏi)`, mod.code);
         triggerAutoSave(true, true);
-        renderUploaderQuestionBank(mod);
+        renderUploaderWorkspace();
         renderSidebar();
-        alert(`Đã nhập thành công ${imported.length} câu hỏi trắc nghiệm từ file "${file.name}" vào danh sách Xem trước & Chỉnh sửa!`);
+        alert(`✓ Đã chèn thành công ${imported.length} câu hỏi trắc nghiệm từ file "${file.name}" vào học phần ${mod.code}!`);
       });
     }
 
@@ -4791,43 +4920,49 @@
       });
     }
 
-    // Drag & Drop image support on #bugPasteZone (and anywhere inside #formBugReport)
+    // Drag & Drop image support on #bugPasteZone AND anywhere inside #bugReportDialog
     const pasteZone = document.getElementById("bugPasteZone");
-    if (pasteZone) {
+    const bugDlgEl = document.getElementById("bugReportDialog");
+    async function handleDroppedImageEvent(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      if (pasteZone) pasteZone.classList.remove("drag-over");
+      const dt = e.dataTransfer;
+      if (!dt) return;
+      let imgFile = null;
+      if (dt.files && dt.files.length > 0) {
+        imgFile = Array.from(dt.files).find(f => !f.type || f.type.startsWith("image/")) || dt.files[0];
+      } else if (dt.items && dt.items.length > 0) {
+        const item = Array.from(dt.items).find(it => it.kind === "file");
+        if (item) imgFile = item.getAsFile();
+      }
+      if (!imgFile) return;
+      try {
+        if (activeBugModalTab !== "form") switchBugModalTab("form");
+        const dataUrl = await compressImageBlobToDataUrl(imgFile);
+        setBugPreviewImage(dataUrl);
+      } catch (err) {}
+    }
+
+    [pasteZone, bugDlgEl].forEach(targetEl => {
+      if (!targetEl) return;
       ["dragenter", "dragover"].forEach(evName => {
-        pasteZone.addEventListener(evName, e => {
+        targetEl.addEventListener(evName, e => {
           e.preventDefault();
           e.stopPropagation();
-          pasteZone.classList.add("drag-over");
+          if (e.dataTransfer) e.dataTransfer.dropEffect = "copy";
+          if (pasteZone) pasteZone.classList.add("drag-over");
         });
       });
       ["dragleave", "dragend"].forEach(evName => {
-        pasteZone.addEventListener(evName, e => {
+        targetEl.addEventListener(evName, e => {
           e.preventDefault();
           e.stopPropagation();
-          pasteZone.classList.remove("drag-over");
+          if (targetEl === pasteZone && pasteZone) pasteZone.classList.remove("drag-over");
         });
       });
-      pasteZone.addEventListener("drop", async e => {
-        e.preventDefault();
-        e.stopPropagation();
-        pasteZone.classList.remove("drag-over");
-        const dt = e.dataTransfer;
-        if (!dt) return;
-        let imgFile = null;
-        if (dt.files && dt.files.length > 0) {
-          imgFile = Array.from(dt.files).find(f => f.type && f.type.startsWith("image/")) || dt.files[0];
-        } else if (dt.items && dt.items.length > 0) {
-          const item = Array.from(dt.items).find(it => it.kind === "file" && (!it.type || it.type.startsWith("image/")));
-          if (item) imgFile = item.getAsFile();
-        }
-        if (!imgFile) return;
-        try {
-          const dataUrl = await compressImageBlobToDataUrl(imgFile);
-          setBugPreviewImage(dataUrl);
-        } catch (err) {}
-      });
-    }
+      targetEl.addEventListener("drop", handleDroppedImageEvent);
+    });
 
     const btnRemoveImg = document.getElementById("btnRemoveBugImage");
     if (btnRemoveImg) {
