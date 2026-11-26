@@ -2383,7 +2383,7 @@
         const rows = tbl.rows || [];
         if (rows.length === 0) return;
 
-        // Detect column indices from header row if present
+        // Detect column indices from header row if present (check first 15 rows, must have >= 2 non-empty cells)
         let colQ = -1;
         let colA = -1;
         let colB = -1;
@@ -2394,34 +2394,66 @@
         let colCat = -1;
         let headerRowIdx = -1;
 
-        for (let r = 0; r < Math.min(rows.length, 5); r++) {
+        for (let r = 0; r < Math.min(rows.length, 15); r++) {
           const rCols = (rows[r] || []).map(c => String(c || "").trim().toLowerCase());
+          const nonEmptyH = rCols.filter(Boolean);
+          if (nonEmptyH.length < 2) continue;
           const joined = rCols.join(" | ");
-          if (/câu\s*hỏi|nội\s*dung\s*câu\s*hỏi|question/i.test(joined)) {
-            headerRowIdx = r;
+          if (/câu\s*hỏi|nội\s*dung|question|phương\s*án\s*a|đáp\s*án\s*a/i.test(joined)) {
+            let tmpQ = -1, tmpA = -1, tmpB = -1, tmpC = -1, tmpD = -1, tmpAns = -1, tmpExp = -1, tmpCat = -1;
             rCols.forEach((h, idx) => {
-              if (colQ === -1 && /câu\s*hỏi|nội\s*dung|question/.test(h)) colQ = idx;
-              else if (colCat === -1 && /nhóm|chủ\s*đề|category|phân\s*loại/.test(h)) colCat = idx;
-              else if (colAns === -1 && /đáp\s*án\s*đúng|đáp\s*án|kết\s*quả|correct|answer|^đ\/a$|^đa$/.test(h)) colAns = idx;
-              else if (colExp === -1 && /giải\s*thích|gợi\s*ý|explanation|ghi\s*chú/.test(h)) colExp = idx;
-              else if (colA === -1 && (/^(?:phương\s*án\s*|đáp\s*án\s*|lựa\s*chọn\s*)?a$/.test(h) || /^a[.:)\s]/.test(h))) colA = idx;
-              else if (colB === -1 && (/^(?:phương\s*án\s*|đáp\s*án\s*|lựa\s*chọn\s*)?b$/.test(h) || /^b[.:)\s]/.test(h))) colB = idx;
-              else if (colC === -1 && (/^(?:phương\s*án\s*|đáp\s*án\s*|lựa\s*chọn\s*)?c$/.test(h) || /^c[.:)\s]/.test(h))) colC = idx;
-              else if (colD === -1 && (/^(?:phương\s*án\s*|đáp\s*án\s*|lựa\s*chọn\s*)?d$/.test(h) || /^d[.:)\s]/.test(h))) colD = idx;
+              if (!h) return;
+              // Match option columns A, B, C, D FIRST so "Đáp án A" is never swallowed by "Đáp án" (colAns)
+              if (tmpA === -1 && (/^(?:phương\s*án|đáp\s*án|lựa\s*chọn|pa|câu)?\s*a(?:\s*\(.*\))?$/i.test(h) || /^a[.:)\-\s]/i.test(h))) tmpA = idx;
+              else if (tmpB === -1 && (/^(?:phương\s*án|đáp\s*án|lựa\s*chọn|pa|câu)?\s*b(?:\s*\(.*\))?$/i.test(h) || /^b[.:)\-\s]/i.test(h))) tmpB = idx;
+              else if (tmpC === -1 && (/^(?:phương\s*án|đáp\s*án|lựa\s*chọn|pa|câu)?\s*c(?:\s*\(.*\))?$/i.test(h) || /^c[.:)\-\s]/i.test(h))) tmpC = idx;
+              else if (tmpD === -1 && (/^(?:phương\s*án|đáp\s*án|lựa\s*chọn|pa|câu)?\s*d(?:\s*\(.*\))?$/i.test(h) || /^d[.:)\-\s]/i.test(h))) tmpD = idx;
+              else if (tmpAns === -1 && /đáp\s*án\s*đúng|đáp\s*án\s*chuẩn|^đáp\s*án$|kết\s*quả|correct|answer|^đ\/a$|^đa$/i.test(h)) tmpAns = idx;
+              else if (tmpExp === -1 && /giải\s*thích|gợi\s*ý|explanation|ghi\s*chú|hướng\s*dẫn/i.test(h)) tmpExp = idx;
+              else if (tmpQ === -1 && /câu\s*hỏi|nội\s*dung|question|đề\s*bài/i.test(h)) tmpQ = idx;
+              else if (tmpCat === -1 && /nhóm|chủ\s*đề|category|phân\s*loại|mức\s*độ|bài\s*học/i.test(h)) tmpCat = idx;
             });
-            break;
+            if (tmpQ !== -1 || (tmpA !== -1 && tmpB !== -1)) {
+              headerRowIdx = r;
+              colA = tmpA;
+              colB = tmpB;
+              colC = tmpC;
+              colD = tmpD;
+              colAns = tmpAns;
+              colExp = tmpExp;
+              colCat = tmpCat;
+              colQ = tmpQ !== -1 ? tmpQ : (tmpA > 0 ? tmpA - 1 : 0);
+              break;
+            }
           }
         }
 
         rows.forEach((row, rIdx) => {
-          if (rIdx === headerRowIdx) return;
+          if (rIdx <= headerRowIdx) return;
           const cols = row.map(c => String(c || "").trim());
           const nonEmptyCols = cols.filter(Boolean);
           if (nonEmptyCols.length === 0) return;
 
-          // If a table row has only 1-3 columns (common in Word tables where questions/options are in stacked rows or cells), collect its text for block parsing
+          // Skip repeated header rows inside multi-table sheets
+          if (/^(?:stt|câu\s*hỏi|mã\s*câu)$/i.test(nonEmptyCols[0]) && nonEmptyCols.some(c => /câu\s*hỏi|phương\s*án|đáp\s*án/i.test(c))) {
+            return;
+          }
+
+          // Helper to push vertical/stacked Excel rows (e.g. ["A", "Phương án A"] -> "A. Phương án A", ["Đáp án", "B"] -> "Đáp án: B")
+          const pushRowToTextBlocks = () => {
+            if (nonEmptyCols.length === 2 && /^[A-D]$/i.test(nonEmptyCols[0])) {
+              extraTableTextBlocks.push(`${nonEmptyCols[0].toUpperCase()}. ${nonEmptyCols[1]}`);
+            } else if (nonEmptyCols.length === 2 && /^(?:đáp\s*án(?:\s*đúng)?|đ\/a|đa|kết\s*quả|kq)$/i.test(nonEmptyCols[0])) {
+              extraTableTextBlocks.push(`Đáp án: ${nonEmptyCols[1]}`);
+            } else if (nonEmptyCols.length >= 2 && /^(?:câu(?:\s*hỏi)?\s*\d+|\d+)$/i.test(nonEmptyCols[0])) {
+              extraTableTextBlocks.push(`Câu ${nonEmptyCols[0].replace(/\D+/g, "") || (parsedQuestions.length + 1)}: ${nonEmptyCols.slice(1).join("\n")}`);
+            } else {
+              extraTableTextBlocks.push(nonEmptyCols.join("\n"));
+            }
+          };
+
           if (nonEmptyCols.length <= 3 && colA === -1) {
-            extraTableTextBlocks.push(nonEmptyCols.join("\n"));
+            pushRowToTextBlocks();
             return;
           }
 
@@ -2442,13 +2474,13 @@
             ansRaw = colAns !== -1 ? (cols[colAns] || "") : "";
             expText = colExp !== -1 ? (cols[colExp] || "") : "";
           } else {
-            // Positional detection:
-            // [STT, Question, A, B, C, D, Ans?, Exp?] or [Question, A, B, C, D, Ans?, Exp?] or [STT, Category, Question, A, B, C, D, Ans?, Exp?]
+            // Smart positional detection on nonEmptyCols / cols:
+            // Find the question column (first column after STT/short metadata that has length >= 8)
             let qCol = 0;
-            if (/^(?:câu\s*)?\d+[.:)]?$/i.test(cols[0]) && cols.length >= 5) {
+            if (/^(?:câu\s*)?\d+[.:)]?$/i.test(cols[0]) && cols.length >= 4) {
               qCol = 1;
-              if (cols.length >= 8 && cols[1].length < 35 && cols[2].length > cols[1].length) {
-                qCol = 2;
+              while (qCol + 4 < cols.length && cols[qCol].length < 28 && cols[qCol + 1].length > cols[qCol].length + 10) {
+                qCol++;
               }
             }
             qText = cols[qCol] || "";
@@ -2460,6 +2492,21 @@
             expText = cols[qCol + 6] || "";
           }
 
+          // Case where all 4 options A, B, C, D are inside a single cell (optA or qText)
+          if (qText && optA && (!optC || /^[A-D]$/i.test(optB)) && /\bA[.:)]\s+/i.test(optA) && /\bB[.:)]\s+/i.test(optA)) {
+            if (/^[A-D]$/i.test(optB) && !ansRaw) ansRaw = optB;
+            if (optC && !expText) expText = optC;
+            const splitOpts = optA
+              .replace(/(?:\r?\n|\s+)(?=(?:\*?\s*[A-D][.:)]\s+))/g, "\n")
+              .split(/\n+/)
+              .map(s => s.trim())
+              .filter(Boolean);
+            optA = splitOpts[0] || "";
+            optB = splitOpts[1] || "";
+            optC = splitOpts[2] || "";
+            optD = splitOpts[3] || "";
+          }
+
           // Strip leading "A. ", "B. " from table option cells if present
           const cleanOpt = (s, letter) => {
             const re = new RegExp(`^[-*•]?\\s*\\**${letter}[.:)\\-]\\**\\s*`, "i");
@@ -2468,7 +2515,7 @@
 
           // If qText itself contains multiline question + options inside a single cell, push to text block parser
           if (qText && !optA && !optB && /\bA[.:)]\s+/i.test(qText)) {
-            extraTableTextBlocks.push(cols.filter(Boolean).join("\n"));
+            pushRowToTextBlocks();
             return;
           }
 
@@ -2498,7 +2545,7 @@
               explanation: expText || "Theo bộ câu hỏi đào tạo chuẩn."
             });
           } else if (nonEmptyCols.length > 0) {
-            extraTableTextBlocks.push(nonEmptyCols.join("\n"));
+            pushRowToTextBlocks();
           }
         });
       });
@@ -2922,10 +2969,14 @@
     table.querySelectorAll("[data-goto-learner-dossier]").forEach(btn => {
       btn.addEventListener("click", () => {
         activeDossierSaleId = btn.dataset.gotoLearnerDossier;
-        activeAdminTab = "dossier";
-        renderAdminWorkspace();
+        renderAdminDossierPanel(sales, pubMods, "adminInlineDossierContainer");
+        const container = document.getElementById("adminInlineDossierContainer");
+        if (container) container.scrollIntoView({ behavior: "smooth", block: "nearest" });
       });
     });
+
+    // Always render the merged Learner Dossier card right below the Progress Matrix
+    renderAdminDossierPanel(sales, pubMods, "adminInlineDossierContainer");
   }
 
   function openQuickInspectSaleModal(saleId, moduleId) {
@@ -3009,8 +3060,9 @@
     dlg.showModal();
   }
 
-  function renderAdminDossierPanel(sales, pubMods) {
-    const panel = document.getElementById("adminPanelDossier");
+  function renderAdminDossierPanel(sales, pubMods, targetContainerId = "adminPanelDossier") {
+    const panel = document.getElementById(targetContainerId);
+    if (!panel) return;
     if (!activeDossierSaleId || !sales.some(s => s.id === activeDossierSaleId)) {
       activeDossierSaleId = sales[0] ? sales[0].id : null;
     }
@@ -3088,7 +3140,7 @@
     panel.querySelectorAll("[data-dossier-sale]").forEach(btn => {
       btn.addEventListener("click", () => {
         activeDossierSaleId = btn.dataset.dossierSale;
-        renderAdminDossierPanel(sales, pubMods);
+        renderAdminDossierPanel(sales, pubMods, targetContainerId);
       });
     });
 
@@ -3400,12 +3452,12 @@
   }
 
   async function parseDocxOrXlsxInBrowser(file) {
-    if (!window.JSZip) return null;
     const fname = (file.name || "").toLowerCase();
-    const zip = await window.JSZip.loadAsync(file);
     const parser = new DOMParser();
 
     if (fname.endsWith(".docx")) {
+      if (!window.JSZip) return null;
+      const zip = await window.JSZip.loadAsync(file);
       const docXmlFile = zip.file("word/document.xml");
       if (!docXmlFile) return null;
       const xmlStr = await docXmlFile.async("string");
@@ -3495,7 +3547,38 @@
       return { text: lines.join("\n"), tables };
     }
 
-    if (fname.endsWith(".xlsx")) {
+    if (fname.endsWith(".xlsx") || fname.endsWith(".xls") || fname.endsWith(".ods")) {
+      // 1. Primary Excel parser using SheetJS (window.XLSX) — supports .xlsx, .xls (97-2003), .ods, formulas, merged cells
+      if (window.XLSX) {
+        try {
+          const ab = await file.arrayBuffer();
+          const wb = window.XLSX.read(ab, { type: "array" });
+          const lines = [];
+          const tables = [];
+          (wb.SheetNames || []).forEach(sName => {
+            const ws = wb.Sheets[sName];
+            if (!ws) return;
+            const rawRows = window.XLSX.utils.sheet_to_json(ws, { header: 1, defval: "", raw: false });
+            const rows = [];
+            lines.push(`=== SHEET: ${sName} ===`);
+            rawRows.forEach(rArr => {
+              if (!Array.isArray(rArr)) return;
+              const vals = rArr.map(c => String(c == null ? "" : c).trim());
+              if (vals.some(Boolean)) {
+                rows.push(vals);
+                lines.push(vals.filter(Boolean).join("\n"));
+              }
+            });
+            if (rows.length > 0) tables.push({ sheet: sName, rows });
+          });
+          if (tables.length > 0 || lines.length > 1) {
+            return { text: lines.join("\n"), tables };
+          }
+        } catch (xlsxErr) {}
+      }
+
+      if (!window.JSZip) return null;
+      const zip = await window.JSZip.loadAsync(file);
       const sharedStrings = [];
       const ssFile = zip.file("xl/sharedStrings.xml");
       if (ssFile) {
@@ -3595,9 +3678,9 @@
       }
     } catch (e) {}
 
-    // Client-side parser for .docx and .xlsx (works on both Node server & static hosts like GitHub Pages)
+    // Client-side parser for .docx, .xlsx, .xls, .ods (works on both Node server & static hosts like GitHub Pages)
     try {
-      if (fname.endsWith(".docx") || fname.endsWith(".xlsx")) {
+      if (fname.endsWith(".docx") || fname.endsWith(".xlsx") || fname.endsWith(".xls") || fname.endsWith(".ods")) {
         const parsed = await parseDocxOrXlsxInBrowser(file);
         if (parsed && (parsed.text || (parsed.tables && parsed.tables.length > 0))) {
           return parsed;
