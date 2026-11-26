@@ -35,6 +35,9 @@
   let hp03GradeFilter = "ALL";
   let hp04SearchQuery = "";
   let hp04TermFilter = "ALL";
+  let hp04AgeMode = "ALL"; // "ALL" | "BE" | "NHO" | "LON"
+  let hp04ExpandedTiet = "1";
+  let inlineMiniQuizAnswers = {}; // { [questionId]: selectedOptionIndex }
 
   // Active quiz state for the Sale currently taking a quiz
   let currentQuizAnswers = {}; // { [questionId]: selectedOptionIndex }
@@ -1181,8 +1184,64 @@
     }
   }
 
+  function formatStudyRichTextHtml(rawText) {
+    const raw = String(rawText == null ? "" : rawText).trim();
+    if (!raw) return "";
+    const lines = raw.split(/\r?\n+/).map(l => l.trim()).filter(Boolean);
+    return `<div class="stc-rich-list">${lines.map(line => {
+      const isSub = /^[+–]\s+/.test(line);
+      const colonIdx = line.indexOf(":");
+      let innerHtml = "";
+      if (colonIdx > 1 && colonIdx < 58) {
+        const head = line.slice(0, colonIdx + 1);
+        const rest = line.slice(colonIdx + 1);
+        innerHtml = `<span class="stc-rich-key">${escapeHtml(head)}</span>${escapeHtml(rest)}`;
+      } else {
+        innerHtml = escapeHtml(line);
+      }
+      return `<div class="stc-rich-item ${isSub ? "sub-item" : ""}">${innerHtml}</div>`;
+    }).join("")}</div>`;
+  }
+
+  function formatTimelineStepsHtml(rawText) {
+    const raw = String(rawText == null ? "" : rawText).trim();
+    if (!raw) return "";
+    const blocks = [];
+    const lines = raw.split(/\r?\n+/).map(l => l.trim()).filter(Boolean);
+    lines.forEach(line => {
+      if (/^[•\-]?\s*(?:Hoạt động|Tổng kết|Bước)/i.test(line) || blocks.length === 0) {
+        blocks.push([line]);
+      } else {
+        blocks[blocks.length - 1].push(line);
+      }
+    });
+    return `<div class="stc-timeline-list">${blocks.map(bLines => {
+      const firstLine = bLines[0];
+      const colonIdx = firstLine.indexOf(":");
+      let firstHtml = escapeHtml(firstLine);
+      if (colonIdx > 1 && colonIdx < 70) {
+        firstHtml = `<span class="stc-rich-key">${escapeHtml(firstLine.slice(0, colonIdx + 1))}</span>${escapeHtml(firstLine.slice(colonIdx + 1))}`;
+      }
+      const restHtml = bLines.slice(1).map(sub => `<div class="stc-rich-item sub-item">${escapeHtml(sub)}</div>`).join("");
+      return `<div class="stc-timeline-step"><div>${firstHtml}</div>${restHtml}</div>`;
+    }).join("")}</div>`;
+  }
+
+  function getLessonInlineQuestions(mod, stepIdx) {
+    if (!mod || !Array.isArray(mod.questions)) return [];
+    const matched = mod.questions.filter(q => q.lessonIndex === stepIdx);
+    if (matched.length > 0) return matched;
+    if (mod.structuredType === "sample_10_lessons" && Array.isArray(mod.structuredData) && mod.structuredData[stepIdx]) {
+      const code = String(mod.structuredData[stepIdx].bai_hoc || "").split(/[\s\-]/)[0].trim();
+      if (code) {
+        return mod.questions.filter(q => q.lessonCode === code || (q.question && q.question.includes(code)));
+      }
+    }
+    return [];
+  }
+
   function buildDocumentSteps(mod) {
-    // 1. HP01: 6 Comparison Criteria -> 6 clean steps
+    // 1. HP01: 6 Comparison Criteria -> Scannable 3-tier layout
     if (mod.structuredType === "comparison_6_criteria" && Array.isArray(mod.structuredData)) {
       return mod.structuredData.map((item, idx) => ({
         pillLabel: `Mục ${idx + 1}`,
@@ -1191,26 +1250,28 @@
           <article class="study-topic-card">
             <div class="stc-head">
               <div class="stc-head-left">
-                <span class="stc-num">Mục ${escapeHtml(item.stt)}/6</span>
+                <span class="stc-num">Tiêu chí ${escapeHtml(item.stt)}/6</span>
                 <h4 class="stc-title">${escapeHtml(item.title)}</h4>
               </div>
             </div>
-            <div class="stc-grid-2">
-              <div class="stc-box traditional">
-                <div class="stc-box-label">Chương trình Bộ GD&amp;ĐT</div>
-                <div class="stc-box-content">${escapeHtml(item.bo_gddt)}</div>
+            <div class="stc-tier-stack">
+              <div class="stc-pitch-spotlight">
+                <div class="stc-box-label">Câu chốt nói với Chủ trường / Hiệu trưởng</div>
+                <div class="stc-box-content"><strong>"${escapeHtml(item.sale_pitch)}"</strong></div>
               </div>
-              <div class="stc-box novastars">
-                <div class="stc-box-label">Chương trình KNS Novastars</div>
-                <div class="stc-box-content">${escapeHtml(item.novastars)}</div>
+              <div class="stc-balanced-pair">
+                <div class="stc-box traditional">
+                  <div class="stc-box-label">Chương trình Bộ GD&amp;ĐT</div>
+                  <div class="stc-box-content">${formatStudyRichTextHtml(item.bo_gddt)}</div>
+                </div>
+                <div class="stc-box novastars">
+                  <div class="stc-box-label">Chương trình KNS Novastars</div>
+                  <div class="stc-box-content">${formatStudyRichTextHtml(item.novastars)}</div>
+                </div>
               </div>
               <div class="stc-box usp">
                 <div class="stc-box-label">Điểm khác biệt ăn tiền</div>
-                <div class="stc-box-content">${escapeHtml(item.khac_biet_an_tien)}</div>
-              </div>
-              <div class="stc-box pitch">
-                <div class="stc-box-label">Câu chốt nói với Chủ trường / Hiệu trưởng</div>
-                <div class="stc-box-content"><strong>"${escapeHtml(item.sale_pitch)}"</strong></div>
+                <div class="stc-box-content">${formatStudyRichTextHtml(item.khac_biet_an_tien)}</div>
               </div>
             </div>
           </article>
@@ -1218,7 +1279,7 @@
       }));
     }
 
-    // 2. HP02: 6 Pedagogical Reasons -> 6 clean steps
+    // 2. HP02: 6 Pedagogical Reasons -> Scannable 3-tier layout
     if (mod.structuredType === "pedagogy_6_reasons" && Array.isArray(mod.structuredData)) {
       return mod.structuredData.map((item, idx) => ({
         pillLabel: `Lý do ${idx + 1}`,
@@ -1231,62 +1292,76 @@
                 <h4 class="stc-title">${escapeHtml(item.title)}</h4>
               </div>
             </div>
-            <div class="stc-grid-2">
-              <div class="stc-box traditional">
-                <div class="stc-box-label">Tâm lý trẻ &amp; Cách trường thường dạy</div>
-                <div class="stc-box-content"><strong>• Tâm lý trẻ:</strong> ${escapeHtml(item.tam_ly_tre)}\n\n<strong>• Trường thường dạy:</strong> ${escapeHtml(item.cach_truong_thuong_day)}</div>
-              </div>
-              <div class="stc-box novastars">
-                <div class="stc-box-label">Cách Novastars thiết kế sẵn</div>
-                <div class="stc-box-content">${escapeHtml(item.cach_novastars)}</div>
-              </div>
-              <div class="stc-box pitch" style="grid-column: 1 / -1;">
+            <div class="stc-tier-stack">
+              <div class="stc-pitch-spotlight">
                 <div class="stc-box-label">Câu trả lời mẫu thuyết phục Chủ trường / Hiệu trưởng</div>
                 <div class="stc-box-content"><strong>"${escapeHtml(item.sale_pitch)}"</strong></div>
               </div>
+              <div class="stc-balanced-pair">
+                <div class="stc-box traditional">
+                  <div class="stc-box-label">Tâm lý trẻ &amp; Cách trường thường dạy</div>
+                  <div class="stc-box-content">${formatStudyRichTextHtml(`• Tâm lý trẻ: ${item.tam_ly_tre}\n• Trường thường dạy: ${item.cach_truong_thuong_day}`)}</div>
+                </div>
+                <div class="stc-box novastars">
+                  <div class="stc-box-label">Cách Novastars thiết kế sẵn</div>
+                  <div class="stc-box-content">${formatStudyRichTextHtml(item.cach_novastars)}</div>
+                </div>
+              </div>
             </div>
           </article>
         `
       }));
     }
 
-    // 3. HP03: 10 Sample Lessons -> 10 clean steps (1 lesson per card)
+    // 3. HP03: 10 Sample Lessons -> Scannable 3-Tier Reading Flow (Spotlight Pitch -> Balanced Compare -> Activity Timeline)
     if (mod.structuredType === "sample_10_lessons" && Array.isArray(mod.structuredData)) {
-      return mod.structuredData.map((item, idx) => ({
-        pillLabel: `Bài ${idx + 1} (${(item.bai_hoc || "").split(" ")[0]})`,
-        title: `${item.bai_hoc}`,
-        html: `
-          <article class="study-topic-card">
-            <div class="stc-head">
-              <div class="stc-head-left">
-                <span class="stc-num">${escapeHtml(item.khoi)}</span>
-                <h4 class="stc-title">${escapeHtml(item.bai_hoc)}</h4>
+      return mod.structuredData.map((item, idx) => {
+        const lessonCode = String(item.bai_hoc || "").split(/[\s\-]/)[0].trim();
+        return {
+          pillLabel: `Bài ${idx + 1} (${lessonCode})`,
+          lessonCode,
+          title: `${item.bai_hoc}`,
+          html: `
+            <article class="study-topic-card">
+              <div class="stc-head">
+                <div class="stc-head-left">
+                  <span class="stc-num">${escapeHtml(item.khoi)}</span>
+                  <h4 class="stc-title">${escapeHtml(item.bai_hoc)}</h4>
+                </div>
+                <div class="stc-badges">
+                  <span class="stc-badge">${escapeHtml(item.cong_nghe)}</span>
+                  <span class="stc-badge">Thuyết trình: ${escapeHtml(item.co_thuyet_trinh)}</span>
+                </div>
               </div>
-              <div class="stc-badges">
-                <span class="stc-badge">${escapeHtml(item.cong_nghe)}</span>
-                <span class="stc-badge">Thuyết trình: ${escapeHtml(item.co_thuyet_trinh)}</span>
+              <div class="stc-tier-stack">
+                <div class="stc-pitch-spotlight">
+                  <div class="stc-box-label">Tầng 1 · Điểm ăn tiền để Sale thuyết phục Chủ trường</div>
+                  ${formatStudyRichTextHtml(item.diem_an_tien)}
+                </div>
+
+                <div class="stc-balanced-pair">
+                  <div class="stc-box traditional">
+                    <div class="stc-box-label">Tầng 2A · Cách trường thường dạy (${escapeHtml(item.de_tai_quen_thuoc)})</div>
+                    ${formatStudyRichTextHtml(item.cach_truong_thuong_day)}
+                  </div>
+                  <div class="stc-box novastars">
+                    <div class="stc-box-label">Tầng 2B · Mục tiêu &amp; Điểm mới của Novastars</div>
+                    ${formatStudyRichTextHtml(item.noi_dung_novastars)}
+                  </div>
+                </div>
+
+                <div class="stc-timeline-card">
+                  <div class="stc-box-label" style="color:#C2410C;">Tầng 3 · Tiến trình tổ chức lớp &amp; Thực hành trên lớp</div>
+                  ${formatTimelineStepsHtml(item.cach_trien_khai)}
+                </div>
               </div>
-            </div>
-            <div class="stc-grid-2">
-              <div class="stc-box traditional">
-                <div class="stc-box-label">Cách trường thường dạy (${escapeHtml(item.de_tai_quen_thuoc)})</div>
-                <div class="stc-box-content">${escapeHtml(item.cach_truong_thuong_day)}</div>
-              </div>
-              <div class="stc-box novastars">
-                <div class="stc-box-label">Nội dung &amp; Cách triển khai của Novastars</div>
-                <div class="stc-box-content">${escapeHtml(item.noi_dung_novastars)}\n\n${escapeHtml(item.cach_trien_khai)}</div>
-              </div>
-              <div class="stc-box pitch" style="grid-column: 1 / -1;">
-                <div class="stc-box-label">Điểm ăn tiền để Sale thuyết phục Chủ trường</div>
-                <div class="stc-box-content">${escapeHtml(item.diem_an_tien)}</div>
-              </div>
-            </div>
-          </article>
-        `
-      }));
+            </article>
+          `
+        };
+      });
     }
 
-    // 4. HP04: 3 Age Groups + 72-Lesson Lookup Table -> 4 clean steps
+    // 4. HP04: 3 Age Groups + 72x3 Detailed Curriculum Lookup Table -> 4 clean steps
     if (mod.structuredType === "roadmap_72_lessons" && mod.structuredData) {
       const ages = mod.structuredData.ageSummaries || [];
       const list72 = mod.structuredData.curriculum72 || [];
@@ -1301,18 +1376,20 @@
                 <h4 class="stc-title">${escapeHtml((a.do_tuoi || "").replace(/\n/g, " · "))}</h4>
               </div>
             </div>
-            <div class="stc-grid-2">
-              <div class="stc-box traditional">
-                <div class="stc-box-label">Nội dung trường vẫn dạy theo khung Bộ</div>
-                <div class="stc-box-content">${escapeHtml(a.noi_dung_bo)}</div>
-              </div>
-              <div class="stc-box novastars">
-                <div class="stc-box-label">Nội dung nâng cấp của Novastars</div>
-                <div class="stc-box-content">${escapeHtml(a.noi_dung_novastars)}</div>
-              </div>
-              <div class="stc-box pitch" style="grid-column: 1 / -1;">
+            <div class="stc-tier-stack">
+              <div class="stc-pitch-spotlight">
                 <div class="stc-box-label">Điểm nhấn để Sale nói với Hiệu trưởng</div>
                 <div class="stc-box-content"><strong>"${escapeHtml(a.diem_nhan_sale)}"</strong></div>
+              </div>
+              <div class="stc-balanced-pair">
+                <div class="stc-box traditional">
+                  <div class="stc-box-label">Nội dung trường vẫn dạy theo khung Bộ</div>
+                  ${formatStudyRichTextHtml(a.noi_dung_bo)}
+                </div>
+                <div class="stc-box novastars">
+                  <div class="stc-box-label">Nội dung nâng cấp của Novastars</div>
+                  ${formatStudyRichTextHtml(a.noi_dung_novastars)}
+                </div>
               </div>
             </div>
           </article>
@@ -1326,45 +1403,114 @@
         return (
           (row.tiet || "").toLowerCase().includes(q) ||
           (row.mg_be || "").toLowerCase().includes(q) ||
+          (row.mg_be_nd || "").toLowerCase().includes(q) ||
           (row.mg_nho || "").toLowerCase().includes(q) ||
-          (row.mg_lon || "").toLowerCase().includes(q)
+          (row.mg_nho_nd || "").toLowerCase().includes(q) ||
+          (row.mg_lon || "").toLowerCase().includes(q) ||
+          (row.mg_lon_nd || "").toLowerCase().includes(q)
         );
       });
 
-      const rows72Html = filtered72.map(r => `
-        <tr>
-          <td style="text-align:center;font-family:var(--font-mono);font-weight:700;">Tiết ${escapeHtml(r.tiet)}</td>
-          <td><span class="mod-cat-pill">${escapeHtml(r.hoc_ki)}</span></td>
-          <td>${escapeHtml(r.mg_be)}</td>
-          <td>${escapeHtml(r.mg_nho)}</td>
-          <td>${escapeHtml(r.mg_lon)}</td>
-        </tr>
-      `).join("");
+      const hk1Count = list72.filter(r => r.hoc_ki === "Học kì I").length;
+      const hk2Count = list72.filter(r => r.hoc_ki === "Học kì II").length;
+
+      let tableHeadHtml = "";
+      let tableBodyHtml = "";
+
+      if (hp04AgeMode === "ALL") {
+        tableHeadHtml = `
+          <tr>
+            <th style="width:68px;text-align:center;">Tiết</th>
+            <th style="width:94px;">Học kì</th>
+            <th>Mẫu giáo Bé (3–4t)</th>
+            <th>Mẫu giáo Nhỡ (4–5t)</th>
+            <th>Mẫu giáo Lớn (5–6t)</th>
+            <th style="width:96px;text-align:center;">Nội dung</th>
+          </tr>
+        `;
+        tableBodyHtml = filtered72.map(r => {
+          const isExp = String(hp04ExpandedTiet) === String(r.tiet);
+          const hasDetails = Boolean(r.mg_be_nd || r.mg_nho_nd || r.mg_lon_nd);
+          let htmlRow = `
+            <tr data-hp04-row-tiet="${escapeHtml(r.tiet)}" style="cursor:${hasDetails ? 'pointer' : 'default'};${isExp ? 'background:#FFF7ED;' : ''}">
+              <td style="text-align:center;font-family:var(--font-mono);font-weight:800;color:#EA580C;">${escapeHtml(r.tiet)}</td>
+              <td><span class="mod-cat-pill">${escapeHtml(r.hoc_ki)}</span></td>
+              <td><strong>${escapeHtml(r.mg_be)}</strong></td>
+              <td><strong>${escapeHtml(r.mg_nho)}</strong></td>
+              <td><strong>${escapeHtml(r.mg_lon)}</strong></td>
+              <td style="text-align:center;">
+                ${hasDetails ? `<button type="button" class="btn-row-act ${isExp ? 'save' : ''}" data-hp04-toggle-tiet="${escapeHtml(r.tiet)}">${isExp ? "Thu gọn" : "Xem ND"}</button>` : "—"}
+              </td>
+            </tr>
+          `;
+          if (isExp && hasDetails) {
+            htmlRow += `
+              <tr>
+                <td colspan="6" class="hp04-detail-drawer">
+                  <div class="hp04-drawer-grid">
+                    <div class="hp04-drawer-col">
+                      <h5>Khối Bé (3–4t): ${escapeHtml(r.mg_be)}</h5>
+                      <p>${escapeHtml(r.mg_be_nd || "Đang cập nhật...")}</p>
+                    </div>
+                    <div class="hp04-drawer-col">
+                      <h5>Khối Nhỡ (4–5t): ${escapeHtml(r.mg_nho)}</h5>
+                      <p>${escapeHtml(r.mg_nho_nd || "Đang cập nhật...")}</p>
+                    </div>
+                    <div class="hp04-drawer-col">
+                      <h5>Khối Lớn (5–6t): ${escapeHtml(r.mg_lon)}</h5>
+                      <p>${escapeHtml(r.mg_lon_nd || "Đang cập nhật...")}</p>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            `;
+          }
+          return htmlRow;
+        }).join("");
+      } else {
+        const titleKey = hp04AgeMode === "BE" ? "mg_be" : (hp04AgeMode === "NHO" ? "mg_nho" : "mg_lon");
+        const ndKey = hp04AgeMode === "BE" ? "mg_be_nd" : (hp04AgeMode === "NHO" ? "mg_nho_nd" : "mg_lon_nd");
+        const ageLabel = hp04AgeMode === "BE" ? "Khối Mẫu giáo Bé (3–4 tuổi)" : (hp04AgeMode === "NHO" ? "Khối Mẫu giáo Nhỡ (4–5 tuổi)" : "Khối Mẫu giáo Lớn (5–6 tuổi)");
+        tableHeadHtml = `
+          <tr>
+            <th style="width:70px;text-align:center;">Tiết</th>
+            <th style="width:98px;">Học kì</th>
+            <th style="width:260px;">Tên bài học (${escapeHtml(ageLabel)})</th>
+            <th>Nội dung mục tiêu &amp; Kỹ năng thực hành của trẻ</th>
+          </tr>
+        `;
+        tableBodyHtml = filtered72.map(r => `
+          <tr>
+            <td style="text-align:center;font-family:var(--font-mono);font-weight:800;color:#EA580C;">${escapeHtml(r.tiet)}</td>
+            <td><span class="mod-cat-pill">${escapeHtml(r.hoc_ki)}</span></td>
+            <td><strong>${escapeHtml(r[titleKey] || "")}</strong></td>
+            <td class="doc-multiline-cell">${escapeHtml(r[ndKey] || "—")}</td>
+          </tr>
+        `).join("");
+      }
 
       steps.push({
-        pillLabel: "4. Tra cứu 72 tiết",
-        title: "Danh sách đủ 72 tiết × 3 khối",
+        pillLabel: `4. Tra cứu ${list72.length} tiết`,
+        title: `Danh sách trọn vẹn ${list72.length} tiết × 3 khối (216 bài chi tiết)`,
         html: `
-          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
-            <input type="text" id="inputHp04Search" class="input-control" style="width:240px;padding:7px 11px;font-size:13px;" placeholder="Tìm tên bài trong 72 tiết..." value="${escapeHtml(hp04SearchQuery)}">
-            <div style="display:flex;gap:6px;">
-              <button type="button" class="study-filter-pill ${hp04TermFilter === 'ALL' ? 'active' : ''}" data-hp04-term="ALL">Cả năm (72)</button>
-              <button type="button" class="study-filter-pill ${hp04TermFilter === 'Học kì I' ? 'active' : ''}" data-hp04-term="Học kì I">Học kì I (35)</button>
-              <button type="button" class="study-filter-pill ${hp04TermFilter === 'Học kì II' ? 'active' : ''}" data-hp04-term="Học kì II">Học kì II (37)</button>
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
+            <div class="study-filter-pills">
+              <button type="button" class="study-filter-pill ${hp04AgeMode === 'ALL' ? 'active' : ''}" data-hp04-age="ALL">So sánh 3 khối</button>
+              <button type="button" class="study-filter-pill ${hp04AgeMode === 'BE' ? 'active' : ''}" data-hp04-age="BE">Khối Bé (3–4t)</button>
+              <button type="button" class="study-filter-pill ${hp04AgeMode === 'NHO' ? 'active' : ''}" data-hp04-age="NHO">Khối Nhỡ (4–5t)</button>
+              <button type="button" class="study-filter-pill ${hp04AgeMode === 'LON' ? 'active' : ''}" data-hp04-age="LON">Khối Lớn (5–6t)</button>
+            </div>
+            <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+              <input type="text" id="inputHp04Search" class="input-control" style="width:230px;padding:6px 10px;font-size:12.8px;" placeholder="Tìm tên bài hoặc nội dung..." value="${escapeHtml(hp04SearchQuery)}">
+              <button type="button" class="study-filter-pill ${hp04TermFilter === 'ALL' ? 'active' : ''}" data-hp04-term="ALL">Cả năm (${list72.length})</button>
+              <button type="button" class="study-filter-pill ${hp04TermFilter === 'Học kì I' ? 'active' : ''}" data-hp04-term="Học kì I">HK I (${hk1Count})</button>
+              <button type="button" class="study-filter-pill ${hp04TermFilter === 'Học kì II' ? 'active' : ''}" data-hp04-term="Học kì II">HK II (${hk2Count})</button>
             </div>
           </div>
-          <div class="table-responsive" style="max-height:420px;overflow-y:auto;">
+          <div class="table-responsive" style="max-height:490px;overflow-y:auto;">
             <table class="progress-matrix-table">
-              <thead>
-                <tr>
-                  <th style="width:75px;text-align:center;">Tiết</th>
-                  <th style="width:105px;">Học kì</th>
-                  <th>Mẫu giáo Bé (3–4 tuổi)</th>
-                  <th>Mẫu giáo Nhỡ (4–5 tuổi)</th>
-                  <th>Mẫu giáo Lớn (5–6 tuổi)</th>
-                </tr>
-              </thead>
-              <tbody>${rows72Html}</tbody>
+              <thead>${tableHeadHtml}</thead>
+              <tbody>${tableBodyHtml || `<tr><td colspan="6" style="text-align:center;padding:24px;color:#64748B;">Không tìm thấy tiết học khớp từ khóa.</td></tr>`}</tbody>
             </table>
           </div>
         `
@@ -1461,23 +1607,82 @@
 
     const currentStep = steps[activeDocStepIndex];
     const bodyContainer = document.getElementById("saleDocBodyContainer");
+    const letters = ["A", "B", "C", "D"];
 
-    const pillsHtml = steps.map((st, idx) => `
-      <button type="button" class="doc-step-pill ${idx === activeDocStepIndex ? 'active' : ''}" data-doc-step="${idx}">
-        ${escapeHtml(st.pillLabel)}
-      </button>
-    `).join("");
+    const pillsHtml = steps.map((st, idx) => {
+      const lessonQs = getLessonInlineQuestions(mod, idx);
+      const isLessonMiniDone = lessonQs.length > 0 && lessonQs.every(q => inlineMiniQuizAnswers[q.id] === Number(q.correctIndex));
+      return `
+        <button type="button" class="doc-step-pill ${idx === activeDocStepIndex ? 'active' : ''} ${isLessonMiniDone ? 'mini-done' : ''}" data-doc-step="${idx}">
+          ${isLessonMiniDone ? "✓ " : ""}${escapeHtml(st.pillLabel)}
+        </button>
+      `;
+    }).join("");
 
     const downloadBtnHtml = (mod.sourceFile && mod.sourceFile.url)
       ? `<a href="${escapeHtml(mod.sourceFile.url)}" download="${escapeHtml(mod.sourceFile.name || 'Tai_lieu.xlsx')}" class="btn-download-source">Tải file gốc</a>`
       : "";
+
+    const lessonQs = getLessonInlineQuestions(mod, activeDocStepIndex);
+    let inlineQuizHtml = "";
+    if (lessonQs.length > 0) {
+      const answeredMini = lessonQs.filter(q => inlineMiniQuizAnswers[q.id] !== undefined).length;
+      const rightMini = lessonQs.filter(q => inlineMiniQuizAnswers[q.id] === Number(q.correctIndex)).length;
+      const qCardsHtml = lessonQs.map((q, qIdx) => {
+        const chosen = inlineMiniQuizAnswers[q.id];
+        const hasChosen = chosen !== undefined;
+        const isRight = hasChosen && chosen === Number(q.correctIndex);
+        const optsHtml = (q.options || []).map((optText, oIdx) => {
+          let cls = "lmq-opt-btn";
+          if (hasChosen) {
+            if (oIdx === Number(q.correctIndex)) cls += " right";
+            else if (chosen === oIdx) cls += " wrong";
+          }
+          return `
+            <button type="button" class="${cls}" data-mini-q="${escapeHtml(q.id)}" data-mini-opt="${oIdx}">
+              <span class="qq-opt-letter">${letters[oIdx] || oIdx + 1}</span>
+              <span>${escapeHtml(optText)}</span>
+            </button>
+          `;
+        }).join("");
+
+        return `
+          <div class="lmq-q-item">
+            <div style="font-size:13.8px;font-weight:700;color:#0F172A;line-height:1.45;">
+              <span class="qq-num-badge" style="margin-right:6px;">Câu ${qIdx + 1}/${lessonQs.length}</span>
+              ${escapeHtml(q.question)}
+            </div>
+            <div class="lmq-opt-grid">${optsHtml}</div>
+            ${hasChosen ? `
+              <div class="lmq-feedback ${isRight ? "right" : "wrong"}">
+                <strong>${isRight ? "✓ Chính xác!" : `✕ Chưa đúng (Đáp án chuẩn là ${letters[q.correctIndex]}).`}</strong>
+                ${escapeHtml(q.explanation || "")}
+              </div>
+            ` : ""}
+          </div>
+        `;
+      }).join("");
+
+      inlineQuizHtml = `
+        <section class="lesson-mini-quiz-box" aria-label="Trắc nghiệm kiểm tra nhanh theo bài">
+          <div class="lmq-head">
+            <div>
+              <div class="lmq-title">Kiểm tra nhanh ngay sau khi đọc ${escapeHtml(currentStep.pillLabel)} (${lessonQs.length} câu)</div>
+              <div style="font-size:12.2px;color:#64748B;">Học bài nào ôn chắc bài đó trước khi sang bài tiếp theo. Đã đúng: <strong style="color:#059669;">${rightMini}/${lessonQs.length}</strong> (đã trả lời ${answeredMini}/${lessonQs.length}).</div>
+            </div>
+            ${answeredMini > 0 ? `<button type="button" class="btn-row-act" id="btnResetMiniQuizStep">Làm lại ${lessonQs.length} câu này</button>` : ""}
+          </div>
+          ${qCardsHtml}
+        </section>
+      `;
+    }
 
     const isLastStep = activeDocStepIndex === steps.length - 1;
 
     bodyContainer.innerHTML = `
       <div class="doc-stepper-bar">
         <div class="doc-step-pills">${pillsHtml}</div>
-        <div style="display:flex;align-items:center;gap:8px;">
+        <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
           ${downloadBtnHtml}
           <button type="button" class="btn-inline-report-bug" id="btnReportDocStepBug">
             Báo lỗi mục này
@@ -1487,6 +1692,7 @@
 
       <div class="doc-active-step-body">
         ${currentStep.html}
+        ${inlineQuizHtml}
       </div>
 
       <div class="doc-pager-footer">
@@ -1496,7 +1702,7 @@
         <span class="doc-pager-counter">Mục ${activeDocStepIndex + 1} / ${steps.length}</span>
         ${!isLastStep
           ? `<button type="button" class="btn-primary" id="btnDocNextStep">Mục tiếp theo ▶</button>`
-          : `<button type="button" class="btn-start-quiz-cta" id="btnDocStartQuiz">Làm bài Trắc nghiệm ngay ➔</button>`
+          : `<button type="button" class="btn-start-quiz-cta" id="btnDocStartQuiz">Làm bài Trắc nghiệm tổng hợp (${(mod.questions || []).length} câu) ➔</button>`
         }
       </div>
     `;
@@ -1522,6 +1728,21 @@
         renderSaleDocumentPanel(mod, prog, steps);
       });
     });
+
+    bodyContainer.querySelectorAll("[data-mini-q]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        inlineMiniQuizAnswers[btn.dataset.miniQ] = Number(btn.dataset.miniOpt);
+        renderSaleDocumentPanel(mod, prog);
+      });
+    });
+
+    const btnResetMini = document.getElementById("btnResetMiniQuizStep");
+    if (btnResetMini) {
+      btnResetMini.onclick = () => {
+        lessonQs.forEach(q => delete inlineMiniQuizAnswers[q.id]);
+        renderSaleDocumentPanel(mod, prog);
+      };
+    }
 
     const btnPrev = document.getElementById("btnDocPrevStep");
     if (btnPrev) {
@@ -1557,7 +1778,22 @@
       };
     }
 
-    // Bind HP04 table filters if on step 4
+    // Bind HP04 4-age-mode, HK I/II filter, row detail toggle & search
+    bodyContainer.querySelectorAll("[data-hp04-age]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        hp04AgeMode = btn.dataset.hp04Age;
+        renderSaleDocumentPanel(mod, prog);
+      });
+    });
+
+    bodyContainer.querySelectorAll("[data-hp04-row-tiet]").forEach(tr => {
+      tr.addEventListener("click", () => {
+        const t = tr.dataset.hp04RowTiet;
+        hp04ExpandedTiet = (String(hp04ExpandedTiet) === String(t)) ? "" : t;
+        renderSaleDocumentPanel(mod, prog);
+      });
+    });
+
     bodyContainer.querySelectorAll("[data-hp04-term]").forEach(btn => {
       btn.addEventListener("click", () => {
         hp04TermFilter = btn.dataset.hp04Term;
@@ -3060,6 +3296,321 @@
     dlg.showModal();
   }
 
+  function wrapCanvasTextLines(ctx, text, maxWidth, maxLines = 2) {
+    const words = String(text || "").trim().split(/\s+/);
+    const lines = [];
+    let current = "";
+    for (let i = 0; i < words.length; i++) {
+      const test = current ? current + " " + words[i] : words[i];
+      if (ctx.measureText(test).width > maxWidth && current) {
+        lines.push(current);
+        current = words[i];
+        if (lines.length >= maxLines - 1) {
+          let rest = [current, ...words.slice(i + 1)].join(" ");
+          while (ctx.measureText(rest).width > maxWidth && rest.length > 4) {
+            rest = rest.slice(0, -4) + "...";
+          }
+          lines.push(rest);
+          return lines;
+        }
+      } else {
+        current = test;
+      }
+    }
+    if (current) lines.push(current);
+    return lines;
+  }
+
+  function buildLearnerReportCanvas(saleId) {
+    const sale = (db.users || []).find(u => u.id === saleId && u.role === "sale");
+    const pubMods = getVisibleModulesForLearner();
+    if (!sale) return null;
+
+    let passedCount = 0;
+    let totalAttempts = 0;
+    let sumBest = 0;
+    let attemptedMods = 0;
+    const rowsData = pubMods.map(m => {
+      const p = (db.progress || []).find(pr => pr.userId === sale.id && pr.moduleId === m.id);
+      const attCnt = (p && Array.isArray(p.attempts)) ? p.attempts.length : 0;
+      const best = attCnt > 0 ? Number(p.bestScore || 0) : null;
+      const passed = Boolean(p && p.passed);
+      if (passed) passedCount++;
+      if (attCnt > 0) {
+        totalAttempts += attCnt;
+        sumBest += best;
+        attemptedMods++;
+      }
+      const lastAttempt = attCnt > 0 ? p.attempts[0] : null;
+      const dateStr = lastAttempt && lastAttempt.timestamp
+        ? new Date(lastAttempt.timestamp).toLocaleDateString("vi-VN")
+        : (p && p.docViewed ? "Đã đọc TL" : "—");
+      let statusLabel = "Chưa học";
+      let statusTone = "empty";
+      if (passed) {
+        statusLabel = "✓ Đạt chuẩn";
+        statusTone = "done";
+      } else if (attCnt > 0) {
+        statusLabel = "Chưa đạt";
+        statusTone = "failed";
+      } else if (p && p.docViewed) {
+        statusLabel = "Đang đọc TL";
+        statusTone = "reading";
+      }
+      return {
+        code: m.code || "HP",
+        title: m.title || "",
+        attCnt,
+        best,
+        thresh: Number(m.passThreshold || 80),
+        statusLabel,
+        statusTone,
+        dateStr
+      };
+    });
+
+    const completionPct = pubMods.length > 0 ? Math.round((passedCount * 100) / pubMods.length) : 0;
+    const avgScore = attemptedMods > 0 ? Math.round(sumBest / attemptedMods) : 0;
+    const rankLabel = (passedCount === pubMods.length && pubMods.length > 0)
+      ? (avgScore >= 90 ? "Hoàn thành Xuất sắc" : "Đạt chuẩn Toàn khóa")
+      : (attemptedMods > 0 ? "Đang tiến hành" : "Chưa bắt đầu");
+
+    const scale = 2;
+    const width = 920;
+    const headerH = 128;
+    const infoCardH = 108;
+    const tableHeadH = 44;
+    const rowH = 58;
+    const footerH = 74;
+    const height = headerH + 18 + infoCardH + 18 + tableHeadH + rowsData.length * rowH + footerH;
+
+    const canvas = document.createElement("canvas");
+    canvas.width = width * scale;
+    canvas.height = height * scale;
+    const ctx = canvas.getContext("2d");
+    ctx.scale(scale, scale);
+
+    // Background
+    ctx.fillStyle = "#FFFBF5";
+    ctx.fillRect(0, 0, width, height);
+
+    // Top Header Banner (Bright Fresh NovaStars Orange)
+    const grad = ctx.createLinearGradient(0, 0, width, headerH);
+    grad.addColorStop(0, "#EA580C");
+    grad.addColorStop(1, "#F97316");
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, width, headerH);
+
+    // NS Logo Pill
+    ctx.fillStyle = "rgba(255,255,255,0.2)";
+    ctx.beginPath();
+    ctx.roundRect(28, 24, 52, 52, 12);
+    ctx.fill();
+    ctx.fillStyle = "#FFFFFF";
+    ctx.font = "800 22px 'Plus Jakarta Sans', 'Be Vietnam Pro', sans-serif";
+    ctx.fillText("NS", 38, 58);
+
+    ctx.fillStyle = "#FFEDD5";
+    ctx.font = "700 12px 'Be Vietnam Pro', sans-serif";
+    ctx.fillText("NOVASTARS EDUCATION · HỆ THỐNG ĐÀO TẠO CẨM NANG TƯ VẤN MẦM NON CHUYỂN GIAO", 94, 41);
+
+    ctx.fillStyle = "#FFFFFF";
+    ctx.font = "800 23px 'Plus Jakarta Sans', 'Be Vietnam Pro', sans-serif";
+    ctx.fillText("BÁO CÁO KẾT QUẢ HỌC TẬP CỦA HỌC VIÊN", 94, 72);
+
+    const exportedAtStr = new Date().toLocaleString("vi-VN", { hour: "2-digit", minute: "2-digit", day: "2-digit", month: "2-digit", year: "numeric" });
+    ctx.fillStyle = "#FFF7ED";
+    ctx.font = "600 12.5px 'Be Vietnam Pro', sans-serif";
+    ctx.fillText(`Ngày xuất báo cáo: ${exportedAtStr}   ·   Điểm chuẩn đạt mỗi học phần: >= ${(db.meta && db.meta.defaultPassThreshold) || 80}%`, 94, 100);
+
+    // Student Identity + 4 KPI Summary Strip
+    const padX = 28;
+    const cardY = headerH + 16;
+    const cardW = width - padX * 2;
+
+    ctx.fillStyle = "#FFFFFF";
+    ctx.strokeStyle = "#FED7AA";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.roundRect(padX, cardY, cardW, infoCardH, 14);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = "#9A3412";
+    ctx.font = "700 11.5px 'Be Vietnam Pro', sans-serif";
+    ctx.fillText("HỌ VÀ TÊN HỌC VIÊN", padX + 20, cardY + 26);
+
+    ctx.fillStyle = "#0F172A";
+    ctx.font = "800 22px 'Plus Jakarta Sans', 'Be Vietnam Pro', sans-serif";
+    ctx.fillText(sale.name, padX + 20, cardY + 56);
+
+    ctx.fillStyle = "#64748B";
+    ctx.font = "600 12.5px 'Be Vietnam Pro', sans-serif";
+    ctx.fillText(`${sale.title || "Học Viên"} · Mã PIN: ${sale.pin}`, padX + 20, cardY + 84);
+
+    // Right 3 KPI Summary Tiles inside identity strip
+    const tiles = [
+      { label: "HOÀN THÀNH", val: `${passedCount}/${pubMods.length} bài (${completionPct}%)`, color: "#059669", bg: "#ECFDF5" },
+      { label: "ĐIỂM TB CAO NHẤT", val: attemptedMods > 0 ? `${avgScore}% (${totalAttempts} lượt)` : "Chưa thi", color: "#EA580C", bg: "#FFF7ED" },
+      { label: "ĐÁNH GIÁ", val: rankLabel, color: passedCount === pubMods.length ? "#059669" : "#D97706", bg: "#FFFBEB" }
+    ];
+    let tileX = padX + 355;
+    const tileW = 162;
+    tiles.forEach(t => {
+      ctx.fillStyle = t.bg;
+      ctx.beginPath();
+      ctx.roundRect(tileX, cardY + 16, tileW, infoCardH - 32, 10);
+      ctx.fill();
+      ctx.fillStyle = "#64748B";
+      ctx.font = "800 10.5px 'Be Vietnam Pro', sans-serif";
+      ctx.fillText(t.label, tileX + 12, cardY + 36);
+      ctx.fillStyle = t.color;
+      ctx.font = "800 14.5px 'Plus Jakarta Sans', 'Be Vietnam Pro', sans-serif";
+      ctx.fillText(t.val, tileX + 12, cardY + 64);
+      tileX += tileW + 10;
+    });
+
+    // Module Table
+    let curY = cardY + infoCardH + 18;
+    ctx.fillStyle = "#9A3412";
+    ctx.beginPath();
+    ctx.roundRect(padX, curY, cardW, tableHeadH, [10, 10, 0, 0]);
+    ctx.fill();
+
+    ctx.fillStyle = "#FFFFFF";
+    ctx.font = "700 12.5px 'Be Vietnam Pro', sans-serif";
+    ctx.fillText("MÃ", padX + 16, curY + 27);
+    ctx.fillText("TÊN HỌC PHẦN ĐÀO TẠO", padX + 86, curY + 27);
+    ctx.fillText("SỐ LẦN THI", padX + 518, curY + 27);
+    ctx.fillText("ĐIỂM CAO NHẤT", padX + 616, curY + 27);
+    ctx.fillText("TRẠNG THÁI", padX + 744, curY + 27);
+
+    curY += tableHeadH;
+
+    rowsData.forEach((r, idx) => {
+      ctx.fillStyle = idx % 2 === 0 ? "#FFFFFF" : "#FFFDF9";
+      ctx.fillRect(padX, curY, cardW, rowH);
+      ctx.strokeStyle = "#FFEDD5";
+      ctx.lineWidth = 1;
+      ctx.strokeRect(padX, curY, cardW, rowH);
+
+      // Module code badge
+      ctx.fillStyle = "#FFF7ED";
+      ctx.beginPath();
+      ctx.roundRect(padX + 14, curY + 15, 56, 26, 6);
+      ctx.fill();
+      ctx.fillStyle = "#EA580C";
+      ctx.font = "800 12.5px 'JetBrains Mono', monospace";
+      ctx.fillText(r.code, padX + 24, curY + 33);
+
+      // Module Title (up to 2 lines)
+      ctx.fillStyle = "#0F172A";
+      ctx.font = "700 13px 'Be Vietnam Pro', sans-serif";
+      const titleLines = wrapCanvasTextLines(ctx, r.title, 412, 2);
+      if (titleLines.length === 1) {
+        ctx.fillText(titleLines[0], padX + 86, curY + 34);
+      } else {
+        ctx.fillText(titleLines[0], padX + 86, curY + 24);
+        ctx.fillText(titleLines[1], padX + 86, curY + 42);
+      }
+
+      // Attempt count
+      ctx.fillStyle = "#334155";
+      ctx.font = "700 13.5px 'Be Vietnam Pro', sans-serif";
+      ctx.fillText(r.attCnt > 0 ? `${r.attCnt} lần` : "0 lần", padX + 532, curY + 34);
+
+      // Best Score
+      if (r.best !== null) {
+        ctx.fillStyle = r.statusTone === "done" ? "#059669" : "#D97706";
+        ctx.font = "800 16px 'JetBrains Mono', monospace";
+        ctx.fillText(`${r.best}%`, padX + 634, curY + 34);
+      } else {
+        ctx.fillStyle = "#94A3B8";
+        ctx.font = "600 13px 'Be Vietnam Pro', sans-serif";
+        ctx.fillText("Chưa thi", padX + 632, curY + 34);
+      }
+
+      // Status Pill + Date
+      const pillBg = r.statusTone === "done" ? "#ECFDF5" : (r.statusTone === "failed" ? "#FEF3C7" : (r.statusTone === "reading" ? "#EFF6FF" : "#F1F5F9"));
+      const pillFg = r.statusTone === "done" ? "#065F46" : (r.statusTone === "failed" ? "#92400E" : (r.statusTone === "reading" ? "#1D4ED8" : "#64748B"));
+      ctx.fillStyle = pillBg;
+      ctx.beginPath();
+      ctx.roundRect(padX + 742, curY + 11, 108, 24, 99);
+      ctx.fill();
+      ctx.fillStyle = pillFg;
+      ctx.font = "700 11.5px 'Be Vietnam Pro', sans-serif";
+      ctx.fillText(r.statusLabel, padX + 754, curY + 27);
+
+      ctx.fillStyle = "#64748B";
+      ctx.font = "500 10.5px 'Be Vietnam Pro', sans-serif";
+      ctx.fillText(`Cập nhật: ${r.dateStr}`, padX + 746, curY + 49);
+
+      curY += rowH;
+    });
+
+    // Footer Note
+    const remainingMods = rowsData.filter(r => r.statusTone !== "done").map(r => r.code);
+    const footerText = remainingMods.length === 0
+      ? `✓ Chúc mừng ${sale.name} đã hoàn thành Đạt 100% tất cả ${pubMods.length} học phần đào tạo!`
+      : `Ghi chú theo dõi: Cần hoàn thành đạt chuẩn (>=80%) các học phần còn lại: ${remainingMods.join(", ")}.`;
+    ctx.fillStyle = remainingMods.length === 0 ? "#065F46" : "#9A3412";
+    ctx.font = "700 13px 'Be Vietnam Pro', sans-serif";
+    ctx.fillText(footerText, padX, curY + 34);
+
+    ctx.fillStyle = "#64748B";
+    ctx.font = "500 11.5px 'Be Vietnam Pro', sans-serif";
+    ctx.fillText("Hệ thống Đào tạo & Kiểm tra Năng lực Tư vấn Novastars — Báo cáo tổng hợp tự động.", padX, curY + 56);
+
+    return { canvas, sale };
+  }
+
+  function openLearnerReportImageModal(saleId) {
+    const built = buildLearnerReportCanvas(saleId);
+    if (!built) return;
+    const { canvas, sale } = built;
+    const dataUrl = canvas.toDataURL("image/png");
+    const dlg = document.getElementById("learnerReportDialog");
+    const imgEl = document.getElementById("learnerReportPreviewImg");
+    const titleEl = document.getElementById("learnerReportDialogTitle");
+    const btnDownload = document.getElementById("btnDownloadLearnerReportPng");
+    const btnCopy = document.getElementById("btnCopyLearnerReportImg");
+
+    if (titleEl) titleEl.textContent = `Báo cáo Kết quả Học tập — ${sale.name}`;
+    if (imgEl) imgEl.src = dataUrl;
+
+    if (btnDownload) {
+      btnDownload.onclick = () => {
+        const a = document.createElement("a");
+        const safeName = (sale.name || "HocVien").replace(/\s+/g, "_");
+        a.href = dataUrl;
+        a.download = `Bao_cao_hoc_tap_${safeName}.png`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      };
+    }
+
+    if (btnCopy) {
+      btnCopy.onclick = () => {
+        const orig = btnCopy.textContent;
+        canvas.toBlob(async blob => {
+          if (!blob) return;
+          try {
+            if (navigator.clipboard && window.ClipboardItem) {
+              await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
+              btnCopy.textContent = "✓ Đã copy Ảnh! Dán (Ctrl+V) vào Zalo";
+              setTimeout(() => { btnCopy.textContent = orig; }, 3000);
+              return;
+            }
+          } catch (e) {}
+          alert("Trình duyệt không hỗ trợ copy ảnh trực tiếp. Vui lòng bấm nút 'Tải ảnh (.png)' bên cạnh nhé!");
+        }, "image/png");
+      };
+    }
+
+    if (dlg) dlg.showModal();
+  }
+
   function renderAdminDossierPanel(sales, pubMods, targetContainerId = "adminPanelDossier") {
     const panel = document.getElementById(targetContainerId);
     if (!panel) return;
@@ -3118,7 +3669,12 @@
             <h2 class="admin-title">Hồ sơ Đào tạo: ${escapeHtml(sale.name)} (Mã PIN: <code>${escapeHtml(sale.pin)}</code>)</h2>
             <p class="admin-sub">Theo dõi tiến độ đọc tài liệu và lịch sử điểm trắc nghiệm ở từng học phần.</p>
           </div>
-          <button type="button" class="btn-primary" id="btnDossierActAsSale">Xem dưới quyền ${escapeHtml(sale.name)}</button>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button type="button" class="btn-primary" id="btnDossierExportReportImg" style="background:linear-gradient(135deg,#059669,#10B981);box-shadow:0 3px 10px rgba(16,185,129,0.28);">
+              Xuất Báo cáo Học tập (Ảnh PNG)
+            </button>
+            <button type="button" class="btn-secondary" id="btnDossierActAsSale">Xem dưới quyền ${escapeHtml(sale.name)}</button>
+          </div>
         </div>
         <div class="table-responsive">
           <table class="progress-matrix-table">
@@ -3149,6 +3705,11 @@
         openQuickInspectSaleModal(sale.id, btn.dataset.dossierInspect);
       });
     });
+
+    const btnExpImg = document.getElementById("btnDossierExportReportImg");
+    if (btnExpImg) {
+      btnExpImg.onclick = () => openLearnerReportImageModal(sale.id);
+    }
 
     document.getElementById("btnDossierActAsSale").onclick = () => {
       impersonatedSaleUser = sale;

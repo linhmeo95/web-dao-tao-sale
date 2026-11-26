@@ -5,7 +5,7 @@
     "defaultPassThreshold": 80,
     "version": 1,
     "rosterVersion": 3,
-    "updatedAt": "2026-11-26T11:12:00.000Z"
+    "updatedAt": "2026-11-26T08:00:00.000Z"
   },
   "users": [
     {
@@ -458,7 +458,7 @@
       "passThreshold": 80,
       "status": "published",
       "authorName": "Phạm Mỹ Linh",
-      "updatedAt": "2026-11-25T14:35:00.000Z",
+      "updatedAt": "2026-11-26T08:00:00.000Z",
       "sourceFile": {
         "name": "Phan_tich_10_Bai_Mau_Novastars.xlsx",
         "url": "data/files/Phan_tich_10_Bai_Mau_Novastars.xlsx",
@@ -596,23 +596,11 @@
       "contentHtml": "",
       "questions": [
         {
-          "id": "hp03-q1",
-          "category": "dan_chung_bai_mau",
-          "categoryLabel": "Dẫn chứng bài mẫu",
-          "question": "Trong bài B69 khối Mẫu giáo Bé ('Bé học cách phân loại rác bảo vệ môi trường'), Novastars nâng tầm bài học cho trẻ 3 tuổi như thế nào so với việc chỉ dạy trẻ nhặt rác bỏ vào 1 thùng chung?",
-          "options": [
-            "Dạy trẻ ngay từ 3 tuổi biết phân loại 2 nhóm rác: Rác dễ phân hủy (vỏ cam, vỏ chuối, hoa, lá, thức ăn thừa) bỏ vào thùng Xanh lá; Rác khó phân hủy (vỏ bim bim, hộp sữa, túi bóng, lon nước) bỏ vào thùng Cam, kết hợp xem phim Sao Nova và vận động 12 lượt (6 lượt nghiêng người + 6 lượt chạy chạm thẻ màu).",
-            "Chỉ dạy trẻ hát bài 'Không xả rác' và giơ thẻ mặt cười – mặt mếu.",
-            "Yêu cầu trẻ 3 tuổi phân loại rác thành 5 nhóm hóa học phức tạp như rác điện tử, rác y tế, rác thủy tinh.",
-            "Cho trẻ ngồi nghe cô đọc định nghĩa khoa học về quá trình phân hủy sinh học suốt 30 phút."
-          ],
-          "correctIndex": 0,
-          "explanation": "Theo Bài mẫu số 3 (B69 khối Bé): Thay vì chỉ dạy bỏ rác vào 1 thùng chung, Novastars dạy trẻ 3 tuổi phân loại rác dễ phân hủy vào thùng Xanh lá và rác khó phân hủy vào thùng Cam thông qua phim hoạt hình Sao Nova và 2 vòng trò chơi vận động 12 lượt trên phần mềm."
-        },
-        {
-          "id": "hp03-q2",
-          "category": "dan_chung_bai_mau",
-          "categoryLabel": "Dẫn chứng bài mẫu",
+          "id": "hp03-b06-1",
+          "lessonIndex": 0,
+          "lessonCode": "B06",
+          "category": "kien_thuc",
+          "categoryLabel": "1. Cấu trúc chương trình",
           "question": "Ở bài B06 khối Mẫu giáo Bé ('Bé thực hành lời chào với những người xung quanh'), mục tiêu đầu ra và 3 cử chỉ chuẩn mà trẻ cần thực hiện cùng lúc khi chào là gì?",
           "options": [
             "100% trẻ đứng nghiêm đọc thuộc lòng bài thơ chào hỏi mà không cần nhìn người đối diện.",
@@ -621,12 +609,46 @@
             "Trẻ đứng trên bục giảng trong lớp đóng vai chào bạn cùng bàn."
           ],
           "correctIndex": 2,
-          "explanation": "Theo Bài mẫu số 1 (B06 khối Bé): Bài học rèn trẻ phân biệt 2 câu chào theo đúng đối tượng và thực hiện đồng thời 3 cử chỉ: Mắt nhìn thẳng – Tay giơ vẫy (bạn) hoặc Khoanh tay (người lớn) – Miệng cười tươi, với mục tiêu rõ ràng 70% trẻ đạt được khi đi thực hành quanh sân trường."
+          "explanation": "Theo Bài 1 (B06 khối Bé): Trẻ phân biệt rõ 2 câu chào theo đối tượng và làm đúng cả 3 cử chỉ (Mắt nhìn thẳng – Tay vẫy/khoanh – Miệng cười tươi) với mục tiêu rõ ràng 70% trẻ đạt được."
         },
         {
-          "id": "hp03-q3",
+          "id": "hp03-b06-2",
+          "lessonIndex": 0,
+          "lessonCode": "B06",
+          "category": "usp_khac_biet",
+          "categoryLabel": "2. Điểm khác biệt USP",
+          "question": "Tại sao giáo án truyền thống thường dạy chào hỏi trong 1 tiết trên bục giảng, còn Novastars tách thành cặp tiết B05 – B06 và đưa trẻ đi hàng dọc quanh sân trường?",
+          "options": [
+            "Vì phòng học mầm non không đủ bàn ghế cho trẻ ngồi nghe giảng.",
+            "Vì trẻ 3 tuổi ngồi trong lớp trả lời cô rất giỏi nhưng ra ngoài gặp người lạ lại ngượng ngùng trốn sau lưng mẹ; tiết B05 học lời chào trong lớp, còn B06 dành trọn 100% thời gian đưa trẻ ra sân trường tập chào người thật.",
+            "Vì tiết B06 chỉ là tiết đi dạo chơi tự do ngoài sân trường.",
+            "Để giáo viên không cần chuẩn bị bài hát mở đầu."
+          ],
+          "correctIndex": 1,
+          "explanation": "Điểm ăn tiền của B06: Hiểu tâm lý trẻ 3 tuổi hay rụt rè khi gặp người thật ngoài lớp, nên Novastars tách riêng hẳn 1 tiết để thực hành chào người thật quanh trường."
+        },
+        {
+          "id": "hp03-b06-3",
+          "lessonIndex": 0,
+          "lessonCode": "B06",
           "category": "dan_chung_bai_mau",
-          "categoryLabel": "Dẫn chứng bài mẫu",
+          "categoryLabel": "3. Dẫn chứng bài mẫu",
+          "question": "Trong Hoạt động 3 bài B06 (đi thực hành chào quanh trường với đội hình Cô chính đi đầu – Trẻ đi giữa – Cô phụ đi cuối), mẹo sư phạm tinh tế nào giúp những bé nhút nhát nhất cũng dám mở miệng chào?",
+          "options": [
+            "Khi bắt gặp bất kỳ ai trong trường, CÔ GIÁO CHỦ ĐỘNG CHÀO TRƯỚC để làm gương phá băng cho trẻ hết rụt rè, rồi nhắc cả lớp đồng thanh chào thật to, rõ ràng.",
+            "Yêu cầu từng bé một tự đi trước một mình đến gặp bác bảo vệ để chào.",
+            "Phạt những bé chưa dám chào đứng ở cuối hàng không được thưởng sticker.",
+            "Chỉ cho các bạn lớp trưởng nói lời chào đại diện cho cả lớp."
+          ],
+          "correctIndex": 0,
+          "explanation": "Nhờ cô giáo mở lời chào mẫu trước và cả lớp đồng thanh chào cùng, mọi trẻ nhút nhát đều tự tin làm theo, vừa khít với 2 cô giáo sẵn có trên lớp mà không cần thêm nhân sự."
+        },
+        {
+          "id": "hp03-b45-1",
+          "lessonIndex": 1,
+          "lessonCode": "B45",
+          "category": "kien_thuc",
+          "categoryLabel": "1. Cấu trúc chương trình",
           "question": "Trong bài B45 khối Mẫu giáo Bé ('Bé giới thiệu về cách tham gia giao thông an toàn'), 4 quy tắc an toàn khi đi xe buýt/ô tô được cô gợi mở cho trẻ 3 tuổi nhớ và thuyết trình gồm những quy tắc nào?",
           "options": [
             "Đội mũ bảo hiểm – Đi bên phải – Nhìn đèn đỏ – Đi trên vạch kẻ đường.",
@@ -635,105 +657,423 @@
             "Phân biệt biển báo cấm – Biển báo nguy hiểm – Biển chỉ dẫn – Vạch kẻ đường."
           ],
           "correctIndex": 1,
-          "explanation": "Theo Bài mẫu số 2 (B45 khối Bé): Nội dung sát đúng thực tế trẻ 3 tuổi khi đi xe buýt, xe ô tô cùng trường và gia đình, gói gọn trong 4 quy tắc trẻ tự làm được: Xếp hàng – Giữ trật tự – Lắng nghe hướng dẫn – Ngồi yên tại chỗ (mục tiêu 80% trẻ 3 tuổi tự tin giới thiệu lại trước lớp)."
+          "explanation": "Theo Bài 2 (B45 khối Bé): 4 quy tắc sát đúng thực tế trẻ 3 tuổi khi đi xe buýt/ô tô là Xếp hàng – Giữ trật tự – Lắng nghe hướng dẫn – Ngồi yên tại chỗ."
         },
         {
-          "id": "hp03-q4",
-          "category": "dan_chung_bai_mau",
-          "categoryLabel": "Dẫn chứng bài mẫu",
-          "question": "Trong bài B09 khối Mẫu giáo Nhỡ ('Bé ôn tập cách ăn uống đủ chất dinh dưỡng'), mẹo quản lý lớp học nào được viết sẵn trong giáo án giúp cô giáo đảm bảo an toàn tuyệt đối khi cho lớp 4 tuổi làm Bảng phân loại thức ăn?",
+          "id": "hp03-b45-2",
+          "lessonIndex": 1,
+          "lessonCode": "B45",
+          "category": "usp_khac_biet",
+          "categoryLabel": "2. Điểm khác biệt USP",
+          "question": "Ở Hoạt động 2 & 3 bài B45, giáo án dùng thủ pháp nào để trẻ 3 tuổi (vốn từ ít, hay quên) nhớ được 4 quy tắc giao thông và đứng thuyết trình trước máy quay không bị ngắc ngứ?",
           "options": [
-            "Cô giáo cắt sẵn toàn bộ hình thức ăn ở nhà để trẻ không được chạm vào kéo.",
-            "Chỉ gọi 2 bạn lớn nhất lớp lên bảng dùng kéo cắt dưới sự giám sát của cô.",
-            "Phát kéo sắc cho cả lớp cầm chạy quanh phòng học vừa nhảy vừa cắt.",
-            "Xếp trẻ ngồi theo sơ đồ 3 bàn (mỗi bàn 6 trẻ), cho trẻ tô màu 5 món ăn mình thích trong 3 phút (1 bản nhạc) trước, tô xong cô mới phát kéo để trẻ cắt dán vào 4 ô nhóm thức ăn."
+            "Bắt trẻ ngồi chép thuộc lòng 4 quy tắc vào vở 10 lần.",
+            "Đặt câu hỏi gợi mở lý do (tại sao phải ngồi yên, xếp hàng...) để trẻ hiểu thay vì học vẹt, rồi dán 4 bức tranh quy tắc trẻ vừa tô lên Bảng giá vẽ giữa sân khấu làm điểm tựa trí nhớ cho nhóm 4–6 bé đứng cạnh cùng thuyết trình theo câu mẫu 3 phần.",
+            "Cô giáo đứng sau rèm đọc mớm từng từ cho trẻ nhắc lại.",
+            "Chỉ cho trẻ đứng giơ tranh chứ không cần nói thành câu."
           ],
-          "correctIndex": 3,
-          "explanation": "Theo Bài mẫu số 4 (B09 khối Nhỡ): Giáo án tính toán sẵn đến từng chi tiết quản lý lớp thực tế: xếp sơ đồ 3 bàn (6 trẻ/bàn), cho trẻ tô màu 3 phút trong 1 bản nhạc trước rồi cô mới phát kéo cắt dán, sau đó từng cặp 2 bạn ngồi cạnh tự kiểm tra bảng cho nhau xem bạn có bị thiếu nhóm rau hay thịt không."
+          "correctIndex": 1,
+          "explanation": "Công thức 4 bước độc quyền: Hỏi lý do hiểu bản chất → Tô & dán 4 tranh lên giá vẽ giữa lớp làm điểm tựa mắt nhìn → Cả lớp tập đồng thanh câu mẫu 3 phần → Nhóm 4–6 bé đứng cùng nhau trước máy quay."
         },
         {
-          "id": "hp03-q5",
+          "id": "hp03-b45-3",
+          "lessonIndex": 1,
+          "lessonCode": "B45",
+          "category": "xu_ly_tinh_huong",
+          "categoryLabel": "4. Xử lý tình huống",
+          "question": "Khi Chủ trường băn khoăn: 'Bé mới 3 tuổi nói còn chưa sõi, làm sao đứng lên thuyết trình giao thông quay video được?', Sale chốt lại giá trị đầu ra của bài B45 như thế nào?",
+          "options": [
+            "Thuyết phục Chủ trường rằng bài B45 chỉ dạy cho các lớp 5 tuổi.",
+            "Khẳng định ngay trong giáo án B45 đã viết sẵn khung câu giới thiệu ngắn gọn 3 câu vừa sức trẻ 3 tuổi, lại đứng nhóm 4–6 bạn cạnh giá vẽ tranh tự tô nên bé rất bạo dạn; kết thúc tiết học trường có ngay video đáng yêu để gửi phụ huynh.",
+            "Nói rằng phụ huynh phải tự quay video ở nhà gửi cho cô giáo.",
+            "Gợi ý cô giáo cắt ghép giọng đọc của cô vào video thay cho trẻ."
+          ],
+          "correctIndex": 1,
+          "explanation": "Đây là sản phẩm truyền thông tuyển sinh cực tốt của khối Bé: trẻ 3 tuổi đứng nhóm cạnh tranh mình tự tô dõng dạc thuyết trình 4 quy tắc đi xe an toàn."
+        },
+        {
+          "id": "hp03-b69-1",
+          "lessonIndex": 2,
+          "lessonCode": "B69",
+          "category": "usp_khac_biet",
+          "categoryLabel": "2. Điểm khác biệt USP",
+          "question": "Trong bài B69 khối Mẫu giáo Bé ('Bé học cách phân loại rác bảo vệ môi trường'), Novastars nâng tầm bài học cho trẻ 3 tuổi như thế nào so với việc chỉ dạy trẻ nhặt rác bỏ vào 1 thùng chung?",
+          "options": [
+            "Dạy trẻ ngay từ 3 tuổi biết phân loại 2 nhóm rác: Rác dễ phân hủy (vỏ cam, vỏ chuối, hoa, lá, thức ăn thừa) bỏ vào thùng Xanh lá; Rác khó phân hủy (vỏ bim bim, hộp sữa, túi bóng, lon nước, hộp nhựa) bỏ vào thùng Cam.",
+            "Chỉ dạy trẻ hát bài 'Không xả rác' và giơ thẻ mặt cười – mặt mếu.",
+            "Yêu cầu trẻ 3 tuổi phân loại rác thành 5 nhóm hóa học phức tạp như rác điện tử, rác y tế.",
+            "Cho trẻ ngồi nghe cô đọc định nghĩa khoa học về phân hủy sinh học suốt 30 phút."
+          ],
+          "correctIndex": 0,
+          "explanation": "Theo Bài 3 (B69 khối Bé): Thay vì chỉ dạy bỏ rác vào 1 thùng chung, Novastars rèn cho trẻ 3 tuổi tư duy phân loại rác dễ phân hủy (Thùng Xanh lá) và rác khó phân hủy (Thùng Cam)."
+        },
+        {
+          "id": "hp03-b69-2",
+          "lessonIndex": 2,
+          "lessonCode": "B69",
           "category": "dan_chung_bai_mau",
-          "categoryLabel": "Dẫn chứng bài mẫu",
-          "question": "Ở bài B13 khối Mẫu giáo Nhỡ ('Cảm xúc của bé'), khi trò chuyện về 'Màu sắc cảm xúc' để làm Huy hiệu cảm xúc 4 mặt (vui, buồn, sợ hãi, tức giận), giáo án Novastars hướng dẫn cô giáo xử lý như thế nào?",
+          "categoryLabel": "3. Dẫn chứng bài mẫu",
+          "question": "Thay vì giảng giải lý thuyết khô khan, bài B69 trên phần mềm Novastars giúp trẻ 3 tuổi thuộc làu 2 nhóm rác bằng chuỗi hoạt động nào?",
+          "options": [
+            "Cho trẻ ngồi tô màu 1 bức tranh thùng rác suốt 25 phút.",
+            "Kết hợp phim hoạt hình Sao Nova giải thích trực quan với 2 vòng trò chơi vận động 12 lượt trên phần mềm: Vòng 1 nghiêng người trái/phải 6 lượt tại chỗ + Vòng 2 chạy lên bàn chạm thẻ màu Xanh lá / Cam 6 lượt.",
+            "Yêu cầu trẻ ra ngoài sân nhặt lá khô trong 30 phút.",
+            "Cô giáo tự làm slideshow PowerPoint tĩnh cho trẻ xem."
+          ],
+          "correctIndex": 1,
+          "explanation": "12 lượt trò chơi vận động chia 2 vòng kết hợp nhân vật hoạt hình Sao Nova giúp trẻ vừa chơi sôi nổi vừa ghi nhớ bản chất phân loại rác ngay trên lớp."
+        },
+        {
+          "id": "hp03-b69-3",
+          "lessonIndex": 2,
+          "lessonCode": "B69",
+          "category": "xu_ly_tinh_huong",
+          "categoryLabel": "4. Xử lý tình huống",
+          "question": "Khi Hiệu trưởng hỏi: 'Cô giáo trường chị tự đóng kịch Chú Cuội hay cho nhặt giấy vụn bỏ thùng rác là được rồi, sao phải cần phần mềm bài B69?', Sale nên nhấn mạnh điểm nào?",
+          "options": [
+            "Nhấn mạnh rằng giáo viên không thể tự vẽ hoạt hình Sao Nova hay tự lập trình 12 lượt trò chơi phân loại rác tương tác trên màn hình; có phần mềm Novastars cô chỉ cần bật máy chiếu và đặt 2 tấm thẻ màu lên bàn là tiết học công nghệ bùng nổ ngay.",
+            "Nói rằng đóng kịch Chú Cuội là phương pháp sai hoàn toàn không nên dùng.",
+            "Trả lời rằng phần mềm chỉ để tiết kiệm giấy in tranh cho trường.",
+            "Khuyên trường mua phần mềm về để thay cô giáo đứng lớp hoàn toàn."
+          ],
+          "correctIndex": 0,
+          "explanation": "Điểm chốt mạnh với Chủ trường là tiết kiệm 100% thời gian chuẩn bị học liệu số cho cô giáo mà mọi lớp vẫn có tiết học công nghệ đồng đều, hiện đại."
+        },
+        {
+          "id": "hp03-b09-1",
+          "lessonIndex": 3,
+          "lessonCode": "B09",
+          "category": "kien_thuc",
+          "categoryLabel": "1. Cấu trúc chương trình",
+          "question": "Trong bài B09 khối Mẫu giáo Nhỡ ('Bé ôn tập cách ăn uống đủ chất dinh dưỡng'), 4 nhóm thức ăn gần gũi hàng ngày mà trẻ học phân loại gồm những nhóm nào và mục tiêu đầu ra ra sao?",
+          "options": [
+            "Nhóm Bột đường, Đạm, Béo, Khoáng chất nâng cao — 50% trẻ nhớ tên.",
+            "4 nhóm thức ăn gần gũi: Thịt – Rau – Hoa quả – Ngũ cốc; mục tiêu 80% trẻ kể được tên 4 nhóm và 100% trẻ tự phân loại 5 món mình thích rồi biết kiểm tra bảng giúp bạn ngồi cạnh.",
+            "Đồ ăn mặn, đồ ăn ngọt, nước giải khát và bánh kẹo.",
+            "Chỉ phân loại 2 nhóm là món ăn sáng và món ăn tối."
+          ],
+          "correctIndex": 1,
+          "explanation": "Novastars dùng từ ngữ gần gũi với trẻ 4 tuổi (Thịt, Rau, Hoa quả, Ngũ cốc) thay vì thuật ngữ hàn lâm, với mục tiêu 80% nhớ tên và 100% tự lập bảng phân loại."
+        },
+        {
+          "id": "hp03-b09-2",
+          "lessonIndex": 3,
+          "lessonCode": "B09",
+          "category": "usp_khac_biet",
+          "categoryLabel": "2. Điểm khác biệt USP",
+          "question": "Khác biệt thông minh nhất trong cách tổ chức hoạt động của bài B09 (Novastars) so với trò chơi chạy tiếp sức gắn lô tô lên bảng ở trường thông thường là gì?",
+          "options": [
+            "Mỗi trẻ tự lập Bảng phân loại 5 món ăn mình thích (rất dễ lộ thói quen kén ăn như chỉ chọn thịt mà thiếu rau), sau đó HAI BẠN NGỒI CẠNH TỰ KIỂM TRA CHÉO BÀI CHO NHAU để nhắc bạn bổ sung nhóm còn thiếu.",
+            "Cô giáo là người duy nhất chấm bài và tuyên dương đội thắng cuộc.",
+            "Chỉ chọn 4 bạn đại diện 4 tổ lên bảng gắn tranh thực phẩm.",
+            "Phát sẵn 4 bức tranh hoàn chỉnh giống nhau để trẻ không phải tự chọn."
+          ],
+          "correctIndex": 0,
+          "explanation": "100% trẻ tự chọn 5 món yêu thích nên bộc lộ đúng sở thích thật; khi bạn ngồi cạnh nhắc 'Cậu thiếu nhóm rau kìa', trẻ ghi nhớ sâu gấp đôi và tự sửa thói quen ăn lệch."
+        },
+        {
+          "id": "hp03-b09-3",
+          "lessonIndex": 3,
+          "lessonCode": "B09",
+          "category": "dan_chung_bai_mau",
+          "categoryLabel": "3. Dẫn chứng bài mẫu",
+          "question": "Mẹo quản lý lớp học nào được viết sẵn rất tỉ mỉ trong giáo án B09 giúp cô giáo đảm bảo an toàn tuyệt đối khi cho cả lớp 4 tuổi dùng kéo làm Bảng phân loại thức ăn?",
+          "options": [
+            "Cô giáo tự cắt sẵn toàn bộ hình thức ăn ở nhà để trẻ không được cầm kéo.",
+            "Xếp trẻ ngồi theo sơ đồ 3 bàn (mỗi bàn 6 trẻ), cho trẻ tô màu trước trong 3 phút (1 bản nhạc), tô xong cô mới phát kéo để trẻ cắt dán đúng chỗ dưới sự bao quát theo sơ đồ của 2 cô.",
+            "Phát kéo ngay từ đầu tiết cho trẻ vừa nhảy khởi động vừa cầm kéo.",
+            "Chỉ gọi 2 bạn khéo tay nhất lên bàn giáo viên để cắt giúp cả lớp."
+          ],
+          "correctIndex": 1,
+          "explanation": "Chi tiết 'tô màu 3 phút trong 1 bản nhạc xong mới phát kéo' kèm sơ đồ 3 bàn (6 trẻ/bàn) giúp cô giáo kiểm soát lớp dùng kéo cực kỳ an toàn."
+        },
+        {
+          "id": "hp03-b13-1",
+          "lessonIndex": 4,
+          "lessonCode": "B13",
+          "category": "usp_khac_biet",
+          "categoryLabel": "2. Điểm khác biệt USP",
+          "question": "Ở bài B13 khối Mẫu giáo Nhỡ ('Cảm xúc của bé'), khi trò chuyện về 'Màu sắc cảm xúc' (Vui, Buồn, Tức giận, Sợ hãi), giáo án Novastars hướng dẫn cô giáo ứng xử như thế nào?",
           "options": [
             "Quy định bắt buộc cả lớp phải tô màu đỏ cho tức giận, màu xanh dương cho buồn, màu vàng cho vui.",
-            "Phát huy hiệu đã in màu sẵn giống hệt nhau cho toàn bộ học sinh trong lớp.",
-            "Đặt câu hỏi mở 'Theo các con, cảm xúc vui vẻ/buồn/sợ/giận sẽ có màu gì?', ghi nhận tất cả ý kiến và khẳng định mỗi bạn có cảm nhận riêng nên mỗi cảm xúc có thể mang màu sắc khác nhau; trẻ tự tô theo màu mình liên tưởng để làm huy hiệu lật mặt dùng hằng ngày.",
-            "Dặn trẻ ở lớp chỉ được phép giữ mặt vui vẻ, không được phép có cảm xúc buồn hay tức giận."
+            "Phát huy hiệu đã in màu sẵn giống hệt nhau cho toàn bộ học sinh.",
+            "Đặt câu hỏi mở 'Theo các con, cảm xúc vui/buồn/sợ/giận sẽ có màu gì?', ghi nhận tất cả ý kiến và tôn trọng cảm nhận riêng của từng trẻ — mỗi bạn được tự tô màu sắc mình liên tưởng.",
+            "Dặn trẻ đến lớp chỉ được phép vui vẻ, không bao giờ được buồn hay tức giận."
           ],
           "correctIndex": 2,
-          "explanation": "Theo Bài mẫu số 5 (B13 khối Nhỡ): Novastars tôn trọng cảm nhận riêng của từng đứa trẻ, không áp đặt màu sắc cho cảm xúc. Trẻ tự tô màu theo liên tưởng của riêng mình để tạo thành chiếc Huy hiệu cảm xúc 4 mặt, giúp trẻ khi buồn, sợ hay giận mà chưa diễn đạt được bằng lời chỉ cần lật mặt huy hiệu lên để cô và bạn hỗ trợ."
+          "explanation": "Novastars tôn trọng thế giới nội tâm và cảm nhận riêng của từng đứa trẻ 4 tuổi, không áp đặt khuôn mẫu màu sắc hay kìm nén cảm xúc."
         },
         {
-          "id": "hp03-q6",
+          "id": "hp03-b13-2",
+          "lessonIndex": 4,
+          "lessonCode": "B13",
           "category": "dan_chung_bai_mau",
-          "categoryLabel": "Dẫn chứng bài mẫu",
+          "categoryLabel": "3. Dẫn chứng bài mẫu",
+          "question": "Sản phẩm thủ công 'Huy hiệu cảm xúc 4 mặt' do trẻ tự làm trong bài B13 khác với việc chỉ soi gương làm mặt cười – mặt mếu ở điểm giá trị thực tế nào?",
+          "options": [
+            "Trẻ làm xong chỉ để trưng bày trên giá góc tạo hình một buổi rồi thu cất đi.",
+            "Huy hiệu trở thành công cụ giao tiếp thật suốt cả năm học: khi trẻ 4 tuổi đang tủi thân, buồn, sợ hoặc tức giận mà chưa đủ vốn từ nói thành lời, chỉ cần LẬT ĐÚNG MẶT HUY HIỆU lên là cô và bạn hiểu ngay để ôm và hỗ trợ kịp thời.",
+            "Huy hiệu chỉ dùng để tính điểm thi đua cuối tuần.",
+            "Giáo viên tự dán sẵn ảnh mặt cười lên áo của trẻ."
+          ],
+          "correctIndex": 1,
+          "explanation": "Trẻ 4 tuổi hay im lặng hoặc khóc khi có cảm xúc mạnh vì thiếu vốn từ; chiếc Huy hiệu 4 mặt lật được trở thành cầu nối cảm xúc giữa con và cô suốt cả năm."
+        },
+        {
+          "id": "hp03-b13-3",
+          "lessonIndex": 4,
+          "lessonCode": "B13",
+          "category": "xu_ly_tinh_huong",
+          "categoryLabel": "4. Xử lý tình huống",
+          "question": "Vì sao câu chuyện bài B13 ('Huy hiệu cảm xúc 4 mặt') là vũ khí cực mạnh để Sale kể cho Chủ trường nghe khi muốn chứng minh chiều sâu nhân văn của Novastars?",
+          "options": [
+            "Vì đồ dùng chỉ cần mẫu tranh in sẵn, bút màu, kéo, băng dính trên nền nhạc không lời cực kỳ dễ dạy; nhưng khi trường kể cho phụ huynh nghe về chiếc huy hiệu giúp cô thấu hiểu từng cảm xúc chưa nói thành lời của con, phụ huynh nào cũng xúc động tin tưởng.",
+            "Vì bài này không cần giáo viên đứng lớp hướng dẫn.",
+            "Vì tiết học giúp trẻ vẽ tranh sơn dầu chuyên nghiệp.",
+            "Vì trẻ làm xong huy hiệu sẽ bán gây quỹ cho lớp."
+          ],
+          "correctIndex": 0,
+          "explanation": "Dễ chuẩn bị cho cô giáo (đã có mẫu tranh in sẵn) nhưng mang lại câu chuyện chăm sóc tâm lý trẻ cực kỳ tinh tế để trường truyền thông tới phụ huynh."
+        },
+        {
+          "id": "hp03-b39-1",
+          "lessonIndex": 5,
+          "lessonCode": "B39",
+          "category": "usp_khac_biet",
+          "categoryLabel": "2. Điểm khác biệt USP",
+          "question": "Với kỹ năng 'Phòng, tránh nguy cơ bỏng, nóng' (Bài B39 khối Nhỡ), nội dung của Novastars sâu sắc và thực tế hơn khẩu hiệu truyền thống 'Nóng là không chạm' ở điểm nào?",
+          "options": [
+            "Hàng ngày trẻ vẫn ăn súp nóng, tắm nước ấm, dùng máy sưởi; vì vậy B39 dạy trẻ cách hành xử chủ động (nhờ người lớn làm nguội thức ăn, kiểm tra nước tắm, ngồi xa máy sưởi) VÀ dạy bước sơ cứu y tế ban đầu: xả/ngâm ngay vết bỏng vào nước mát rồi báo người lớn.",
+            "Yêu cầu trẻ 4 tuổi tuyệt đối không được ăn cháo nóng hoặc tắm nước ấm.",
+            "Chỉ cho trẻ xem tranh phích nước, bếp ga rồi chia 2 đội chạy lên bảng gạch chéo.",
+            "Cho trẻ ngồi đọc thuộc lòng số điện thoại bệnh viện."
+          ],
+          "correctIndex": 0,
+          "explanation": "Theo Bài 6 (B39 khối Nhỡ): Novastars đi tới tình huống sinh hoạt thật và bước sơ cứu y tế làm mát ngay bằng nước lạnh thay vì chỉ cấm chung chung 'không chạm'."
+        },
+        {
+          "id": "hp03-b39-2",
+          "lessonIndex": 5,
+          "lessonCode": "B39",
+          "category": "dan_chung_bai_mau",
+          "categoryLabel": "3. Dẫn chứng bài mẫu",
+          "question": "Trong 30 phút bài B39, phần mềm Novastars dẫn dắt trẻ 4 tuổi trải qua chuỗi 4 chặng tương tác liên hoàn nào?",
+          "options": [
+            "Chỉ xem 1 đoạn video ngắn 5 phút rồi ngồi tô màu.",
+            "(1) Phản xạ giơ thẻ Xanh/Đỏ qua 16 đồ vật trên phần mềm → (2) Chạy thả bóng vào 4 rổ an toàn (5 lượt) → (3) Xem phim Mẹ Su rút ra 6 câu hỏi nguyên tắc phòng & sơ cứu bỏng → (4) Thực hành 5 cử chỉ thuyết trình khuyên bạn Su xử lý 4 tình huống thực tế.",
+            "Làm bài kiểm tra viết trắc nghiệm 15 câu trên giấy.",
+            "Nghe cô giáo kể chuyện cổ tích suốt cả tiết học."
+          ],
+          "correctIndex": 1,
+          "explanation": "4 chặng liên tiếp kết hợp phần mềm (16 lượt thẻ + 5 lượt thả bóng + phim Mẹ Su + 4 tình huống thuyết trình của Su) là thứ không cô giáo nào tự làm slide lẻ tẻ có được."
+        },
+        {
+          "id": "hp03-b39-3",
+          "lessonIndex": 5,
+          "lessonCode": "B39",
+          "category": "xu_ly_tinh_huong",
+          "categoryLabel": "4. Xử lý tình huống",
+          "question": "Kết quả đầu ra nào sau buổi học B39 giúp phụ huynh thấy ngay giá trị của khoản học phí khi cho con học chương trình Novastars tại trường?",
+          "options": [
+            "Trẻ mang về nhà một tờ giấy tô màu hình ấm đun nước.",
+            "Tối hôm đó trẻ về nhà tự tin đứng khoanh tay thuyết trình lại cho bố mẹ nghe đúng 4 nguyên tắc phòng tránh và sơ cứu khi bị bỏng, biết tự nhờ bố mẹ kiểm tra nước tắm trước khi vào bồn.",
+            "Trẻ biết tự bật bếp ga để đun nước ấm.",
+            "Cô giáo gửi bảng điểm kiểm tra lý thuyết cho phụ huynh ký tên."
+          ],
+          "correctIndex": 1,
+          "explanation": "Bài tập về nhà thuyết trình lại cho bố mẹ giúp phụ huynh tận mắt chứng kiến con trưởng thành và hiểu rõ kỹ năng sinh tồn ngay sau buổi học."
+        },
+        {
+          "id": "hp03-b24-1",
+          "lessonIndex": 6,
+          "lessonCode": "B24",
+          "category": "kien_thuc",
+          "categoryLabel": "1. Cấu trúc chương trình",
           "question": "Ở bài B24 khối Mẫu giáo Lớn ('Bé tự sắp xếp tủ quần áo'), 3 nguyên tắc thông minh mà trẻ 5 tuổi được học sau khi đã biết phân loại (B22) và gấp quần áo (B23) là gì?",
           "options": [
             "Nguyên tắc 1: Phân loại quần, áo rõ ràng → Nguyên tắc 2: Xếp theo thứ tự ưu tiên (đồ hay mặc thường xuyên để ở vị trí dễ lấy nhất) → Nguyên tắc 3: Cất riêng những đồ nhỏ (tất, găng tay, mũ, khăn, đồ lót) vào 1 ngăn riêng để không bị thất lạc.",
-            "Nguyên tắc 1: Treo tất cả quần áo lên móc → Nguyên tắc 2: Xếp theo màu sắc cầu vồng → Nguyên tắc 3: Nhờ mẹ kiểm tra tủ mỗi tối.",
+            "Nguyên tắc 1: Treo tất cả quần áo lên móc → Nguyên tắc 2: Xếp theo màu cầu vồng → Nguyên tắc 3: Nhờ mẹ kiểm tra tủ mỗi tối.",
             "Nguyên tắc 1: Gấp đôi tay áo → Nguyên tắc 2: Gấp đôi thân áo → Nguyên tắc 3: Vuốt phẳng quần áo.",
-            "Nguyên tắc 1: Đồ mới để trên → Nguyên tắc 2: Đồ cũ để dưới → Nguyên tắc 3: Giày dép để chung với quần áo."
+            "Nguyên tắc 1: Đồ mới để trên → Nguyên tắc 2: Đồ cũ để dưới → Nguyên tắc 3: Giày dép để chung tủ áo."
           ],
           "correctIndex": 0,
-          "explanation": "Theo Bài mẫu số 7 (B24 khối Lớn): Bài B24 là tiết thứ 3 trong chuỗi liên hoàn B22–B23–B24. Sau khi đã học gấp quần áo ở B23, sang B24 trẻ 5 tuổi được rèn tư duy quy hoạch tủ đồ khoa học theo 3 nguyên tắc: Phân loại quần áo rõ ràng – Xếp theo thứ tự ưu tiên (đồ hay mặc để chỗ dễ lấy nhất) – Cất riêng đồ nhỏ (tất, mũ, găng tay, khăn) vào ngăn phụ kiện riêng."
+          "explanation": "Bài B24 nằm trong chuỗi 3 tiết liên hoàn B22 (Phân loại) → B23 (Gấp) → B24 (Tư duy quy hoạch cả tủ quần áo khoa học như người lớn)."
         },
         {
-          "id": "hp03-q7",
+          "id": "hp03-b24-2",
+          "lessonIndex": 6,
+          "lessonCode": "B24",
           "category": "dan_chung_bai_mau",
-          "categoryLabel": "Dẫn chứng bài mẫu",
-          "question": "Trong bài B56 khối Mẫu giáo Lớn ('Bé rèn luyện tư thế ngồi học và kĩ năng cầm bút đúng cách'), 4 bước ngồi học chuẩn và 3 bước cầm bút chuẩn được cụ thể hóa như thế nào?",
+          "categoryLabel": "3. Dẫn chứng bài mẫu",
+          "question": "Phần thực hành của bài B24 kết hợp nhuần nhuyễn giữa công nghệ phần mềm và vật thật như thế nào?",
           "options": [
-            "Ngồi khoanh chân trên sàn và cầm bút bằng cả nắm tay để viết cho chắc.",
-            "Chỉ nhắc miệng 'Ngồi thẳng lưng, mắt cách vở 25–30cm' trong 3 phút đầu giờ tập tô chữ.",
-            "Ngồi sát ngực vào mép bàn, mắt cách vở 10cm và cầm bút dựng thẳng đứng 90 độ.",
-            "4 bước ngồi (Chỉnh ghế ngay ngắn → Hai chân để thẳng, bàn chân chạm đất → Ngồi thẳng lưng → Dùng thước 30cm đo khoảng cách từ mắt đến vở) và 3 bước cầm bút (Giơ 3 ngón cái, trỏ, giữa, 2 ngón kia nắm vào lòng bàn tay → Ngón cái & trỏ giữ bút, ngón giữa đỡ bút cách ngòi 2–3cm → Hướng đuôi bút về phía vai)."
-          ],
-          "correctIndex": 3,
-          "explanation": "Theo Bài mẫu số 8 (B56 khối Lớn): Nằm trong chuỗi 25 tiết Hành trang vào Tiểu học (B47–B71), bài B56 cụ thể hóa từng thao tác thành 4 bước ngồi chuẩn (dùng thước 30cm đặt đo thật từ mắt xuống vở) và 3 bước cầm bút chuẩn, đồng thời bầu Lớp trưởng – Lớp phó hô nghi thức chào giống trường Tiểu học."
-        },
-        {
-          "id": "hp03-q8",
-          "category": "dan_chung_bai_mau",
-          "categoryLabel": "Dẫn chứng bài mẫu",
-          "question": "Ở bài B57 khối Mẫu giáo Lớn ('Bé vui học cùng các chữ cái'), trước khi dạy mẹo dùng 2 bàn tay phân biệt chữ b và d, phần mềm Novastars dẫn dắt trẻ qua hoạt động nào để khơi gợi niềm yêu thích học chữ?",
-          "options": [
-            "Bắt trẻ ngồi đọc đồng thanh bảng 29 chữ cái tiếng Việt 10 lần liên tiếp.",
-            "Chơi vận động 'Nghe chữ, thả bóng' (5 lượt a–o, t–a, m–t, b–h, o–x), xem phim Su và Kem chia sẻ lợi ích của việc biết chữ, rồi chơi 'Đoán tên sách hay' trên màn hình với 5 đầu sách nổi tiếng (Thần đồng Đất Việt, Cậu bé chăn cừu, Doraemon, Rùa và thỏ, Trầu cau).",
-            "Cho trẻ làm bài kiểm tra ghép vần trên bảng đen.",
-            "Cho trẻ tô chữ chấm mờ trong vở tập tô suốt 20 phút đầu giờ."
+            "Chỉ cho trẻ bấm chuột trên máy tính mà không chạm vào quần áo thật.",
+            "Trẻ vừa chơi trò giúp Kem tìm đồ (5 lượt) và nghiêng người cất đồ vào đúng ngăn tủ mùa hè/mùa đông/phụ kiện trên phần mềm (8 lượt), vừa thi 2 đội đổi vai gấp quần áo thật trên bàn theo 5 lượt hiệu lệnh của nhân vật Kem.",
+            "Chỉ ngồi xem cô giáo gấp 1 chiếc áo phông mẫu ở bàn giáo viên.",
+            "Mang bàn là lên lớp để dạy trẻ 5 tuổi tự là quần áo."
           ],
           "correctIndex": 1,
-          "explanation": "Theo Bài mẫu số 9 (B57 khối Lớn): Thay vì bắt trẻ đọc thẻ chữ khô khan, tiết học truyền cảm hứng qua trò chơi thả bóng chữ cái, xem phim Su & Kem và đoán bìa 5 cuốn sách nổi tiếng (Thần đồng Đất Việt, Doraemon, Rùa và thỏ...) để trẻ tự thấy biết chữ giúp mình đọc được bao nhiêu truyện hay, viết thư cho ông bà."
+          "explanation": "Game nghiêng người trên màn hình (tư duy phân loại ngăn tủ) kết hợp thi đội gấp quần áo thật theo hiệu lệnh nhân vật Kem tạo không khí lớp 5 tuổi cực kỳ hào hứng."
         },
         {
-          "id": "hp03-q9",
-          "category": "kien_thuc",
-          "categoryLabel": "Cấu trúc chương trình",
-          "question": "Trong 10 bài học mẫu được phân tích ở Học phần 3, có bao nhiêu bài sử dụng trực tiếp Phần mềm / Video đi kèm và bao nhiêu bài có hoạt động rèn trẻ đứng lên Thuyết trình / Chia sẻ?",
+          "id": "hp03-b24-3",
+          "lessonIndex": 6,
+          "lessonCode": "B24",
+          "category": "xu_ly_tinh_huong",
+          "categoryLabel": "4. Xử lý tình huống",
+          "question": "Khi Hiệu trưởng nói: 'Trường chị dạy kỹ năng gấp quần áo cho lớp 5 tuổi suốt rồi, cô trải áo lên bàn làm mẫu rồi các con tập gấp thôi', Sale nên dùng dẫn chứng bài B24 để phản hồi ra sao?",
           "options": [
-            "8/10 bài có Phần mềm Novastars hoặc Video đi kèm (2 bài còn lại dùng nhạc/quy trình chuẩn) và 5/10 bài có hoạt động rèn trẻ đứng lên Thuyết trình / Chia sẻ.",
-            "Chỉ có 2 bài dùng video và 1 bài có thuyết trình.",
-            "Tất cả 10 bài đều không cần màn hình tivi hay máy chiếu.",
-            "Chỉ các bài của khối Mẫu giáo Lớn mới có hoạt động thuyết trình."
+            "Công nhận hai cách hoàn toàn giống nhau và đề nghị trường bỏ qua bài này.",
+            "Chỉ ra rằng trường mới chỉ dạy thao tác tay gấp 1 cái áo; còn Novastars tách thành chuỗi 3 tiết B22 – B23 – B24 dạy xong gấp áo rồi nâng hẳn lên tư duy quy hoạch cả tủ quần áo (theo mùa, đồ hay dùng để ngoài, đồ nhỏ để ngăn riêng) và game tương tác giúp trẻ về nhà tự làm chủ tủ đồ của mình.",
+            "Nói rằng trẻ 5 tuổi chưa cần biết gấp quần áo, chỉ cần biết sắp xếp đồ chơi.",
+            "Đề xuất trường mua thêm máy giặt đồ chơi để dạy trong tiết này."
+          ],
+          "correctIndex": 1,
+          "explanation": "Đẳng cấp khác biệt: không dừng ở khéo tay gấp 1 chiếc áo mà hình thành tư duy sắp xếp khoa học cả tủ đồ chuẩn bị cho nếp sống tự lập lớp 1."
+        },
+        {
+          "id": "hp03-b56-1",
+          "lessonIndex": 7,
+          "lessonCode": "B56",
+          "category": "kien_thuc",
+          "categoryLabel": "1. Cấu trúc chương trình",
+          "question": "Trong bài B56 khối Mẫu giáo Lớn ('Bé rèn luyện tư thế ngồi học và kĩ năng cầm bút đúng cách'), 4 bước ngồi học chuẩn và 3 bước cầm bút chuẩn được cụ thể hóa như thế nào?",
+          "options": [
+            "Trẻ tự chọn tư thế thoải mái nhất miễn sao viết xong bài tập.",
+            "4 bước ngồi: Ngồi vào ghế, chỉnh ghế ngay ngắn → Hai chân để thẳng, bàn chân chạm đất → Ngồi thẳng lưng → Dùng thước 30cm đo đúng khoảng cách mắt đến vở; 3 bước cầm bút: Giơ 3 ngón (cái, trỏ, giữa), 2 ngón còn lại nắm vào lòng bàn tay → Cái và trỏ giữ bút, ngón giữa đỡ cách ngòi 2–3cm → Hướng đuôi bút về phía vai.",
+            "Ngồi khoanh chân trên ghế, tay cầm bút bằng cả 5 ngón tay.",
+            "Chỉ cần ngồi thẳng lưng trong 5 phút đầu giờ Tập tô."
+          ],
+          "correctIndex": 1,
+          "explanation": "Bài B56 cụ thể hóa thành công thức 4 bước ngồi + 3 bước cầm bút và cho trẻ đặt thước 30cm đo thật để cảm nhận chính xác khoảng cách mắt tới vở."
+        },
+        {
+          "id": "hp03-b56-2",
+          "lessonIndex": 7,
+          "lessonCode": "B56",
+          "category": "usp_khac_biet",
+          "categoryLabel": "2. Điểm khác biệt USP",
+          "question": "Vì sao ở bài B56, Novastars không cho trẻ ngồi vào bàn tập cầm bút ngay mà tổ chức trò chơi 'Thỏ con tinh nghịch' 8 lượt với luật 'Chỉ làm theo lời nhân vật Su nói, KHÔNG làm theo động tác cô làm'?",
+          "options": [
+            "Để giúp trẻ 5 tuổi giải lao giữa giờ vì bài tập tô quá khó.",
+            "Vì trẻ 5 tuổi chỉ ngồi được 1–2 phút là gập lưng xuống bàn do não bộ chưa bật chế độ tập trung chú ý. 6 lượt cô cố tình nói một đằng làm một nẻo giúp đánh thức não bộ tập trung cao độ, rồi mới vào thực hành ngồi & cầm bút theo tốp 5 trẻ.",
+            "Để tìm ra bạn nào sai nhiều nhất và không cho lên lớp 1.",
+            "Vì phần mềm bị lỗi nên cô giáo nghĩ thêm trò chơi phụ."
+          ],
+          "correctIndex": 1,
+          "explanation": "Bí quyết sư phạm ở B56: Bật công tắc tập trung não bộ qua 'Thỏ con tinh nghịch' trước khi đo thước 30cm theo tốp 5 trẻ, kèm nghi thức Lớp trưởng – Lớp phó giống Tiểu học."
+        },
+        {
+          "id": "hp03-b56-3",
+          "lessonIndex": 7,
+          "lessonCode": "B56",
+          "category": "xu_ly_tinh_huong",
+          "categoryLabel": "4. Xử lý tình huống",
+          "question": "Điểm thuyết phục nhất của bài B56 khi Sale tư vấn cho trường có phụ huynh lớp 5 tuổi rất lo chuyện 'con cận thị, gù lưng và sợ nề nếp khi vào lớp 1' là gì?",
+          "options": [
+            "Giáo án cho trẻ xem video bạn Su nhìn mờ do dí sát mắt và bạn Kem đau lưng để tự hiểu lý do, đo thực tế bằng cây thước 30cm trước tốp 5 trẻ và tập luôn nghi thức Lớp trưởng – Lớp phó chào đầu/cuối giờ như trường Tiểu học.",
+            "Phát kính chống cận miễn phí cho toàn bộ lớp 5 tuổi.",
+            "Khuyên phụ huynh cho con đi học thêm viết chữ vào buổi tối.",
+            "Cắt bỏ thời gian tập viết chữ trong suốt học kì II."
           ],
           "correctIndex": 0,
-          "explanation": "Theo bảng thống kê 10 bài mẫu (Sheet 1 & Sheet 3): Có tới 8/10 bài tích hợp Phần mềm Novastars hoặc Video (B06, B45, B69, B13, B39, B24, B56, B57) và 5/10 bài rèn trẻ Thuyết trình / Chia sẻ ngay từ khối 3 tuổi đến 5 tuổi (B45, B09, B13, B39, B57, B70)."
+          "explanation": "Kết hợp hiểu lý do (phim Su & Kem) + đo thước 30cm trực quan + rèn nếp tự quản Lớp trưởng/Lớp phó khiến phụ huynh 5 tuổi cực kỳ yên tâm."
         },
         {
-          "id": "hp03-q10",
-          "category": "xu_ly_tinh_huong",
-          "categoryLabel": "Xử lý tình huống",
-          "question": "Khi Hiệu trưởng nói: 'Trường chị dạy kỹ năng gấp quần áo cho lớp 5 tuổi suốt rồi, cô trải áo lên bàn làm mẫu rồi các con tập gấp thôi', Sale nên dùng dẫn chứng bài B24 để cho Hiệu trưởng thấy đẳng cấp khác biệt của Novastars như thế nào?",
+          "id": "hp03-b57-1",
+          "lessonIndex": 8,
+          "lessonCode": "B57",
+          "category": "dan_chung_bai_mau",
+          "categoryLabel": "3. Dẫn chứng bài mẫu",
+          "question": "Ở bài B57 khối Mẫu giáo Lớn ('Bé vui học cùng các chữ cái'), trước khi dạy mẹo phân biệt chữ b và d, phần mềm Novastars dẫn dắt trẻ qua hoạt động nào để khơi gợi niềm yêu thích học chữ?",
           "options": [
-            "Nói rằng ở chương trình Novastars trẻ 5 tuổi không học gấp quần áo mà chỉ học là ủi quần áo.",
-            "Giới thiệu rằng bài B24 của Novastars chỉ chiếu phim hoạt hình bạn Kem gấp quần áo cho trẻ ngồi xem.",
-            "Trả lời rằng giáo án của trường dạy gấp quần áo là sai phương pháp.",
-            "Chia sẻ rằng việc gấp cái áo, cái quần Novastars đã dạy xong ở tiết B23 rồi; sang tiết B24 (tiết thứ 3 trong chuỗi B22–B23–B24), Novastars nâng trẻ 5 tuổi lên tư duy quy hoạch cả tủ quần áo theo 3 nguyên tắc như người lớn, vừa chơi 8 lượt nghiêng người xếp ngăn tủ ảo trên phần mềm vừa chia đội thi gấp quần áo thật theo hiệu lệnh đổi vai của bạn Kem."
+            "Bắt cả lớp ngồi viết 2 trang tập viết chữ b và d trước khi ra chơi.",
+            "Nghe chữ – thả bóng vào rổ (5 lượt a–o, t–a, m–t, b–h, o–x), xem phim Su và Kem chia sẻ lợi ích khi biết chữ, và chơi Đoán tên 5 cuốn sách nổi tiếng (Thần đồng Đất Việt, Doraemon, Rùa và thỏ, Cậu bé chăn cừu, Trầu cau).",
+            "Chỉ cho trẻ giơ thẻ chữ cái và đọc đồng thanh 20 lần.",
+            "Kiểm tra chính tả các từ ghép khó."
           ],
-          "correctIndex": 3,
-          "explanation": "Theo Bài mẫu số 7 (B24 khối Lớn): Đây là dẫn chứng cực đắt giá về 'chuỗi 3 tiết liên hoàn' (B22 Phân loại → B23 Học gấp → B24 Tư duy sắp xếp cả tủ đồ). Trẻ 5 tuổi học xong về nhà không chỉ biết gấp chiếc áo mà biết tự quy hoạch ngăn tủ của riêng mình gọn gàng trước khi vào lớp 1."
+          "correctIndex": 1,
+          "explanation": "Tiết học giúp trẻ thấy rõ lợi ích thiết thực (tự đọc truyện tranh Doraemon, Thần đồng Đất Việt, viết thư cho ông bà) để con TỰ THÍCH học chữ trước khi vào lớp 1."
+        },
+        {
+          "id": "hp03-b57-2",
+          "lessonIndex": 8,
+          "lessonCode": "B57",
+          "category": "usp_khac_biet",
+          "categoryLabel": "2. Điểm khác biệt USP",
+          "question": "Mẹo sư phạm độc đáo trên phần mềm ở Hoạt động 5 bài B57 giúp giải quyết dứt điểm lỗi nhầm giữa chữ 'b' và chữ 'd' của trẻ 5 tuổi là gì?",
+          "options": [
+            "Giải thích trừu tượng: chữ b nét thẳng bên trái, chữ d nét cong bên trái.",
+            "Giơ hai bàn tay nắm tròn và dựng ngón cái theo kiểu bấm nút Thích (Like): TAY TRÁI tạo thành đúng hình chữ b, TAY PHẢI tạo thành đúng hình chữ d — rồi thực hành viết nhanh chữ b/d ra giấy A5 qua 5 cặp từ (con bê – con dê, quả bóng – dưa hấu...).",
+            "Bắt trẻ chép phạt mỗi khi viết ngược chữ b và d.",
+            "Dán chữ b lên bàn tay phải và chữ d lên đầu gối."
+          ],
+          "correctIndex": 1,
+          "explanation": "Đôi bàn tay luôn gắn trên người trẻ: khi quên chỉ cần giơ nút Thích hai tay lên là nhận ra ngay tay trái chữ b, tay phải chữ d."
+        },
+        {
+          "id": "hp03-b57-3",
+          "lessonIndex": 8,
+          "lessonCode": "B57",
+          "category": "xu_ly_tinh_huong",
+          "categoryLabel": "4. Xử lý tình huống",
+          "question": "Nếu Hiệu trưởng nói: 'Trường chị dạy chữ cái theo chương trình của Bộ rồi, đưa bài B57 vào có bị dạy trước kiến thức lớp 1 hay trùng lặp không?', Sale tư vấn thế nào cho chuẩn xác?",
+          "options": [
+            "Khẳng định B57 không ép trẻ tập đọc viết sớm thay lớp 1, mà bổ trợ trực tiếp cho giờ Làm quen chữ cái của trường bằng cách truyền cảm hứng yêu đọc sách (qua game 5 đầu sách hay) và trao mẹo nút Thích tay trái/phải xóa lỗi nhầm b–d hiệu quả gấp bội.",
+            "Đề nghị trường cắt bỏ hẳn giờ Làm quen chữ cái của Bộ.",
+            "Nói rằng bài B57 chỉ dạy trẻ đọc truyện tranh chứ không liên quan chữ cái.",
+            "Khuyên trường chỉ nên dạy bài B57 sau khi trẻ đã vào lớp 1."
+          ],
+          "correctIndex": 0,
+          "explanation": "B57 là mảnh ghép bổ trợ đắt giá cho giờ Làm quen chữ cái sẵn có ở trường mầm non: tạo hứng thú tự nhiên và giải quyết lỗi ngược nét b–d."
+        },
+        {
+          "id": "hp03-b70-1",
+          "lessonIndex": 9,
+          "lessonCode": "B70",
+          "category": "usp_khac_biet",
+          "categoryLabel": "2. Điểm khác biệt USP",
+          "question": "Ở bài B70 khối Mẫu giáo Lớn ('Bé thể hiện sự tôn trọng và yêu thương thầy, cô giáo' dịp 20/11), khác biệt lớn nhất về cách tổ chức làm việc nhóm so với giáo án truyền thống là gì?",
+          "options": [
+            "Mỗi trẻ tự tô 1 tấm bưu thiếp nhỏ rời rạc mang về nhà.",
+            "Chia lớp làm 4 nhóm bàn cùng hợp sức như 4 mảnh ghép tạo thành MỘT TỜ BÁO TƯỜNG KHỔ LỚN A1 ('Con yêu cô') giống hệt văn hóa học sinh Tiểu học, rồi cả nhóm bước lên sân khấu thuyết trình nối tiếp nhau trước máy quay.",
+            "Chỉ chọn 1 bạn lớp trưởng vẽ tranh tặng cô giáo.",
+            "Cô giáo tự làm báo tường sẵn ở nhà để treo ở sảnh."
+          ],
+          "correctIndex": 1,
+          "explanation": "Theo Bài 10 (B70 khối Lớn): Thay vì làm bưu thiếp rời rạc, cả 4 nhóm hợp sức tạo nên 1 tác phẩm Báo tường A1 chung và rèn thuyết trình tập thể nối tiếp nhau."
+        },
+        {
+          "id": "hp03-b70-2",
+          "lessonIndex": 9,
+          "lessonCode": "B70",
+          "category": "dan_chung_bai_mau",
+          "categoryLabel": "3. Dẫn chứng bài mẫu",
+          "question": "Trong Hoạt động 1 bài B70, 4 nhóm học sinh 5 tuổi được phân công từng phần việc cụ thể nào để ghép lên tờ Báo tường A1?",
+          "options": [
+            "Nhóm 1: Cắt trái tim & chấm dấu vân tay mực đỏ phủ kín; Nhóm 2: Tô & gấp bó hoa nổi theo nét đứt; Nhóm 3: Vẽ thêm & tô chân dung cô giáo; Nhóm 4: Cắt, tô bộ chữ tiêu đề 'CON, CÔ' cùng hoa/tim nhỏ để trang trí hoàn thiện tờ báo tường.",
+            "Cả 4 nhóm đều chỉ tô màu giống hệt nhau một bức tranh hoa hồng.",
+            "2 nhóm ngồi xem video, 2 nhóm đi quét sân trường.",
+            "Các cô giáo làm hết phần cắt dán, trẻ chỉ ký tên vào góc giấy."
+          ],
+          "correctIndex": 0,
+          "explanation": "Sự phân công chuyên môn rõ ràng 4 nhóm giúp mọi đứa trẻ đều thấy vai trò không thể thiếu của mình trong sản phẩm chung của cả lớp."
+        },
+        {
+          "id": "hp03-b70-3",
+          "lessonIndex": 9,
+          "lessonCode": "B70",
+          "category": "kien_thuc",
+          "categoryLabel": "1. Cấu trúc chương trình",
+          "question": "Nhìn tổng thể cả 10 bài học mẫu ở Học phần 3, sự phối hợp giữa Công nghệ và Thuyết trình được thể hiện với tỷ lệ chuẩn xác nào?",
+          "options": [
+            "Cả 10 bài đều chỉ là lý thuyết chữ, không có phần mềm và không có thuyết trình.",
+            "Đa dạng linh hoạt sát thực tế lứa tuổi: 7/10 bài tích hợp Video/Phần mềm tương tác Novastars (như B69, B39, B24, B56, B57...), kết hợp 6/10 bài rèn trẻ đứng thuyết trình trước máy quay/cả lớp — tất cả học liệu mẫu và sơ đồ lớp đều đóng gói sẵn trong giáo án.",
+            "Chỉ duy nhất 1 bài ở khối Lớn có sử dụng phần mềm.",
+            "Tất cả 10 bài đều yêu cầu học sinh ngồi im làm bài kiểm tra giấy."
+          ],
+          "correctIndex": 1,
+          "explanation": "10 bài mẫu trải đều từ Bé → Nhỡ → Lớn chứng minh tính đồng bộ giữa Phần mềm tương tác (game + phim nhân vật), Học liệu in sẵn (Báo tường A1, Huy hiệu, Bảng phân loại) và đầu ra Thuyết trình."
         }
       ]
     },
@@ -747,7 +1087,7 @@
       "passThreshold": 80,
       "status": "published",
       "authorName": "Phạm Mỹ Linh",
-      "updatedAt": "2026-11-25T14:38:00.000Z",
+      "updatedAt": "2026-11-26T08:00:00.000Z",
       "sourceFile": {
         "name": "So_sanh_Novastars_va_Chuong_trinh_Bo_GDDT_Chinh_khoa.xlsx",
         "url": "data/files/So_sanh_Novastars_va_Chuong_trinh_Bo_GDDT_Chinh_khoa.xlsx",
@@ -786,571 +1126,795 @@
         ],
         "curriculum72": [
           {
+            "tiet": "1",
+            "hoc_ki": "Học kì I",
+            "mg_be": "B01 - Bé tìm hiểu về nội quy lớp học",
+            "mg_be_nd": "1. Trẻ nhắc lại bốn quy tắc lớp học: lắng nghe, xếp hàng, giơ tay khi có ý kiến, nói to và rõ ràng.\n2. Trẻ thực hành nhìn và nghe cô nói; xếp hàng không chen lấn, xô đẩy; giơ tay cao và trả lời to, rõ ràng.",
+            "mg_nho": "B01 - Bé thuyết trình giới thiệu bản thân",
+            "mg_nho_nd": "1. Trẻ biết cách giới thiệu tên, tuổi và cuốn sách yêu thích của mình.\n2. Trẻ thuyết trình to, rõ ràng, kết hợp đứng thẳng, cười tươi, nhìn người nghe và dùng tay chào, giới thiệu bản thân, thể hiện số tuổi.",
+            "mg_lon": "B01 - Bé tự tin làm quen kết bạn",
+            "mg_lon_nd": "1. Trẻ biết các câu nói làm quen bạn mới và cách thể hiện nét mặt, cử chỉ thân thiện.\n2. Trẻ thực hành các bước làm quen, kết bạn với những người bạn mới.",
+            "ghi_chu": ""
+          },
+          {
             "tiet": "2",
             "hoc_ki": "Học kì I",
             "mg_be": "B02 - Bé cam kết thực hiện các quy tắc lớp học",
+            "mg_be_nd": "1. Trẻ nhắc lại bốn quy tắc lớp học: lắng nghe, xếp hàng chờ tới lượt, nói to và rõ ràng, giơ tay khi có ý kiến.\n2. Trẻ nói to, rõ ràng lời cam kết thực hiện các quy tắc trong lớp học.",
             "mg_nho": "B02 - Bé yêu thích khám phá thế giới",
+            "mg_nho_nd": "1. Trẻ nhắc lại tên môn học, các bạn trong chương trình và biết khoa học vũ trụ nghiên cứu các hành tinh, ngôi sao.\n2. Trẻ nhận biết, thể hiện cảm xúc ngạc nhiên và sự hào hứng khi quan sát vũ trụ.",
             "mg_lon": "B02 - Bé bình tĩnh xử lý tình huống khi đi lạc",
+            "mg_lon_nd": "1. Trẻ nhận biết những nguy cơ khi đi lạc: đói, bị bắt nạt, bị bắt cóc hoặc gặp nguy hiểm đến tính mạng.\n2. Trẻ học cách dừng lại, giữ bình tĩnh, gọi người thân và nhờ người lớn đáng tin giúp đỡ khi đi lạc.",
             "ghi_chu": ""
           },
           {
             "tiet": "3",
             "hoc_ki": "Học kì I",
             "mg_be": "B03 - Bé vui học kĩ năng sống",
+            "mg_be_nd": "1. Trẻ gọi tên bốn quy tắc lớp học: lắng nghe, xếp hàng, giơ tay khi có ý kiến, nói to và rõ ràng.\n2. Trẻ luyện tập thực hiện bốn quy tắc lớp học.",
             "mg_nho": "B03 - Bé quan sát thí nghiệm diệu kì",
+            "mg_nho_nd": "1. Trẻ nhận diện kính thiên văn, nhắc lại nguyên liệu và thứ tự thực hiện thí nghiệm galaxy sữa.\n2. Trẻ thực hành cho sữa vào đĩa, nhỏ màu, chấm tăm bông vào nước rửa bát rồi chấm vào màu theo hướng dẫn.",
             "mg_lon": "B03 - Bé luyện tập xử lý tình huống khi đi lạc",
+            "mg_lon_nd": "1. Trẻ ôn tập cách xử lý tình huống khi đi lạc và nhận diện người lớn đáng tin để nhờ giúp đỡ.\n2. Trẻ luyện tập hít thở sâu để bình tĩnh, gọi to báo hiệu cho người thân và nhờ sự giúp đỡ.",
             "ghi_chu": ""
           },
           {
             "tiet": "4",
             "hoc_ki": "Học kì I",
             "mg_be": "B04 - Bé học cách làm quen bạn mới",
+            "mg_be_nd": "1. Trẻ nhắc lại câu chào hỏi, giới thiệu tên khi làm quen với bạn mới.\n2. Trẻ thể hiện sự thân thiện qua nụ cười, vẫy tay chào và đặt tay lên ngực khi giới thiệu tên.",
             "mg_nho": "B04 - Bé tìm hiểu về mục tiêu",
+            "mg_nho_nd": "1. Trẻ kể tên công việc hằng ngày và ghi nhớ từ “mục tiêu”.\n2. Trẻ thực hành đặt mục tiêu cho việc đánh răng, ăn cơm, đi học đúng giờ.",
             "mg_lon": "B04 - Bé thử tài so sánh số lượng",
+            "mg_lon_nd": "1. Trẻ biết so sánh số lượng bằng cách đếm ít nhất hai nhóm đồ vật.\n2. Trẻ nhận diện các chữ số trong phạm vi 10 và thực hành so sánh số lượng.",
             "ghi_chu": ""
           },
           {
             "tiet": "5",
             "hoc_ki": "Học kì I",
             "mg_be": "B05 - Lời chào dễ mến",
+            "mg_be_nd": "1. Trẻ biết ý nghĩa của việc nói lời chào với mọi người.\n2. Trẻ thực hành nói lời chào dễ mến với người lớn và bạn bè.",
             "mg_nho": "B05 - Bé luyện tập đặt mục tiêu và thực hiện mục tiêu",
+            "mg_nho_nd": "1. Trẻ nhắc lại những yêu cầu để trở thành phi hành gia: khỏe mạnh, nhanh nhẹn, khéo léo.\n2. Trẻ luyện tập đặt mục tiêu trước khi thực hiện công việc.",
             "mg_lon": "B05 - Bé học kĩ năng sắp xếp bàn ăn khoa học",
+            "mg_lon_nd": "1. Trẻ gọi tên các đồ dùng cần thiết để sắp xếp bàn ăn.\n2. Trẻ kiểm tra số lượng bát, đũa, ghế và sắp xếp ghế phù hợp với số người ăn.",
             "ghi_chu": ""
           },
           {
             "tiet": "6",
             "hoc_ki": "Học kì I",
-            "mg_be": "B06 - Bé thực hành nói lời chào với những người xung quanh",
+            "mg_be": "B06 - Bé thực hành lời chào với những người xung quanh",
+            "mg_be_nd": "1. Trẻ ghi nhớ lời chào phù hợp với người lớn và bạn bè.\n2. Trẻ thực hành nhìn người được chào, mỉm cười, vẫy tay chào bạn hoặc khoanh tay chào người lớn.",
             "mg_nho": "B06 - Bé theo dõi việc thực hiện mục tiêu",
+            "mg_nho_nd": "1. Trẻ nhắc lại cụm từ “mục tiêu gần”.\n2. Trẻ đặt mục tiêu cho các việc hằng ngày như đánh răng, ăn cơm, đi học đúng giờ, uống nước, cất đồ chơi, uống sữa, gấp quần áo.",
             "mg_lon": "B06 - Bé học cách dọn dẹp bàn ăn",
+            "mg_lon_nd": "1. Trẻ nêu được các bước dọn dẹp bàn ăn.\n2. Trẻ thực hành dọn dẹp bàn ăn theo các bước đã học.",
             "ghi_chu": ""
           },
           {
             "tiet": "7",
             "hoc_ki": "Học kì I",
             "mg_be": "B07 - Bé tự tin giới thiệu bản thân",
+            "mg_be_nd": "1. Trẻ ghi nhớ lời chào, giới thiệu tên, tuổi và lời cảm ơn người nghe.\n2. Trẻ giới thiệu bản thân to, rõ ràng, kết hợp đứng thẳng, cười tươi, vẫy tay, đặt tay lên ngực và giơ ngón tay chỉ số tuổi.",
             "mg_nho": "B07 - Bé học cách quan sát và tìm điểm khác biệt",
+            "mg_nho_nd": "1. Trẻ biết từ ngữ so sánh dáng cao, thấp; tóc dài, ngắn; màu tóc và quần áo.\n2. Trẻ quan sát, mô tả ít nhất một điểm khác biệt giữa mình với bạn cùng cặp bằng giọng nói to, rõ ràng.",
             "mg_lon": "B07 - Bé luyện tập sắp xếp và dọn dẹp bàn ăn",
+            "mg_lon_nd": "1. Trẻ biết cách chuẩn bị bàn trước bữa ăn và dọn bàn sau bữa ăn.\n2. Trẻ thực hành dọn đồ, lau bàn; gom thức ăn thừa, bỏ rác đúng nơi, chuyển bát đĩa đến bồn rửa và lau sạch bàn.\n3. Trẻ phối hợp với các bạn khi sắp xếp và dọn dẹp bàn ăn.",
             "ghi_chu": ""
           },
           {
             "tiet": "8",
             "hoc_ki": "Học kì I",
             "mg_be": "B08 - Bé là công dân nhí gương mẫu",
+            "mg_be_nd": "1. Trẻ gọi tên đội hình hai hàng dọc và nêu được ít nhất một trách nhiệm của công dân nhí gương mẫu.\n2. Trẻ thực hành bốn quy tắc lớp học.",
             "mg_nho": "B08 - Bé học cách ăn uống đủ chất dinh dưỡng",
+            "mg_nho_nd": "1. Trẻ kể tên bốn nhóm thức ăn: thịt, rau, trái cây, ngũ cốc và biết lợi ích của ăn đủ chất.\n2. Trẻ phân loại thức ăn vào bốn nhóm và cam kết ăn uống đủ chất dinh dưỡng.",
             "mg_lon": "B08 - Bé ứng xử lịch sự khi đến chơi nhà bạn",
+            "mg_lon_nd": "1. Trẻ biết cách ứng xử lịch sự khi đến chơi nhà bạn: bấm chuông hoặc gõ cửa, chào hỏi, xếp giày dép gọn gàng, chào và cảm ơn khi ra về.\n2. Trẻ thực hành lời nói, hành động lịch sự và đặt giày dép đúng chiều, đúng vị trí.",
             "ghi_chu": ""
           },
           {
             "tiet": "9",
             "hoc_ki": "Học kì I",
             "mg_be": "B09 - Kĩ năng làm việc nhóm",
+            "mg_be_nd": "1. Trẻ nhắc lại tên đội hình vòng tròn.\n2. Trẻ thực hành xếp đội hình hai hàng dọc trong thời gian quy định và xếp đội hình vòng tròn.",
             "mg_nho": "B09 - Bé ôn tập cách ăn uống đủ chất dinh dưỡng",
+            "mg_nho_nd": "1. Trẻ ôn tập tên bốn nhóm thức ăn: thịt, rau, hoa quả, ngũ cốc.\n2. Trẻ thực hành phân loại thức ăn vào đúng nhóm.",
             "mg_lon": "B09 - Bé thực hành ứng xử lịch sự khi đến chơi nhà bạn",
+            "mg_lon_nd": "1. Trẻ nhắc lại các cách ứng xử lịch sự khi đến chơi nhà bạn.\n2. Trẻ thực hành chào hỏi, xếp giày dép, nói lời cảm ơn và xử lý tình huống giao tiếp khi đến chơi nhà bạn.",
             "ghi_chu": ""
           },
           {
             "tiet": "10",
             "hoc_ki": "Học kì I",
             "mg_be": "B10 - Bé giới thiệu về sở thích của mình",
+            "mg_be_nd": "1. Trẻ gọi tên đồ chơi, màu sắc và nói được sở thích của bản thân.\n2. Trẻ thực hành giới thiệu đồ chơi yêu thích và màu sắc yêu thích bằng câu nói phù hợp.",
             "mg_nho": "B10 - Bé rèn luyện kĩ năng thuyết trình",
+            "mg_nho_nd": "1. Trẻ nhắc lại các việc cần làm để trở thành phi hành gia: tập thể dục, rèn quan sát, ăn đủ chất.\n2. Trẻ tự tin giơ tay thuyết trình, nói to, rõ ràng và dùng tay vẫy chào, đặt lên ngực khi giới thiệu bản thân.",
             "mg_lon": "B10 - Bé học cách nhận diện cảm xúc tức giận của bản thân",
+            "mg_lon_nd": "1. Trẻ nhận diện và gọi tên cảm xúc tức giận của bản thân.\n2. Trẻ nhận biết những biểu hiện khi tức giận như muốn hét, giậm chân, khóc hoặc nắm chặt tay.",
             "ghi_chu": ""
           },
           {
             "tiet": "11",
             "hoc_ki": "Học kì I",
             "mg_be": "B11 - Bé tìm hiểu trách nhiệm của bản thân",
+            "mg_be_nd": "1. Trẻ kể tên các trách nhiệm cá nhân như dọn đồ chơi, tự xúc ăn, rửa tay, đánh răng.\n2. Trẻ nhận diện trách nhiệm theo yêu cầu và nói to, rõ ràng tên các việc thuộc trách nhiệm của mình.",
             "mg_nho": "B11 - Bé học cách chuẩn bị đồ dùng khi đi du lịch",
-            "mg_lon": "B11 - Bé làm sản phẩm thể hiện cảm xúc tức giận của mình",
+            "mg_nho_nd": "1. Trẻ nhận biết bốn nhóm đồ dùng khi du lịch: đồ cá nhân, đồ bảo vệ, đồ ăn nước uống, đồ chơi.\n2. Trẻ ghi nhớ tiêu chí ngắn, nhỏ, gọn và lựa chọn đồ dùng cần thiết cho chuyến đi.",
+            "mg_lon": "B11 - Bé làm sản phẩm thể hiện cảm xúc của mình",
+            "mg_lon_nd": "1. Trẻ nhận biết các cảm xúc vui, buồn, tức giận, sợ hãi và ngạc nhiên.\n2. Trẻ rèn luyện kĩ năng tô màu, vận động tinh để làm sản phẩm thể hiện cảm xúc.",
             "ghi_chu": ""
           },
           {
             "tiet": "12",
             "hoc_ki": "Học kì I",
             "mg_be": "B12 - Bé học cách dọn đồ chơi khoa học",
-            "mg_nho": "B12 - Bé học cách nhận diện cảm xúc sợ hãi của bản thân",
-            "mg_lon": "B12 - Bé học về ứng dụng của hình học trong cuộc sống - tiết 1",
+            "mg_be_nd": "1. Trẻ nhắc lại ba cách cất gọn đồ chơi theo kích cỡ, loại và màu sắc.\n2. Trẻ tập sắp xếp đồ chơi ngăn nắp, bước đầu tự giác dọn đồ chơi sau khi chơi.",
+            "mg_nho": "B12 - Bé học cách nhận biết cảm xúc sợ hãi của bản thân",
+            "mg_nho_nd": "1. Trẻ gọi tên cảm xúc sợ hãi và các biểu hiện bên trong: muốn che mắt, muốn co người, muốn trốn.\n2. Trẻ nhận diện ba biểu hiện của cảm xúc sợ hãi qua hình ảnh gợi ý.",
+            "mg_lon": "B12 - Bé học về ứng dụng của hình học trong cuộc sống (tiết 1)",
+            "mg_lon_nd": "1. Trẻ gọi tên các hình tròn, vuông, chữ nhật, tam giác và nhận biết ứng dụng của hình tròn làm bánh xe.\n2. Trẻ quan sát, mô tả để nhận diện các hình cơ bản và thuyết trình về giải pháp bánh xe hình tròn.",
             "ghi_chu": ""
           },
           {
             "tiet": "13",
             "hoc_ki": "Học kì I",
             "mg_be": "B13 - Bé học cách gấp khăn thật gọn gàng",
+            "mg_be_nd": "1. Trẻ nhắc lại trách nhiệm gấp khăn lau bàn của mình.\n2. Trẻ rèn luyện vận động tinh qua việc gấp khăn và bước đầu tự giác thực hiện trách nhiệm cá nhân.",
             "mg_nho": "B13 - Cảm xúc của bé",
-            "mg_lon": "B13 - Bé học về ứng dụng của hình học trong cuộc sống - tiết 2",
+            "mg_nho_nd": "1. Trẻ nhắc lại các cảm xúc vui, buồn, sợ hãi, tức giận.\n2. Trẻ luyện tập kĩ năng vận động tinh.",
+            "mg_lon": "B13 - Bé học về ứng dụng của hình học trong cuộc sống (tiết 2)",
+            "mg_lon_nd": "1. Trẻ gọi tên, nhận diện các hình khối cơ bản và đồ vật có hình khối trong cuộc sống.\n2. Trẻ đề xuất cách xây nhà theo hình khối, nhà cao tầng và chung cư.",
             "ghi_chu": ""
           },
           {
             "tiet": "14",
             "hoc_ki": "Học kì I",
             "mg_be": "B14 - Bé học cách nhận diện cảm xúc vui vẻ của bản thân",
+            "mg_be_nd": "1. Trẻ nhận biết hai biểu hiện bên trong của cảm xúc vui: muốn cười, muốn nhảy nhót.\n2. Trẻ chỉ ra các biểu hiện qua hình ảnh và luyện tập thể hiện niềm vui bằng những nụ cười khác nhau.",
             "mg_nho": "B14 - Bé đã sẵn sàng khám phá thế giới",
+            "mg_nho_nd": "1. Trẻ ôn tập các thức ăn thuộc bốn nhóm chất dinh dưỡng.\n2. Trẻ rèn luyện quan sát, tìm điểm khác biệt và thuyết trình.",
             "mg_lon": "B14 - Bé khám phá ứng dụng của hình học xung quanh mình",
+            "mg_lon_nd": "1. Trẻ gọi tên và nhận diện các hình khối xung quanh mình.\n2. Trẻ phối hợp làm mô hình bằng que kem, đất nặn và thực hành cổ vũ, động viên các bạn.",
             "ghi_chu": ""
           },
           {
             "tiet": "15",
             "hoc_ki": "Học kì I",
-            "mg_be": "B15 - Bé học cách nhận diện cảm xúc buồn của bản thân",
+            "mg_be": "B15 - Bé học cách nhận biết cảm xúc buồn của bản thân",
+            "mg_be_nd": "1. Trẻ gọi tên cảm xúc buồn và hai biểu hiện bên trong: muốn khóc, muốn ngồi một mình.\n2. Trẻ nhận diện các biểu hiện của cảm xúc buồn qua hình ảnh gợi ý.",
             "mg_nho": "B15 - Bé học cách tham gia giao thông an toàn",
+            "mg_nho_nd": "1. Trẻ nêu bốn quy tắc khi đi phương tiện giao thông công cộng: xếp hàng, giữ trật tự, lắng nghe, thắt dây an toàn.\n2. Trẻ biết lý do cần thắt dây an toàn và thực hành động tác thắt dây, ôm đầu cúi thấp.",
             "mg_lon": "B15 - Bé học cách cổ vũ, động viên",
+            "mg_lon_nd": "1. Trẻ nhận biết các cảm xúc vui, buồn, lo lắng, tự hào khi tham gia cổ vũ.\n2. Trẻ thực hành giơ tay, vỗ tay và hô lời cổ vũ, động viên.",
             "ghi_chu": ""
           },
           {
             "tiet": "16",
             "hoc_ki": "Học kì I",
-            "mg_be": "B16 - Bé học cách nhận diện cảm xúc buồn của người khác",
+            "mg_be": "B16 - Bé học cách nhận biết cảm xúc buồn của người khác",
+            "mg_be_nd": "1. Trẻ gọi tên cảm xúc buồn của người khác qua biểu hiện mắt khóc, miệng mếu.\n2. Trẻ quan sát khuôn mặt và nhận diện hai biểu hiện của cảm xúc buồn.",
             "mg_nho": "B16 - Bé tham gia giao thông an toàn",
+            "mg_nho_nd": "1. Trẻ nhắc lại bốn quy tắc khi đi phương tiện giao thông công cộng: xếp hàng, giữ trật tự, lắng nghe, thắt dây an toàn.\n2. Trẻ thực hành động tác ôm đầu cúi thấp.",
             "mg_lon": "B16 - Bé tham gia cổ vũ, động viên bạn bè",
+            "mg_lon_nd": "1. Trẻ nhận biết các động tác và dụng cụ cổ vũ như bông cổ vũ, bảng, băng đô, trống, kèn.\n2. Trẻ cắt, dán làm dụng cụ và thực hành cổ vũ, động viên bạn bằng giọng nói to, rõ ràng.",
             "ghi_chu": ""
           },
           {
             "tiet": "17",
             "hoc_ki": "Học kì I",
             "mg_be": "B17 - Bé thực hành nhận diện cảm xúc buồn, vui",
+            "mg_be_nd": "1. Trẻ nhắc lại biểu hiện buồn như mắt khóc, miệng mếu và biểu hiện vui như cười tươi, nhảy nhót.\n2. Trẻ chia sẻ các biểu hiện của bản thân khi vui vẻ hoặc buồn bã.",
             "mg_nho": "B17 - Bé làm thí nghiệm và quan sát thí nghiệm",
+            "mg_nho_nd": "1. Trẻ biết bề mặt Mặt Trăng có nhiều hố sâu do thiên thạch va vào.\n2. Trẻ thực hiện thí nghiệm về sự hình thành hố sâu, quan sát và mô tả bề mặt Mặt Trăng.",
             "mg_lon": "B17 - Bé học cách xem giờ",
+            "mg_lon_nd": "1. Trẻ nhận biết đồng hồ kim và đồng hồ điện tử.\n2. Trẻ luyện tập xem giờ trên đồng hồ kim và đồng hồ điện tử.",
             "ghi_chu": ""
           },
           {
             "tiet": "18",
             "hoc_ki": "Học kì I",
             "mg_be": "B18 - Bé học cách chơi với bạn thật vui",
-            "mg_nho": "B18 - Bé học cách nhận diện cảm xúc sợ hãi của người khác",
-            "mg_lon": "B18 - Bé luyện tập đặt mục tiêu gần trong các công việc hàng ngày",
+            "mg_be_nd": "1. Trẻ biết hỏi ý kiến bạn trước khi chơi cùng bằng câu “Bạn ơi! Cho tớ chơi cùng nhé!”.\n2. Trẻ thực hành làm quen, hỏi để được chơi cùng với ánh mắt nhìn bạn, nụ cười và giọng nói to, rõ ràng.",
+            "mg_nho": "B18 - Bé học cách nhận biết cảm xúc sợ hãi của người khác",
+            "mg_nho_nd": "1. Trẻ gọi tên các biểu hiện sợ hãi của người khác: mắt mở to, cơ thể run rẩy, co người.\n2. Trẻ quan sát và nhận diện cảm xúc sợ hãi qua các biểu hiện đó.",
+            "mg_lon": "B18 - Bé luyện tập đặt mục tiêu gần trong các công việc hằng ngày",
+            "mg_lon_nd": "1. Trẻ hiểu mục tiêu là kết quả mong muốn đạt được trong một khoảng thời gian.\n2. Trẻ xác định công việc, kết quả và thời gian thực hiện để đặt, trình bày mục tiêu gần trong sinh hoạt hằng ngày.",
             "ghi_chu": ""
           },
           {
             "tiet": "19",
             "hoc_ki": "Học kì I",
             "mg_be": "B19 - Gia đình là nơi yêu thương nhất",
+            "mg_be_nd": "1. Trẻ ghi nhớ câu nói thể hiện tình yêu thương với bố mẹ.\n2. Trẻ thực hành nói lời yêu thương, nhìn bố mẹ, cười tươi và dùng cử chỉ như tạo hình trái tim, bông hoa hoặc gửi nụ hôn gió.",
             "mg_nho": "B19 - Bé tự tin chia sẻ về điều mình được khám phá",
+            "mg_nho_nd": "1. Trẻ nhắc lại đặc điểm của sao chổi Halley: đuôi dài, phát sáng, bay rất nhanh.\n2. Trẻ tự tin giơ tay thuyết trình, nói to, rõ ràng và sử dụng tay mô tả nội dung.",
             "mg_lon": "B19 - Bé quyết tâm thực hiện mục tiêu của mình",
+            "mg_lon_nd": "1. Trẻ biết mục tiêu là kết quả mong muốn đạt được trong một khoảng thời gian; xác định công việc, kết quả và thời gian khi đặt mục tiêu.\n2. Trẻ thực hành đặt mục tiêu gần và chia sẻ mục tiêu của mình.",
             "ghi_chu": ""
           },
           {
             "tiet": "20",
             "hoc_ki": "Học kì I",
             "mg_be": "B20 - Bé làm thiệp tặng bố mẹ",
+            "mg_be_nd": "1. Trẻ nhắc lại câu nói thể hiện tình yêu thương với bố mẹ.\n2. Trẻ rèn luyện vận động tinh khi làm thiệp và nói to, rõ ràng lời yêu thương dành cho bố mẹ.",
             "mg_nho": "B20 - Bé học cách quan sát và so sánh",
+            "mg_nho_nd": "1. Trẻ mô tả hình dạng, màu sắc của Sao Hỏa qua hình ảnh và biết màu đỏ đến từ bụi, đất trên Sao Hỏa.\n2. Trẻ quan sát, so sánh điểm giống và khác nhau giữa Sao Hỏa với Trái Đất về hình dạng, kích thước, màu sắc.",
             "mg_lon": "B20 - Bé học cách sắp xếp thời gian biểu hợp lý",
+            "mg_lon_nd": "1. Trẻ nhận biết bốn buổi trong ngày: sáng, trưa, chiều, tối.\n2. Trẻ biết các bước sắp xếp thời gian biểu: xác định các buổi, chọn công việc và xếp công việc vào từng buổi phù hợp.",
             "ghi_chu": ""
           },
           {
             "tiet": "21",
             "hoc_ki": "Học kì I",
             "mg_be": "B21 - Bé học cách quan tâm, chăm sóc người thân",
+            "mg_be_nd": "1. Trẻ kể tên những hành động quan tâm, chăm sóc người thân: đưa nước, đưa đồ ăn, đấm lưng, đắp chăn, ôm.\n2. Trẻ thực hành thể hiện tình cảm với bố mẹ bằng các hành động chăm sóc phù hợp.",
             "mg_nho": "B21 - Bé thực hành quan sát và so sánh",
+            "mg_nho_nd": "1. Trẻ ôn tập cách quan sát, so sánh theo hình dạng, màu sắc và kích thước.\n2. Trẻ thực hành quan sát, so sánh và thuyết trình.",
             "mg_lon": "B21 - Bé tự sắp xếp lịch trình trong ngày",
+            "mg_lon_nd": "1. Trẻ nhắc lại các bước sắp xếp thời gian biểu trong ngày.\n2. Trẻ thực hành lựa chọn, sắp xếp các công việc vào lịch trình phù hợp.",
             "ghi_chu": ""
           },
           {
             "tiet": "22",
             "hoc_ki": "Học kì I",
             "mg_be": "B22 - Bé học cách giới thiệu về gia đình mình",
+            "mg_be_nd": "1. Trẻ nhớ và gọi tên các thành viên trong gia đình.\n2. Trẻ thuyết trình giới thiệu gia đình to, rõ ràng, kết hợp đứng thẳng, nhìn người nghe, cười tươi và dùng tay minh họa.",
             "mg_nho": "B22 - Bé học cách sáng tạo robot",
+            "mg_nho_nd": "1. Trẻ biết vai trò thám hiểm Sao Hỏa của robot và kể tên một số công việc robot giúp con người.\n2. Trẻ lựa chọn, kết hợp các bộ phận để cùng tạo nên robot.",
             "mg_lon": "B22 - Bé học cách sắp xếp và phân loại quần áo",
+            "mg_lon_nd": "1. Trẻ biết cách phân loại quần áo theo loại, độ dài và mùa.\n2. Trẻ nhận diện các nhóm quần áo và lựa chọn quần áo phù hợp với mùa hè, mùa đông.",
             "ghi_chu": ""
           },
           {
             "tiet": "23",
             "hoc_ki": "Học kì I",
-            "mg_be": "B23 - Bé thể hiện tình yêu đối với gia đình mình",
+            "mg_be": "B23 - Bé thể hiện tình yêu với gia đình mình",
+            "mg_be_nd": "1. Trẻ ôn tập cách thể hiện tình cảm với bố mẹ bằng lời nói và hành động.\n2. Trẻ thực hành lời nói, hành động yêu thương và rèn luyện kĩ năng thuyết trình.",
             "mg_nho": "B23 - Những điều thú vị của vũ trụ",
+            "mg_nho_nd": "1. Trẻ ôn tập tên kính thiên văn, tàu vũ trụ, Mặt Trăng, sao chổi Halley, robot, Sao Hỏa.\n2. Trẻ rèn luyện kĩ năng quan sát và thuyết trình về những điều đã khám phá.",
             "mg_lon": "B23 - Bé học cách gấp quần áo",
+            "mg_lon_nd": "1. Trẻ biết lý do cần gấp quần áo gọn gàng.\n2. Trẻ thực hành gấp quần áo theo hướng dẫn.",
             "ghi_chu": ""
           },
           {
             "tiet": "24",
             "hoc_ki": "Học kì I",
-            "mg_be": "B24 - Bé làm sản phẩm Cây gia đình",
+            "mg_be": "B24 - Bé làm sản phẩm cây gia đình",
+            "mg_be_nd": "1. Trẻ kể tên và nhận diện hình ảnh các thành viên trong gia đình.\n2. Trẻ luyện tập dán tranh, tô màu để làm sản phẩm cây gia đình.",
             "mg_nho": "B24 - Bé sáng tạo và giới thiệu robot của mình",
+            "mg_nho_nd": "1. Trẻ kể tên một số vai trò của robot trong cuộc sống qua hình ảnh.\n2. Trẻ thuyết trình to, rõ ràng và chỉ vào từng bộ phận của robot để minh họa nội dung giới thiệu.",
             "mg_lon": "B24 - Bé tự sắp xếp tủ quần áo",
+            "mg_lon_nd": "1. Trẻ nhắc lại ba nguyên tắc sắp xếp tủ quần áo.\n2. Trẻ thực hành phân loại và gấp quần áo để sắp xếp tủ gọn gàng.",
             "ghi_chu": ""
           },
           {
             "tiet": "25",
             "hoc_ki": "Học kì I",
             "mg_be": "B25 - Bé tự tin giới thiệu về gia đình thân yêu",
-            "mg_nho": "B25 - Bé tìm hiểu về mục tiêu xa",
-            "mg_lon": "B25 - Bé học cách xử lý nguy cơ bị bắt cóc - tiết 1",
+            "mg_be_nd": "1. Trẻ ghi nhớ câu giới thiệu các thành viên trong gia đình và thể hiện tình yêu với gia đình.\n2. Trẻ nói to, rõ ràng khi giới thiệu về những người thân của mình.",
+            "mg_nho": "B25 - Bé tìm hiểu mục tiêu xa",
+            "mg_nho_nd": "1. Trẻ ghi nhớ khái niệm mục tiêu xa, các từ “phi hành gia”, “nhà môi trường học” và biểu hiện vui vẻ.\n2. Trẻ chọn một mục tiêu xa trong hai mục tiêu của bài, thuyết trình to, rõ ràng, dùng tay minh họa và thể hiện cảm xúc vui.",
+            "mg_lon": "B25 - Bé học cách xử lý nguy cơ bị bắt cóc (tiết 1)",
+            "mg_lon_nd": "1. Trẻ biết người bắt cóc có thể là bất cứ ai và nhận diện nguy cơ, hậu quả của việc bị bắt cóc.\n2. Trẻ biết từ chối nhận quà, đi theo người lạ; thực hành kêu cứu và động tác bám dính khi có nguy cơ bị bắt cóc.",
             "ghi_chu": ""
           },
           {
             "tiet": "26",
             "hoc_ki": "Học kì I",
-            "mg_be": "B26 - Bé làm gì để không bị đi lạc?",
+            "mg_be": "B26 - Bé làm gì để không bị lạc",
+            "mg_be_nd": "1. Trẻ biết nguy hiểm khi bị lạc và nhắc lại hai nguyên tắc phòng tránh: đeo vòng tay an toàn, xin phép bố mẹ trước khi đi chơi.\n2. Trẻ thực hành quay về nhiều hướng và gọi to, rõ ràng tên người thân đi cùng để báo hiệu khi bị lạc.",
             "mg_nho": "B26 - Bé tự tin thuyết trình về mục tiêu xa của mình",
-            "mg_lon": "B26 - Bé học cách xử lý nguy cơ bị bắt cóc - tiết 2",
+            "mg_nho_nd": "1. Trẻ gọi tên các nghề nghiệp qua hình ảnh.\n2. Trẻ tự tin thuyết trình to, rõ ràng về mục tiêu nghề nghiệp của mình trước lớp.",
+            "mg_lon": "B26 - Bé học cách xử lý nguy cơ bị bắt cóc (tiết 2)",
+            "mg_lon_nd": "1. Trẻ nhắc lại cách kêu cứu khi có nguy cơ bị bắt cóc.\n2. Trẻ luyện tập các động tác quay tay cánh quạt, đập và đạp theo hướng dẫn.",
             "ghi_chu": ""
           },
           {
             "tiet": "27",
             "hoc_ki": "Học kì I",
             "mg_be": "B27 - Bé làm thẻ an toàn",
+            "mg_be_nd": "1. Trẻ nhắc lại việc đeo vòng tay an toàn, xin phép bố mẹ trước khi đi chơi và cách báo hiệu khi bị lạc.\n2. Trẻ rèn luyện vận động tinh khi làm thẻ an toàn; quay về nhiều hướng, gọi to và rõ tên bố mẹ.",
             "mg_nho": "B27 - Bé học cách nhận lì xì thật lịch sự",
-            "mg_lon": "B27 - Bé luyện tập xử lý nguy cơ bị bắt cóc",
+            "mg_nho_nd": "1. Trẻ biết ý nghĩa của lì xì ngày Tết và cách nhận lì xì lịch sự.\n2. Trẻ thực hành nhận bằng hai tay, cười tươi và nói lời cảm ơn to, rõ ràng, lễ phép.",
+            "mg_lon": "B27 - Bé luyện tập cách xử lý nguy cơ bị bắt cóc",
+            "mg_lon_nd": "1. Trẻ nhắc lại việc người bắt cóc có thể là bất cứ ai và các cách ứng phó đã học.\n2. Trẻ thực hành kêu cứu, bám dính và xử lý tình huống có nguy cơ bị bắt cóc.",
             "ghi_chu": ""
           },
           {
             "tiet": "28",
             "hoc_ki": "Học kì I",
             "mg_be": "B28 - Bé học cách nhận lì xì thật lịch sự",
+            "mg_be_nd": "1. Trẻ biết cách nhận lì xì đúng và lịch sự.\n2. Trẻ thực hành nhận lì xì lịch sự theo hướng dẫn.",
             "mg_nho": "B28 - Bé làm đồ dùng trang trí Tết",
+            "mg_nho_nd": "1. Trẻ nhắc lại tên sản phẩm “Khánh trang trí ngày Tết”.\n2. Trẻ luyện tập vận động thô phối hợp theo cặp.",
             "mg_lon": "B28 - Bé học cách quan sát và mô tả các kiểu mẫu trong cuộc sống",
+            "mg_lon_nd": "1. Trẻ biết cách chế biến đồ ăn, đồ uống theo kiểu mẫu đơn giản; đếm số lượng nguyên liệu và tìm quy luật sắp xếp.\n2. Trẻ thực hành sắp xếp theo kiểu mẫu 2–2.",
             "ghi_chu": ""
           },
           {
             "tiet": "29",
             "hoc_ki": "Học kì I",
             "mg_be": "B29 - Bé trang trí cây đào đón Tết",
+            "mg_be_nd": "1. Trẻ nhắc lại một số loại cây, hoa trang trí ngày Tết.\n2. Trẻ rèn luyện vận động tinh khi trang trí cây đào và nói to, rõ ràng lời chúc năm mới vui vẻ, hạnh phúc.",
             "mg_nho": "B29 - Bé vui vẻ nói lời chúc Tết họ hàng",
+            "mg_nho_nd": "1. Trẻ biết cách nói lời chúc Tết phù hợp với mọi người.\n2. Trẻ thực hành lời chúc dành cho ông bà, cô chú, anh chị và em nhỏ.",
             "mg_lon": "B29 - Bé học cách ứng dụng các kiểu mẫu trong trang trí nhà cửa",
+            "mg_lon_nd": "1. Trẻ nhắc lại các bước sao chép kiểu mẫu.\n2. Trẻ thực hành sắp xếp các kiểu mẫu 2–1 và 1–2–1 để ứng dụng trong trang trí.",
             "ghi_chu": ""
           },
           {
             "tiet": "30",
             "hoc_ki": "Học kì I",
             "mg_be": "B30 - Bé tự tin nói lời chúc Tết ông bà, cha mẹ",
+            "mg_be_nd": "1. Trẻ biết cách nói lời chúc Tết.\n2. Trẻ thực hành nói lời chúc Tết.",
             "mg_nho": "B30 - Bé tự tin chinh phục các thử thách",
+            "mg_nho_nd": "1. Trẻ kể tên mục tiêu gần, mục tiêu xa của mình và bốn nhóm thức ăn: ngũ cốc, thịt, rau, hoa quả.\n2. Trẻ quan sát, tìm điểm khác biệt qua tranh và thuyết trình về điều mình tự hào trong năm học, kết hợp giọng nói, nét mặt, cử chỉ.",
             "mg_lon": "B30 - Bé trang trí lớp học theo kiểu mẫu",
+            "mg_lon_nd": "1. Trẻ biết cách làm dây cờ trang trí lớp học theo kiểu mẫu.\n2. Trẻ rèn luyện tô màu, phối màu đơn giản, quan sát sự khác biệt và sáng tạo sản phẩm.\n3. Trẻ thuyết trình về sản phẩm trang trí của mình.",
             "ghi_chu": ""
           },
           {
             "tiet": "31",
             "hoc_ki": "Học kì I",
             "mg_be": "B31 - Bé tự tin chinh phục thử thách",
+            "mg_be_nd": "1. Trẻ kể tên các trách nhiệm cá nhân và những việc có thể làm để chăm sóc người thân.\n2. Trẻ thuyết trình về điều mình tự hào đã làm được trong năm học, kết hợp tư thế, nét mặt, cử chỉ và giọng nói to, rõ ràng.",
             "mg_nho": "B31 - Bé rèn luyện kĩ năng quan sát, phát hiện nguy hiểm trong gia đình",
+            "mg_nho_nd": "1. Trẻ kể tên đồ dùng điện trong gia đình và nhắc lại cách phòng tránh điện giật: không chơi với đồ điện, nhờ người lớn giúp khi cần sử dụng.\n2. Trẻ nhận diện đồ dùng đang cắm điện có nguy cơ gây điện giật và lựa chọn đồ chơi an toàn.",
             "mg_lon": "B31 - Bé chia sẻ về đồ trang trí trong gia đình",
+            "mg_lon_nd": "1. Trẻ nhận biết các hoạt động có trong lớp học và tạo được nhiều hình trang trí theo kiểu mẫu.\n2. Trẻ thực hành thuyết trình to, rõ ràng kết hợp nét mặt, cử chỉ theo hướng dẫn.",
             "ghi_chu": ""
           },
           {
             "tiet": "32",
             "hoc_ki": "Học kì I",
-            "mg_be": "B32 - Bé học cách phòng tránh tai nạn thương tích do đồ vật sắc nhọn - tiết 1",
-            "mg_nho": "B32 - Bé phòng tránh nguy cơ bị điện giật",
+            "mg_be": "B32 - Bé học cách phòng tránh tai nạn thương tích do đồ vật sắc, nhọn (tiết 1)",
+            "mg_be_nd": "1. Trẻ nhận diện đồ vật sắc, nhọn trong đồ dùng gia đình, dụng cụ học tập và đồ chơi.\n2. Trẻ ghi nhớ bốn nguyên tắc: quan sát phát hiện, tránh xa đồ vật sắc nhọn, cất gọn đồ sau khi dùng, không cầm đồ khi chạy nhảy.\n3. Trẻ phân biệt đồ vật sắc, nhọn và hành động an toàn hoặc không an toàn.",
+            "mg_nho": "B32 - Bé phòng tránh nguy cơ điện giật",
+            "mg_nho_nd": "1. Trẻ nhận biết dấu hiệu đồ dùng có nguy cơ điện giật là phích cắm đang cắm vào ổ điện.\n2. Trẻ nhắc lại hai nguyên tắc: không chơi với đồ điện, nhờ người lớn giúp khi cần dùng; nhận diện đồ điện đang cắm và biển cảnh báo điện giật.",
             "mg_lon": "B32 - Bé ứng xử lịch sự khi nhận lì xì Tết",
+            "mg_lon_nd": "1. Trẻ biết cách ứng xử lịch sự và nói lời cảm ơn khi nhận lì xì Tết.\n2. Trẻ thực hành nhận lì xì và thể hiện lời cảm ơn phù hợp.",
             "ghi_chu": ""
           },
           {
             "tiet": "33",
             "hoc_ki": "Học kì I",
-            "mg_be": "B33 - Kĩ năng phòng tránh tai nạn thương tích do đồ vật sắc nhọn - tiết 2",
+            "mg_be": "B33 - Kĩ năng phòng, tránh tai nạn thương tích do đồ vật sắc nhọn (tiết 2)",
+            "mg_be_nd": "1. Trẻ ôn tập bốn nguyên tắc phòng tránh thương tích do đồ vật sắc, nhọn và gọi tên hình dạng của đồ vật.\n2. Trẻ thực hành kĩ năng phòng tránh thương tích và rèn luyện thuyết trình.",
             "mg_nho": "B33 - Bé rèn luyện quan sát, nhận diện khu vực an toàn khi vui chơi ngoài trời",
+            "mg_nho_nd": "1. Trẻ kể tên các khu vực có nguy cơ đuối nước và bốn nguyên tắc an toàn với nước.\n2. Trẻ lựa chọn giải pháp an toàn khi chơi gần nước và thuyết trình về các nguyên tắc an toàn.",
             "mg_lon": "B33 - Bé làm lì xì Tết",
+            "mg_lon_nd": "1. Trẻ biết ý nghĩa cầu chúc may mắn của phong bao lì xì Tết.\n2. Trẻ thực hành gấp, dán, vẽ và trang trí phong bao lì xì.",
             "ghi_chu": ""
           },
           {
             "tiet": "34",
             "hoc_ki": "Học kì I",
             "mg_be": "B34 - Bé quan sát và phát hiện nguy hiểm từ đồ vật sắc nhọn",
+            "mg_be_nd": "1. Trẻ nhắc lại bốn nguyên tắc phòng tránh thương tích do đồ vật sắc, nhọn.\n2. Trẻ phát hiện đồ vật sắc, nhọn ở nhà, ở trường và thuyết trình to, rõ ràng về các nguyên tắc an toàn.",
             "mg_nho": "B34 - Bé phòng tránh nguy cơ bị đuối nước",
+            "mg_nho_nd": "1. Trẻ biết ba bước khi thấy người đuối nước: không nhảy xuống cứu và lùi lại; bình tĩnh kêu cứu; tìm người lớn giúp, vừa đi vừa hô.\n2. Trẻ luyện tập kêu cứu to, rõ ràng và chọn hành động đảm bảo an toàn với nước.",
             "mg_lon": "B34 - Bé chủ động nói lời chúc Tết với mọi người xung quanh",
+            "mg_lon_nd": "1. Trẻ biết một số lời chúc Tết dành cho mọi người xung quanh.\n2. Trẻ thực hành nói lời chúc Tết phù hợp.",
             "ghi_chu": ""
           },
           {
             "tiet": "35",
             "hoc_ki": "Học kì I",
-            "mg_be": "B35 - Bé học cách phòng tránh nguy cơ bỏng, nóng - tiết 1",
+            "mg_be": "B35 - Bé học cách phòng tránh nguy cơ bỏng, nóng (tiết 1)",
+            "mg_be_nd": "1. Trẻ nhận diện dấu hiệu có nguy cơ gây bỏng từ đồ ăn, đồ uống, nước và thiết bị điện.\n2. Trẻ nhắc lại bốn nguyên tắc: phát hiện nguy cơ; không chạm vào đồ vật có nguy cơ; nhờ người lớn kiểm tra; làm mát vết bỏng bằng nước và báo người lớn.\n3. Trẻ phân biệt đồ dùng, đồ vật an toàn và không an toàn.",
             "mg_nho": "B35 - Bé tham gia biệt đội an toàn",
+            "mg_nho_nd": "1. Trẻ ôn tập hai nguyên tắc an toàn điện và bốn nguyên tắc an toàn với nước qua các tình huống.\n2. Trẻ nhận diện nguy cơ, chọn hành động an toàn và thực hành lùi lại, hô kêu cứu, tìm người lớn giúp khi thấy người đuối nước.",
             "mg_lon": "B35 - Bé tự tin chinh phục thử thách",
+            "mg_lon_nd": "1. Trẻ nhận biết hình học xung quanh và sắp xếp công việc phù hợp với bốn buổi trong ngày.\n2. Trẻ nhận diện cảm xúc tức giận, nói được cảm xúc và lý do tức giận của mình.\n3. Trẻ thuyết trình về điều mình tự hào đã làm được, kết hợp tư thế, nét mặt, cử chỉ và giọng nói to, rõ ràng.",
             "ghi_chu": ""
           },
           {
             "tiet": "36",
             "hoc_ki": "Học kì I",
-            "mg_be": "B36 - Kĩ năng phòng tránh nguy cơ bỏng, nóng - tiết 2",
+            "mg_be": "B36 - Kĩ năng phòng, tránh nguy cơ bỏng, nóng (tiết 2)",
+            "mg_be_nd": "1. Trẻ kể tên hai nguyên tắc mới để phòng tránh nguy cơ bỏng, nóng.\n2. Trẻ thực hành kĩ năng phòng tránh bỏng, nóng và rèn luyện thuyết trình.",
             "mg_nho": "B36 - Bé rèn luyện kĩ năng tư duy phân loại, sắp xếp",
+            "mg_nho_nd": "1. Trẻ nhận biết đồ vật có hình dạng và kích cỡ khác nhau.\n2. Trẻ thực hành phân loại đồ vật theo hình dạng, kích cỡ.",
             "mg_lon": "B36 - Bé đảm bảo an toàn cho bản thân",
+            "mg_lon_nd": "1. Trẻ ôn tập cách xử lý khi đi lạc và kể tên những người lớn đáng tin để nhờ giúp đỡ.\n2. Trẻ luyện tập hít thở sâu, báo hiệu cho người thân và nhờ người lớn đáng tin giúp đỡ.\n3. Trẻ lựa chọn điểm hẹn an toàn để gặp lại người lớn đi cùng nếu bị lạc.",
             "ghi_chu": ""
           },
           {
             "tiet": "37",
             "hoc_ki": "Học kì II",
-            "mg_be": "B37 - Bé quan sát và phát hiện nguy cơ bỏng, nóng",
-            "mg_nho": "B37 - Kĩ năng phòng tránh tai nạn thương tích do đồ vật sắc nhọn",
+            "mg_be": "B37 - Bé quan sát và phát hiện nguy cơ bỏng nóng",
+            "mg_be_nd": "1. Trẻ nhắc lại hai nguyên tắc: nhờ người lớn kiểm tra an toàn; làm mát vết bỏng bằng nước và báo hiệu cho người lớn.\n2. Trẻ quan sát, phát hiện các nguy cơ gây bỏng, nóng trong nhà.",
+            "mg_nho": "B37 - Kĩ năng phòng, tránh tai nạn thương tích do đồ vật sắc nhọn",
+            "mg_nho_nd": "1. Trẻ kể tên các nguyên tắc phòng tránh thương tích do đồ vật sắc, nhọn.\n2. Trẻ lựa chọn hành động đảm bảo an toàn để không bị thương bởi đồ vật sắc, nhọn.",
             "mg_lon": "B37 - Trách nhiệm cá nhân của bé khi đi du lịch",
+            "mg_lon_nd": "1. Trẻ kể tên các công việc thuộc trách nhiệm cá nhân khi đi du lịch.\n2. Trẻ lựa chọn đồ dùng cần thiết và thuyết trình to, rõ ràng về trách nhiệm của mình.",
             "ghi_chu": ""
           },
           {
             "tiet": "38",
             "hoc_ki": "Học kì II",
             "mg_be": "B38 - Kĩ năng nhận diện nguy hiểm bằng các giác quan",
+            "mg_be_nd": "1. Trẻ kể tên bốn dấu hiệu khi có cháy: mùi khét, khói, lửa, tiếng chuông báo cháy.\n2. Trẻ luyện tập hô to lời kêu cứu “Cháy! Cháy! Cứu!”.",
             "mg_nho": "B38 - Bé rèn luyện kĩ năng nhận diện nguy hiểm bằng các giác quan",
+            "mg_nho_nd": "1. Trẻ kể tên dấu hiệu có nguy cơ gây bỏng từ đồ ăn, đồ uống, thiết bị điện và các nguyên tắc phòng tránh.\n2. Trẻ lựa chọn hành động an toàn để phòng tránh bỏng, nóng.",
             "mg_lon": "B38 - Bé học cách tự buộc dây giày",
+            "mg_lon_nd": "1. Trẻ biết các bước tự buộc dây giày.\n2. Trẻ thực hành buộc dây giày theo hướng dẫn.",
             "ghi_chu": ""
           },
           {
             "tiet": "39",
             "hoc_ki": "Học kì II",
-            "mg_be": "B39 - Kĩ năng bảo vệ bản thân khi xảy ra hoả hoạn - tiết 1",
-            "mg_nho": "B39 - Kĩ năng phòng tránh nguy cơ bỏng nóng",
+            "mg_be": "B39 - Kĩ năng bảo vệ bản thân khi xảy ra hỏa hoạn (tiết 1)",
+            "mg_be_nd": "1. Trẻ ôn tập cách hô kêu cứu và biết cách phòng tránh khói độc khi có cháy.\n2. Trẻ thực hành dùng khăn ướt che mũi, miệng, cúi thấp người và bò để thoát khỏi đám cháy theo hướng dẫn.",
+            "mg_nho": "B39 - Kĩ năng phòng, tránh nguy cơ bỏng nóng",
+            "mg_nho_nd": "1. Trẻ kể tên bốn nguyên tắc an toàn phòng tránh bỏng, nóng.\n2. Trẻ chọn hành động an toàn với đồ ăn, đồ uống, thiết bị điện và biết cách xử lý khi bị bỏng theo nội dung đã học.",
             "mg_lon": "B39 - Bé tự chuẩn bị giày dép khi đi học",
+            "mg_lon_nd": "1. Trẻ biết cách chuẩn bị tất và giày khi đi học.\n2. Trẻ thực hành chuẩn bị tất, đi giày và buộc dây giày.",
             "ghi_chu": ""
           },
           {
             "tiet": "40",
             "hoc_ki": "Học kì II",
-            "mg_be": "B40 - Kĩ năng bảo vệ bản thân khi xảy ra hoả hoạn - tiết 2",
+            "mg_be": "B40 - Kĩ năng bảo vệ bản thân khi xảy ra hỏa hoạn (tiết 2)",
+            "mg_be_nd": "1. Trẻ kể tên hai nguồn nước có thể dùng làm ướt khăn che mũi, miệng khi có cháy và nêu cách phòng tránh ngạt khói.\n2. Trẻ thực hành kĩ năng bảo vệ bản thân khi xảy ra hỏa hoạn.",
             "mg_nho": "B40 - Bé thuyết trình về các giải pháp an toàn",
+            "mg_nho_nd": "1. Trẻ nêu dấu hiệu của nguy cơ điện giật, bỏng nóng, thương tích do vật sắc nhọn, đuối nước.\n2. Trẻ quan sát, phát hiện nguy cơ và thuyết trình to, rõ ràng về giải pháp an toàn.",
             "mg_lon": "B40 - Bé tìm hiểu về trách nhiệm gia đình",
+            "mg_lon_nd": "1. Trẻ hiểu ý nghĩa của trách nhiệm gia đình và kể tên những việc phù hợp với khả năng của mình.\n2. Trẻ thực hành cách quan tâm, chăm sóc bố mẹ.",
             "ghi_chu": ""
           },
           {
             "tiet": "41",
             "hoc_ki": "Học kì II",
             "mg_be": "B41 - Bé đảm bảo an toàn khi vui chơi ở nhà",
+            "mg_be_nd": "1. Trẻ nêu cách thoát hiểm an toàn khi có cháy.\n2. Trẻ thực hành thoát hiểm và lựa chọn đồ vật an toàn trong những đồ vật có nguy cơ gây bỏng hoặc thương tích do sắc, nhọn.",
             "mg_nho": "B41 - Bé làm thanh tra an toàn",
+            "mg_nho_nd": "1. Trẻ phát hiện, nêu nguy cơ mất an toàn trong tranh tình huống.\n2. Trẻ nhận diện nguy cơ điện giật, bỏng nóng, thương tích do vật sắc nhọn và thuyết trình to, rõ ràng.",
             "mg_lon": "B41 - Bé ghi nhớ và phân loại trách nhiệm của mình",
+            "mg_lon_nd": "1. Trẻ kể tên các trách nhiệm cá nhân và trách nhiệm gia đình phù hợp với sức mình.\n2. Trẻ thực hành phân loại trách nhiệm cá nhân và trách nhiệm gia đình.",
             "ghi_chu": ""
           },
           {
             "tiet": "42",
             "hoc_ki": "Học kì II",
             "mg_be": "B42 - Bé rèn luyện kĩ năng thuyết trình",
+            "mg_be_nd": "1. Trẻ nhắc lại bốn quy tắc lớp học và một số trách nhiệm cá nhân.\n2. Trẻ thực hành nói lời làm quen to, rõ ràng, kết hợp đứng thẳng, cười tươi và dùng tay minh họa khi giới thiệu tên, tuổi.",
             "mg_nho": "B42 - Bé đảm bảo an toàn trong lớp học",
-            "mg_lon": "B42 - Bé thuyết trình về các trách nhiệm của mình",
+            "mg_nho_nd": "1. Trẻ nêu nguy cơ trong lớp và nhắc lại hai nguyên tắc: quan sát khu vực trước khi chơi, tránh xa nơi có biển cảnh báo.\n2. Trẻ phát hiện nguy cơ điện giật, bỏng nóng, thương tích do vật sắc nhọn và đuối nước.",
+            "mg_lon": "B42 - Bé thuyết trình về trách nhiệm của mình",
+            "mg_lon_nd": "1. Trẻ kể tên những công việc thuộc trách nhiệm cá nhân và trách nhiệm gia đình.\n2. Trẻ rèn luyện tô màu và thuyết trình to, rõ ràng về những trách nhiệm mình đã thực hiện.",
             "ghi_chu": ""
           },
           {
             "tiet": "43",
             "hoc_ki": "Học kì II",
             "mg_be": "B43 - Bé tự tin làm quen, kết bạn bốn phương",
+            "mg_be_nd": "1. Trẻ nhắc lại tên mô hình thu nhỏ của Trái Đất là quả địa cầu.\n2. Trẻ thực hành chào hỏi, giới thiệu tên, tuổi, hỏi tên bạn và kết hợp cử chỉ thân thiện khi làm quen.",
             "mg_nho": "B43 - Bé tìm hiểu về nhân vật mình yêu thích",
-            "mg_lon": "B43 - Các bạn đã thực hiện trách nhiệm của mình như thế nào?",
+            "mg_nho_nd": "1. Trẻ làm quen với văn học và biết nhân vật có thể là người, con vật, đồ vật hoặc cây cối có hành động, cảm xúc trong câu chuyện.\n2. Trẻ nhắc lại khái niệm nhân vật và chỉ ra các nhân vật trong bài.",
+            "mg_lon": "B43 - Các bạn đã thực hiện trách nhiệm của mình như thế nào",
+            "mg_lon_nd": "1. Trẻ kể tên những trách nhiệm phù hợp với bản thân.\n2. Trẻ phối hợp thuyết trình theo nhóm và thể hiện cam kết thực hiện trách nhiệm của mình.",
             "ghi_chu": ""
           },
           {
             "tiet": "44",
             "hoc_ki": "Học kì II",
             "mg_be": "B44 - Bé học cách tham gia giao thông an toàn",
+            "mg_be_nd": "1. Trẻ nhận biết tên địa hình đồng bằng và nhắc lại các quy tắc khi đi phương tiện giao thông công cộng: xếp hàng, ngồi yên, giữ trật tự, lắng nghe hướng dẫn.\n2. Trẻ thực hành các quy tắc tham gia giao thông an toàn.",
             "mg_nho": "B44 - Bé sáng tạo nhân vật yêu thích",
+            "mg_nho_nd": "1. Trẻ nhắc lại nhân vật có thể là người, con vật, đồ vật hoặc cây cối trong câu chuyện.\n2. Trẻ sáng tạo nhân vật yêu thích thể hiện được cảm xúc và đặc điểm ngoại hình.",
             "mg_lon": "B44 - Bé thực hiện các trách nhiệm của mình",
+            "mg_lon_nd": "1. Trẻ ôn tập cách xem giờ, lựa chọn quần áo theo thời tiết và các trách nhiệm của mình.\n2. Trẻ thực hành xem đồng hồ kim, đồng hồ điện tử; chọn quần áo mùa hè, mùa đông.\n3. Trẻ thuyết trình về việc chuẩn bị giày dép khi đi học.",
             "ghi_chu": ""
           },
           {
             "tiet": "45",
             "hoc_ki": "Học kì II",
             "mg_be": "B45 - Bé giới thiệu về cách tham gia giao thông an toàn",
+            "mg_be_nd": "1. Trẻ nhắc lại bốn quy tắc khi đi phương tiện giao thông công cộng: xếp hàng, giữ trật tự, lắng nghe hướng dẫn, ngồi yên tại chỗ.\n2. Trẻ thuyết trình to, rõ ràng về các quy tắc an toàn.",
             "mg_nho": "B45 - Bé học cách miêu tả đặc điểm của nhân vật",
+            "mg_nho_nd": "1. Trẻ biết các từ mô tả thân hình: nhỏ nhắn, cao lớn, mảnh mai, mũm mĩm và biết mô tả màu sắc nổi bật của nhân vật.\n2. Trẻ nhận diện nhân vật theo đặc điểm, mô tả màu quần áo, da, tóc hoặc lông và thuyết trình về nhân vật yêu thích.",
             "mg_lon": "B45 - Ấn tượng đầu tiên của bé",
+            "mg_lon_nd": "1. Trẻ biết cách chào hỏi thân thiện với bạn bè và lễ phép với người lớn.\n2. Trẻ thực hành chào hỏi kết hợp nét mặt, cử chỉ phù hợp và giọng nói vui vẻ, rõ ràng.",
             "ghi_chu": ""
           },
           {
             "tiet": "46",
             "hoc_ki": "Học kì II",
             "mg_be": "B46 - Bé học cách giới thiệu về con vật yêu thích",
+            "mg_be_nd": "1. Trẻ nhắc lại trách nhiệm bảo vệ rừng và kể tên một số động vật sống trong rừng.\n2. Trẻ thuyết trình về tên và đặc điểm con vật yêu thích, kết hợp giọng nói to, rõ ràng với tư thế, nét mặt và cử chỉ tay phù hợp.",
             "mg_nho": "B46 - Bé luyện tập miêu tả nhân vật yêu thích của mình",
+            "mg_nho_nd": "1. Trẻ nhắc lại từ ngữ mô tả thân hình: nhỏ nhắn, cao lớn, mảnh mai, mũm mĩm.\n2. Trẻ thuyết trình về nhân vật yêu thích bằng từ ngữ chỉ thân hình, màu sắc; nói to, rõ ràng và dùng tay minh họa.",
             "mg_lon": "B46 - Bé thể hiện ấn tượng đầu tiên của mình",
+            "mg_lon_nd": "1. Trẻ ôn tập cách tạo ấn tượng đầu tiên qua lời chào thân thiện, lễ phép.\n2. Trẻ luyện tập chào bạn bè, người lớn bằng lời nói và nét mặt, cử chỉ phù hợp.",
             "ghi_chu": ""
           },
           {
             "tiet": "47",
             "hoc_ki": "Học kì II",
             "mg_be": "B47 - Bé luyện tập thuyết trình về con vật yêu thích",
+            "mg_be_nd": "1. Trẻ ghi nhớ lời giới thiệu con vật yêu thích qua tên, màu lông và thức ăn.\n2. Trẻ luyện tập thuyết trình to, rõ ràng về con vật yêu thích.",
             "mg_nho": "B47 - Bé giới thiệu về đặc điểm riêng của bản thân",
+            "mg_nho_nd": "1. Trẻ biết miêu tả màu sắc bằng cách so sánh với sự vật có màu tương ứng xung quanh.\n2. Trẻ đặt câu so sánh màu sắc theo hình ảnh gợi ý và thuyết trình to, rõ ràng về đặc điểm bản thân.",
             "mg_lon": "B47 - Bé tìm hiểu nội quy lớp học Tiểu học",
+            "mg_lon_nd": "1. Trẻ ghi nhớ ba nội quy lớp Tiểu học: đi học đúng giờ, lắng nghe và làm bài tập đầy đủ.\n2. Trẻ nhận diện nội quy qua hình ảnh, lắng nghe và trả lời câu hỏi.\n3. Trẻ thực hành đứng nghiêm, hô hiệu lệnh và chào đầu giờ.",
             "ghi_chu": ""
           },
           {
             "tiet": "48",
             "hoc_ki": "Học kì II",
             "mg_be": "B48 - Bé tự tin nhờ sự giúp đỡ khi cần",
+            "mg_be_nd": "1. Trẻ kể tên ba loài sinh vật ở biển và đại dương.\n2. Trẻ thực hành nhờ giúp đỡ khi gặp khó khăn, đứng thẳng, nhìn người được nhờ và nói to, rõ ràng.",
             "mg_nho": "B48 - Bé mô tả thế giới sắc màu",
+            "mg_nho_nd": "1. Trẻ biết cách miêu tả màu sắc bằng sự so sánh với những sự vật xung quanh.\n2. Trẻ luyện tập đặt câu so sánh theo hình ảnh và thuyết trình to, rõ ràng về đặc điểm bản thân.",
             "mg_lon": "B48 - Bé tự tin thuyết trình về lớp học",
+            "mg_lon_nd": "1. Trẻ nhắc lại ba nội quy lớp học Tiểu học.\n2. Trẻ thuyết trình về lớp học với tư thế đứng thẳng, nét mặt tươi vui, cử chỉ tay phù hợp và giọng nói to, rõ ràng.\n3. Trẻ thực hành hô hiệu lệnh, đứng nghiêm và chào giáo viên đầu giờ.",
             "ghi_chu": ""
           },
           {
             "tiet": "49",
             "hoc_ki": "Học kì II",
             "mg_be": "B49 - Bé nhờ sự giúp đỡ trong trường học",
+            "mg_be_nd": "1. Trẻ nhắc lại câu nói nhờ cô, bác hoặc bạn giúp đỡ khi gặp khó khăn.\n2. Trẻ tự tin nói to, rõ ràng lời nhờ giúp đỡ trong trường học.",
             "mg_nho": "B49 - Bé học cách sáng tạo từ những đồ vật xung quanh mình",
-            "mg_lon": "B49 - Bé tham gia cuộc thi Nhà thuyết trình tài ba",
+            "mg_nho_nd": "1. Trẻ biết sáng tạo nhân vật bằng cách kết hợp những thứ xung quanh, nhận biết các yếu tố tạo nên nhân vật hoạt hình quen thuộc.\n2. Trẻ lựa chọn, kết hợp các bộ phận để cùng sáng tạo nhân vật mới.",
+            "mg_lon": "B49 - Bé tham gia cuộc thi thuyết trình tài ba",
+            "mg_lon_nd": "1. Trẻ biết cách thuyết trình ở không gian rộng: đứng ở vị trí trung tâm, nói to, mở rộng cử chỉ tay và nhìn bao quát người nghe.\n2. Trẻ thực hành thuyết trình với tư thế, giọng nói, ánh mắt và cử chỉ phù hợp.",
             "ghi_chu": ""
           },
           {
             "tiet": "50",
             "hoc_ki": "Học kì II",
             "mg_be": "B50 - Bé thể hiện sự tự tin của mình",
+            "mg_be_nd": "1. Trẻ ôn tập kĩ năng làm quen, kết bạn và nói to, rõ ràng khi thực hành.\n2. Trẻ thuyết trình giới thiệu hồng hạc với giọng nói to, rõ ràng và sử dụng cử chỉ tay minh họa.",
             "mg_nho": "B50 - Bé học cách quan sát và mô tả thế giới xung quanh",
+            "mg_nho_nd": "1. Trẻ gọi tên các không gian quen thuộc: rừng, đại dương, thành phố, nông trại.\n2. Trẻ chọn nhân vật phù hợp với bối cảnh và mô tả theo hai câu hỏi “Nhân vật sống ở đâu?”, “Ở đó có gì?”.",
             "mg_lon": "B50 - Những điều thú vị ở trường Tiểu học",
+            "mg_lon_nd": "1. Trẻ nhận biết các hoạt động ở trường Tiểu học như học tập, vui chơi, câu lạc bộ và chào cờ.\n2. Trẻ chia sẻ hoạt động yêu thích, trải nghiệm làm thí nghiệm theo hướng dẫn của giáo viên.\n3. Trẻ thực hành đứng nghiêm và chào đầu giờ.",
             "ghi_chu": ""
           },
           {
             "tiet": "51",
             "hoc_ki": "Học kì II",
             "mg_be": "B51 - Bé nhận diện các loại hình thời tiết",
+            "mg_be_nd": "1. Trẻ gọi tên, nhận diện ba loại thời tiết: nắng, mưa, giông bão.\n2. Trẻ lựa chọn một số trang phục phù hợp với trời nắng hoặc mưa.",
             "mg_nho": "B51 - Bé sáng tạo câu chuyện",
+            "mg_nho_nd": "1. Trẻ gọi tên các bối cảnh như Mặt Trăng, rừng, lâu đài, bãi biển, nông trại, thành phố.\n2. Trẻ mô tả nhân vật và nơi nhân vật đi chơi, đề xuất cách giải quyết các vấn đề nhân vật gặp phải.",
             "mg_lon": "B51 - Bé muốn tham gia đội nghi lễ",
+            "mg_lon_nd": "1. Trẻ biết về đội nghi lễ và ý nghĩa của bài Quốc ca.\n2. Trẻ rèn luyện quan sát, vận động tinh và hát Quốc ca to, rõ ràng.",
             "ghi_chu": ""
           },
           {
             "tiet": "52",
             "hoc_ki": "Học kì II",
             "mg_be": "B52 - Bé giới thiệu về các loại thời tiết",
+            "mg_be_nd": "1. Trẻ gọi tên ba loại thời tiết nắng, mưa, giông bão và ghi nhớ câu giới thiệu biểu tượng thời tiết.\n2. Trẻ thuyết trình to, rõ ràng, dùng tay chỉ vào tranh khi giới thiệu thời tiết.",
             "mg_nho": "B52 - Bé học cách mô tả không gian qua các mùa",
-            "mg_lon": "B52 - Bé trải nghiệm hoạt động ở trường Tiểu học",
+            "mg_nho_nd": "1. Trẻ nhắc lại đặc điểm thời tiết và hoạt động đặc trưng của mùa xuân, hạ, thu, đông.\n2. Trẻ phân biệt các mùa qua trang phục và hoạt động.",
+            "mg_lon": "B52 - Bé trải nghiệm hoạt động thú vị ở trường Tiểu học",
+            "mg_lon_nd": "1. Trẻ gọi tên lễ Chào cờ và biết cần đứng nghiêm, hát Quốc ca khi tham dự.\n2. Trẻ thực hành tư thế đứng nghiêm trong lễ Chào cờ.",
             "ghi_chu": ""
           },
           {
             "tiet": "53",
             "hoc_ki": "Học kì II",
-            "mg_be": "B53 - Bé học cách lựa chọn trang phục phù hợp với thời tiết",
+            "mg_be": "B53 - Bé lựa chọn trang phục phù hợp với thời tiết",
+            "mg_be_nd": "1. Trẻ kể tên hai loại trang phục, phụ kiện phù hợp với thời tiết nóng, lạnh, mưa, nắng.\n2. Trẻ thực hành lựa chọn trang phục, phụ kiện phù hợp với từng loại thời tiết.",
             "mg_nho": "B53 - Bé học cách sáng tạo phù hợp với các tình huống quen thuộc",
+            "mg_nho_nd": "1. Trẻ xác định mùa dựa trên đặc điểm thời tiết.\n2. Trẻ chọn trang phục, hoạt động phù hợp với nhân vật và kể câu chuyện gồm nhân vật, bối cảnh, hoạt động.",
             "mg_lon": "B53 - Bé thực hiện các nghi lễ ở trường Tiểu học",
+            "mg_lon_nd": "1. Trẻ nhận diện một số hiệu lệnh quen thuộc, biết các động tác thể dục đơn giản và cách giậm chân tại chỗ.\n2. Trẻ quan sát, thực hiện động tác thể dục và giậm chân tại chỗ theo hiệu lệnh của giáo viên.",
             "ghi_chu": ""
           },
           {
             "tiet": "54",
             "hoc_ki": "Học kì II",
             "mg_be": "B54 - Bé luyện tập cách lựa chọn trang phục phù hợp với thời tiết",
+            "mg_be_nd": "1. Trẻ nhận biết trang phục, đồ dùng phù hợp với thời tiết và biết cần ở trong nhà khi giông bão để đảm bảo an toàn.\n2. Trẻ lựa chọn và giới thiệu to, rõ ràng các trang phục, đồ dùng phù hợp.",
             "mg_nho": "B54 - Bé học cách thuyết trình về các ý tưởng sáng tạo của mình",
+            "mg_nho_nd": "1. Trẻ kể tên những chi tiết cần có trong câu chuyện: màu sắc nổi bật của nhân vật, nơi ở, thời tiết, hoạt động.\n2. Trẻ kể chuyện với tư thế đứng thẳng, nụ cười, giọng nói to, rõ ràng và cử chỉ tay minh họa.",
             "mg_lon": "B54 - Bé giữ gìn vệ sinh thật tốt",
+            "mg_lon_nd": "1. Trẻ biết lý do cần tự lau chùi sau khi đi vệ sinh và các bước thực hiện.\n2. Trẻ thực hành lau chùi sau khi đi vệ sinh theo hướng dẫn.",
             "ghi_chu": ""
           },
           {
             "tiet": "55",
             "hoc_ki": "Học kì II",
             "mg_be": "B55 - Bé học cách sắp xếp giày, dép gọn gàng",
-            "mg_nho": "B55 - Bé tìm hiểu nguy cơ khi bị đi lạc",
-            "mg_lon": "B55 - Bé làm quen, thích ứng với môi trường mới",
+            "mg_be_nd": "1. Trẻ nhắc lại ba tiêu chí xếp giày dép: đúng đôi, đúng chiều, mũi giày dép quay vào trong.\n2. Trẻ thực hành sắp xếp giày dép gọn gàng theo các tiêu chí đã học.",
+            "mg_nho": "B55 - Bé tìm hiểu nguy cơ khi đi lạc",
+            "mg_nho_nd": "1. Trẻ nhận diện, gọi tên những nguy cơ khi đi lạc.\n2. Trẻ mô tả nhân vật bị lạc theo tranh, nhận diện và thể hiện cảm xúc sợ hãi, vui vẻ, ngạc nhiên.",
+            "mg_lon": "B55 - Bé làm quen thích ứng với môi trường mới",
+            "mg_lon_nd": "1. Trẻ kể tên ba nội quy lớp Tiểu học và các bước lau chùi sau khi đi vệ sinh.\n2. Trẻ lắng nghe, trả lời câu hỏi và sắp xếp đúng thứ tự các bước lau chùi.\n3. Trẻ thực hành đứng nghiêm khi tham dự lễ Chào cờ.",
             "ghi_chu": ""
           },
           {
             "tiet": "56",
             "hoc_ki": "Học kì II",
             "mg_be": "B56 - Bé học cách vui chơi an toàn dưới nắng",
-            "mg_nho": "B56 - Bé học cách điều hoà cảm xúc sợ hãi",
-            "mg_lon": "B56 - Bé rèn luyện tư thế ngồi học và cách cầm bút đúng cách",
+            "mg_be_nd": "1. Trẻ gọi tên tia UV và nhắc lại tác hại của tia UV trong ánh nắng.\n2. Trẻ nhận diện bóng râm, các vị trí cần bôi kem chống nắng và lựa chọn trang phục, phụ kiện phù hợp với trời nắng.",
+            "mg_nho": "B56 - Bé học cách điều hòa cảm xúc sợ hãi",
+            "mg_nho_nd": "1. Trẻ nhắc lại cách hít thở “Ngửi hoa – Thổi nến”: hít vào bằng mũi, thở ra bằng miệng, mỗi nhịp đếm nhẩm từ một đến năm.\n2. Trẻ thực hành hít thở sâu theo hướng dẫn để điều hòa cảm xúc sợ hãi.",
+            "mg_lon": "B56 - Bé rèn luyện tư thế ngồi học và kĩ năng cầm bút đúng cách",
+            "mg_lon_nd": "1. Trẻ biết các bước ngồi học đúng tư thế, lợi ích của việc cầm bút đúng và tác hại của tư thế sai.\n2. Trẻ luyện tập tư thế ngồi học và cách cầm bút đúng.",
             "ghi_chu": ""
           },
           {
             "tiet": "57",
             "hoc_ki": "Học kì II",
             "mg_be": "B57 - Bé học cách quan sát và mô tả tầm quan trọng của nước",
-            "mg_nho": "B57 - Bé luyện tập điều hoà cảm xúc",
+            "mg_be_nd": "1. Trẻ kể tên hai hoạt động cần sử dụng nước và nhắc lại các từ cằn cỗi, màu mỡ, khô héo, tươi tốt, ốm yếu, khỏe mạnh.\n2. Trẻ thuyết trình về sự thay đổi của sự vật khi thiếu nước hoặc đủ nước, kết hợp giọng nói, tư thế và cử chỉ minh họa.",
+            "mg_nho": "B57 - Bé luyện tập điều hòa cảm xúc",
+            "mg_nho_nd": "1. Trẻ ghi nhớ cách hít vào bằng mũi, thở ra bằng miệng.\n2. Trẻ luyện tập hít thở sâu và sử dụng sản phẩm “Hơi thở của rồng” để lấy lại bình tĩnh, điều hòa cảm xúc.",
             "mg_lon": "B57 - Bé vui học cùng các chữ cái",
+            "mg_lon_nd": "1. Trẻ biết lợi ích của việc học bảng chữ cái.\n2. Trẻ nhận diện các chữ a, b, o, t, x, h, m và phân biệt chữ b với chữ d.",
             "ghi_chu": ""
           },
           {
             "tiet": "58",
             "hoc_ki": "Học kì II",
             "mg_be": "B58 - Bé học cách tiết kiệm nước",
+            "mg_be_nd": "1. Trẻ kể tên các hành động lãng phí nước và ít nhất hai cách tiết kiệm nước trong gia đình.\n2. Trẻ thuyết trình về cách tiết kiệm nước với giọng nói to, rõ ràng và cử chỉ tay minh họa.",
             "mg_nho": "B58 - Bé học cách xử lý khi đi lạc",
+            "mg_nho_nd": "1. Trẻ kể tên những người đáng tin để nhờ giúp đỡ khi đi lạc.\n2. Trẻ luyện tập gọi to, rõ tên người lớn đi cùng và kể lại câu chuyện cô bé đi lạc theo tranh.",
             "mg_lon": "B58 - Bé trải nghiệm làm giáo viên Tiểu học",
+            "mg_lon_nd": "1. Trẻ biết cách phân biệt chữ b và chữ d bằng bàn tay trái, bàn tay phải.\n2. Trẻ thực hành phân biệt và chia sẻ cách nhận diện hai chữ cái.",
             "ghi_chu": ""
           },
           {
             "tiet": "59",
             "hoc_ki": "Học kì II",
             "mg_be": "B59 - Bé học cách uống nước khoa học",
-            "mg_nho": "B59 - Bé luyện tập xử lý khi đi lạc",
-            "mg_lon": "B59 - 1, 2, 3 nào ta cùng đếm",
+            "mg_be_nd": "1. Trẻ kể tên một số thời điểm uống nước có lợi cho sức khỏe và cách uống: ngồi xuống, uống từng ngụm nhỏ.\n2. Trẻ thuyết trình về các thời điểm uống nước, kết hợp tư thế, nét mặt, cử chỉ và giọng nói to, rõ ràng.",
+            "mg_nho": "B59 - Bé luyện tập xử lí khi đi lạc",
+            "mg_nho_nd": "1. Trẻ nhắc lại cách báo hiệu khi bị lạc: gọi to tên người lớn đi cùng về nhiều phía.\n2. Trẻ luyện tập gọi to, rõ ràng và điều chỉnh giọng nói theo bốn mức âm thanh.",
+            "mg_lon": "B59 - 1 2 3 Nào ta cùng đếm",
+            "mg_lon_nd": "1. Trẻ biết chiều viết đúng của các chữ số 2, 5, 6, 9.\n2. Trẻ thực hành viết các chữ số 2, 5, 6, 9 theo đúng chiều.",
             "ghi_chu": ""
           },
           {
             "tiet": "60",
             "hoc_ki": "Học kì II",
             "mg_be": "B60 - Bé học cách quan sát và mô tả lợi ích của không khí",
+            "mg_be_nd": "1. Trẻ kể tên một số đặc điểm của không khí: có ở xung quanh, không màu, rất nhẹ.\n2. Trẻ quan sát thí nghiệm và mô tả đặc điểm của không khí.",
             "mg_nho": "B60 - Thể hiện cảm xúc buồn của bản thân",
-            "mg_lon": "B60 - Bé rèn luyện đôi tay khỏe mạnh, khéo léo",
+            "mg_nho_nd": "1. Trẻ biết cách nhận diện và thể hiện cảm xúc buồn của bản thân.\n2. Trẻ thực hành nét mặt buồn và nói “Tớ buồn lắm!” bằng giọng nhỏ, chậm.",
+            "mg_lon": "B60 - Bé rèn luyện đôi tay khoẻ mạnh, khéo léo",
+            "mg_lon_nd": "1. Trẻ ghi nhớ các bài tập cho tay để giảm mỏi khi viết.\n2. Trẻ thực hành ba bài tập ngón tay và hai bài tập cánh tay theo hướng dẫn.",
             "ghi_chu": ""
           },
           {
             "tiet": "61",
             "hoc_ki": "Học kì II",
             "mg_be": "B61 - Bé học cách đeo khẩu trang đúng cách",
+            "mg_be_nd": "1. Trẻ kể tên các tác nhân gây hại trong không khí như khói bụi, vi khuẩn, vi rút.\n2. Trẻ biết khẩu trang cần vừa mặt, che kín mũi và miệng, không bị ướt hoặc quá rộng; nhận diện cách đeo sai qua hình ảnh.",
             "mg_nho": "B61 - Thể hiện sự đồng cảm với cảm xúc buồn của người khác",
+            "mg_nho_nd": "1. Trẻ biết hỏi thăm để thể hiện sự đồng cảm với người đang buồn.\n2. Trẻ thực hành nhìn, nắm tay người được hỏi thăm và nhẹ nhàng, chậm rãi nói “Cậu đang không vui à?”.",
             "mg_lon": "B61 - Bé học cách sắp xếp sách vở",
+            "mg_lon_nd": "1. Trẻ gọi tên các đồ dùng học tập và biết các bước sắp xếp sách vở vào ba lô.\n2. Trẻ thực hành đặt sách vở đúng mặt, đúng chiều, sắp xếp từ lớn đến nhỏ và cho vào ba lô.",
             "ghi_chu": ""
           },
           {
             "tiet": "62",
             "hoc_ki": "Học kì II",
-            "mg_be": "B62 - Bé tạo thói quen tốt cho sức khoẻ",
+            "mg_be": "B62 - Bé tạo thói quen tốt cho sức khỏe",
+            "mg_be_nd": "1. Trẻ ôn tập cách chọn trang phục theo thời tiết, đeo khẩu trang và uống nước khoa học.\n2. Trẻ chọn quần áo phù hợp với thời tiết hôm sau, nhận diện cách đeo khẩu trang đúng, lựa chọn thời điểm và cách uống nước phù hợp.",
             "mg_nho": "B62 - Bé thực hành thể hiện sự đồng cảm",
+            "mg_nho_nd": "1. Trẻ nhắc lại cách hỏi thăm khi người khác buồn.\n2. Trẻ thực hành nói “Cậu đang không vui à?” bằng giọng nhẹ nhàng, chậm, mắt nhìn người được hỏi thăm.",
             "mg_lon": "B62 - Bé học cách chuẩn bị đồ dùng học tập trước khi đi học",
+            "mg_lon_nd": "1. Trẻ gọi tên các đồ dùng trong hộp bút và ghi nhớ ba tiêu chí bảo quản: đầy đủ, sẵn sàng, sạch sẽ.\n2. Trẻ thực hành chuẩn bị, sắp xếp và giữ gìn đồ dùng học tập.",
             "ghi_chu": ""
           },
           {
             "tiet": "63",
             "hoc_ki": "Học kì II",
-            "mg_be": "B63 - Bé thuyết trình các cách bảo vệ sức khoẻ",
+            "mg_be": "B63 - Bé thuyết trình các cách bảo vệ sức khỏe",
+            "mg_be_nd": "1. Trẻ nhắc lại ba cách bảo vệ sức khỏe: chọn trang phục theo thời tiết, uống đủ nước, đeo khẩu trang ở nơi đông người.\n2. Trẻ thuyết trình to, rõ ràng và dùng cử chỉ minh họa các cách bảo vệ sức khỏe.",
             "mg_nho": "B63 - Sự thay đổi cảm xúc",
+            "mg_nho_nd": "1. Trẻ nhận diện, gọi tên cảm xúc và sự thay đổi cảm xúc của nhân vật.\n2. Trẻ trình bày cảm xúc của nhân vật thay đổi như thế nào, vì sao và thể hiện nét mặt phù hợp với cảm xúc vui, buồn.",
             "mg_lon": "B63 - Học tập ở trường Tiểu học thật vui",
+            "mg_lon_nd": "1. Trẻ ôn tập cách sắp xếp sách vở và giữ đồ dùng học tập đầy đủ, sẵn sàng, sạch sẽ.\n2. Trẻ thực hành phân biệt chữ b, chữ d và viết đúng chiều các chữ số 2, 5, 6, 9.",
             "ghi_chu": ""
           },
           {
             "tiet": "64",
             "hoc_ki": "Học kì II",
             "mg_be": "B64 - Bé học cách nhận diện cảm xúc vui vẻ của mọi người xung quanh",
+            "mg_be_nd": "1. Trẻ kể tên biểu hiện vui vẻ của người khác: mắt cười, miệng cười, nhảy nhót.\n2. Trẻ quan sát và nhận diện cảm xúc vui qua các biểu hiện đó.",
             "mg_nho": "B64 - Bé luyện tập cảm nhận sự thay đổi cảm xúc",
+            "mg_nho_nd": "1. Trẻ nhắc lại các cảm xúc vui, buồn, tức giận, sợ hãi.\n2. Trẻ nhận diện cảm xúc qua ảnh người thật và kể câu chuyện đơn giản về sự thay đổi cảm xúc cùng lý do thay đổi.",
             "mg_lon": "B64 - Bé làm quen thật nhiều bạn mới",
+            "mg_lon_nd": "1. Trẻ ghi nhớ cách làm quen với bạn mới.\n2. Trẻ thực hành giới thiệu tên, sở thích của bản thân khi làm quen, kết bạn.",
             "ghi_chu": ""
           },
           {
             "tiet": "65",
             "hoc_ki": "Học kì II",
-            "mg_be": "B65 - Bé học cách điều hoà cảm xúc khi sợ hãi",
-            "mg_nho": "B65 - Bé chủ động tìm cách điều hoà cảm xúc",
+            "mg_be": "B65 - Bé học cách điều hòa cảm xúc khi sợ hãi",
+            "mg_be_nd": "1. Trẻ ghi nhớ cách hít thở sâu kiểu “Ngửi hoa – Thổi nến”: hít vào bằng mũi, thở ra bằng miệng.\n2. Trẻ thực hành hít vào như ngửi hoa, thở ra như thổi nến theo hướng dẫn.",
+            "mg_nho": "B65 - Bé chủ động tìm cách điều hòa cảm xúc",
+            "mg_nho_nd": "1. Trẻ biết cách chuyển cảm xúc từ buồn sang vui và chọn một việc làm giúp mình vui hơn.\n2. Trẻ thuyết trình về lựa chọn của mình với tư thế đứng thẳng, nụ cười, giọng nói to, rõ ràng và cử chỉ tay minh họa.",
             "mg_lon": "B65 - Bé tìm hiểu sở thích của bạn",
+            "mg_lon_nd": "1. Trẻ nhận biết các hoạt động thể hiện sở thích của bản thân, của bạn và ôn tập cách làm quen, kết bạn.\n2. Trẻ vẽ, chia sẻ sở thích của mình và hỏi để tìm hiểu sở thích của bạn.",
             "ghi_chu": ""
           },
           {
             "tiet": "66",
             "hoc_ki": "Học kì II",
             "mg_be": "B66 - Bé thể hiện cảm xúc vui vẻ của bản thân",
+            "mg_be_nd": "1. Trẻ biết cách thể hiện niềm vui: nhìn người đem đến niềm vui, mỉm cười và nói “Tớ rất vui! Cảm ơn cậu!”.\n2. Trẻ thực hành thể hiện cảm xúc vui bằng lời nói, ánh mắt và nụ cười.",
             "mg_nho": "B66 - Bé thử tài quan sát và sắp xếp theo trình tự",
-            "mg_lon": "B66 - Bé hoà đồng, vui chơi cùng bạn",
+            "mg_nho_nd": "1. Trẻ gọi tên bốn buổi theo thứ tự sáng, trưa, chiều, tối và sắp xếp công việc theo buổi.\n2. Trẻ sắp xếp tranh, đóng vai và diễn câu chuyện “Hai con dê qua cầu” theo đúng trình tự.",
+            "mg_lon": "B66 - Bé hòa đồng, vui chơi cùng bạn",
+            "mg_lon_nd": "1. Trẻ biết các cách duy trì tình bạn: cùng làm việc, giúp đỡ, chia sẻ và lắng nghe.\n2. Trẻ thực hành hợp tác với bạn để cùng vẽ con vật.",
             "ghi_chu": ""
           },
           {
             "tiet": "67",
             "hoc_ki": "Học kì II",
             "mg_be": "B67 - Bé chia sẻ cảm xúc của mình",
+            "mg_be_nd": "1. Trẻ nhắc lại những biểu hiện vui vẻ như nhảy nhót, cười, vỗ tay và ghi nhớ câu nói chia sẻ niềm vui.\n2. Trẻ nhận diện cảm xúc vui của người khác và nói to, rõ ràng khi chia sẻ cảm xúc của mình.",
             "mg_nho": "B67 - Bé rèn luyện khả năng quan sát và suy luận",
+            "mg_nho_nd": "1. Trẻ biết quá trình trứng nở và quá trình cây lớn.\n2. Trẻ rèn luyện lắng nghe, quan sát, suy luận và sắp xếp tranh theo trình tự hợp lý.",
             "mg_lon": "B67 - Bé tự tin kết bạn và chơi cùng bạn",
+            "mg_lon_nd": "1. Trẻ nhắc lại các bước làm quen, kết bạn và cách duy trì tình bạn.\n2. Trẻ thực hành làm quen với bạn ở lớp khác, trao đổi tên và sở thích, kết hợp ánh mắt, nụ cười, giọng nói và cử chỉ tay.",
             "ghi_chu": ""
           },
           {
             "tiet": "68",
             "hoc_ki": "Học kì II",
             "mg_be": "B68 - Bé làm chủ cảm xúc của mình",
+            "mg_be_nd": "1. Trẻ ôn tập kĩ thuật “Ngửi hoa – Thổi nến” và tìm hiểu thêm cách giúp bản thân bình tĩnh.\n2. Trẻ chia sẻ điều khiến mình vui, lựa chọn hành động phù hợp và thực hành hít thở để điều hòa cảm xúc buồn, sợ hãi, lo lắng.",
             "mg_nho": "B68 - Bé thực hành kĩ năng quan sát",
+            "mg_nho_nd": "1. Trẻ nhận diện, gọi tên các buổi trong ngày.\n2. Trẻ luyện tập quan sát, tìm điểm khác biệt và thuyết trình với giọng nói to, rõ ràng.",
             "mg_lon": "B68 - Bé tôn trọng thầy, cô giáo",
+            "mg_lon_nd": "1. Trẻ biết cách thể hiện sự tôn trọng thầy cô: chào hỏi, làm bài đầy đủ, chuẩn bị đồ dùng và giữ lớp sạch sẽ.\n2. Trẻ thực hành chào thầy cô lễ phép: hướng mặt về thầy cô, mỉm cười, khoanh tay và nói to, rõ ràng.",
             "ghi_chu": ""
           },
           {
             "tiet": "69",
             "hoc_ki": "Học kì II",
             "mg_be": "B69 - Bé học cách phân loại rác bảo vệ môi trường",
+            "mg_be_nd": "1. Trẻ kể tên một số loại rác dễ phân hủy và khó phân hủy.\n2. Trẻ thực hành phân loại rác vào đúng thùng dựa trên nhãn dán.",
             "mg_nho": "B69 - Bé học cách sáng tác câu chuyện của mình",
+            "mg_nho_nd": "1. Trẻ nhắc lại những việc xảy ra trong chuyến hành trình dựa vào tranh.\n2. Trẻ sắp xếp tranh đúng thứ tự và kể lại câu chuyện với giọng to, rõ ràng, tư thế, nét mặt, cử chỉ phù hợp.",
             "mg_lon": "B69 - Bé yêu thương thầy, cô giáo",
+            "mg_lon_nd": "1. Trẻ biết thể hiện tình yêu thương thầy cô bằng lời nói và những việc giúp đỡ phù hợp.\n2. Trẻ thực hành nói lời yêu thương, đề nghị giúp đỡ và làm các việc như lau bảng, chuyển đồ, phát bài.",
             "ghi_chu": ""
           },
           {
             "tiet": "70",
             "hoc_ki": "Học kì II",
             "mg_be": "B70 - Bé chung tay bảo vệ môi trường",
-            "mg_nho": "B70 - Bé tự tin chia sẻ về câu chuyện của mình",
+            "mg_be_nd": "1. Trẻ kể tên nguyên liệu, đồ dùng có thể tái sử dụng làm đồ trang trí như lá cây, vỏ hộp sữa chua, nắp chai, chai lọ.\n2. Trẻ rèn luyện vận động tinh và nói to, rõ ràng khẩu hiệu kêu gọi bảo vệ môi trường.",
+            "mg_nho": "B70 - Bé tự tin chia sẻ câu chuyện của mình",
+            "mg_nho_nd": "1. Trẻ ôn tập khái niệm nhân vật và chỉ ra các nhân vật trong câu chuyện.\n2. Trẻ chọn một điều yêu thích trong chuyến hành trình và thuyết trình to, rõ ràng về điều đó.",
             "mg_lon": "B70 - Bé thể hiện sự tôn trọng và yêu thương thầy, cô giáo",
+            "mg_lon_nd": "1. Trẻ biết cách làm báo tường thể hiện lòng biết ơn, sự tôn trọng và yêu thương thầy cô.\n2. Trẻ thực hành cắt, dán, tô màu và thuyết trình về sản phẩm.",
             "ghi_chu": ""
           },
           {
             "tiet": "71",
             "hoc_ki": "Học kì II",
             "mg_be": "B71 - Bé chia sẻ cách bảo vệ môi trường",
+            "mg_be_nd": "1. Trẻ kể tên hành động bảo vệ môi trường như bỏ rác đúng nơi, nhắc bạn không xả rác, quét rác, trồng và tưới cây, tiết kiệm nước.\n2. Trẻ thuyết trình chia sẻ hành động mình muốn làm để bảo vệ môi trường.",
             "mg_nho": "B71 - Bé khám phá bản thân mình",
+            "mg_nho_nd": "1. Trẻ nêu các đặc điểm ngoại hình và màu sắc yêu thích của bản thân.\n2. Trẻ dùng câu so sánh màu sắc với những sự vật có màu tương ứng xung quanh để mô tả bản thân.",
             "mg_lon": "B71 - Bé sẵn sàng trở thành học sinh Tiểu học",
+            "mg_lon_nd": "1. Trẻ nêu được một điều mình thích nhất khi học lớp Hành trang vào Tiểu học.\n2. Trẻ chia sẻ về điều mình yêu thích trong lớp Hành trang vào Tiểu học.",
             "ghi_chu": ""
           },
           {
             "tiet": "72",
             "hoc_ki": "Học kì II",
             "mg_be": "B72 - Tổng kết năm học",
+            "mg_be_nd": "1. Trẻ ôn tập trách nhiệm cá nhân, gia đình, xã hội và cách thể hiện tình yêu thương với bố mẹ.\n2. Trẻ lựa chọn trách nhiệm phù hợp, thực hành hành động yêu thương bố mẹ và chọn cách tiết kiệm nước, bỏ rác đúng nơi.",
             "mg_nho": "B72 - Tổng kết năm học",
+            "mg_nho_nd": "1. Trẻ ôn tập lựa chọn thức ăn theo bốn nhóm: thịt, rau, hoa quả, ngũ cốc.\n2. Trẻ luyện tập tham gia giao thông an toàn, chọn thức ăn đủ chất, lắng nghe, quan sát, sắp xếp tranh và kể chuyện theo trình tự.",
             "mg_lon": "B72 - Tổng kết năm học",
+            "mg_lon_nd": "1. Trẻ ôn tập cách phòng tránh nguy cơ bỏng nóng, điện giật, đuối nước, bị thương do vật sắc nhọn và bị bắt cóc.\n2. Trẻ nhận diện nguy cơ trong tình huống, nêu cách phòng tránh và lựa chọn dây cờ theo kiểu mẫu.\n3. Trẻ thuyết trình to, rõ ràng về mục tiêu của mình khi trở thành học sinh Tiểu học.",
             "ghi_chu": ""
           }
         ]
@@ -1433,13 +1997,13 @@
           "categoryLabel": "Cấu trúc chương trình",
           "question": "Trong mỗi năm học của từng khối (Bé, Nhỡ, Lớn), 72 tiết học của Novastars được phân bổ vào Học kì I và Học kì II như thế nào?",
           "options": [
-            "Phân bổ đều đặn: Học kì I gồm 35 tiết (từ B01 đến B35) và Học kì II gồm 37 tiết (từ B36 đến B72), tổng cộng đủ 72 tiết/năm cho mỗi khối độ tuổi.",
+            "Phân bổ cân đối: Học kì I gồm 36 tiết (từ B01 đến B36) và Học kì II gồm 36 tiết (từ B37 đến B72), tổng cộng đủ 72 tiết/năm cho mỗi khối độ tuổi.",
             "Học kì I dạy 50 tiết, Học kì II dạy 22 tiết.",
             "Học kì I chỉ dạy lý thuyết, Học kì II mới bắt đầu cho trẻ chơi trò chơi.",
             "Cả năm chỉ có 36 tiết chia đều mỗi học kì 18 tiết."
           ],
           "correctIndex": 0,
-          "explanation": "Theo Danh sách 72 tiết × 3 độ tuổi ở Phần B Sheet 4: Mỗi khối đều có đủ 72 tiết (Tiết 1–35 thuộc Học kì I, Tiết 36–72 thuộc Học kì II), dạy đều đặn 2 tiết/tuần suốt 36 tuần năm học."
+          "explanation": "Theo Phân phối chương trình chuẩn 3 khối (Bé, Nhỡ, Lớn): Mỗi khối đều có trọn vẹn 72 tiết (Tiết 1–36 thuộc Học kì I, Tiết 37–72 thuộc Học kì II), dạy đều đặn 2 tiết/tuần suốt 36 tuần năm học."
         },
         {
           "id": "hp04-q7",

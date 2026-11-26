@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=22">
+  <link rel="stylesheet" href="styles.css?v=23">
 </head>
 <body>
   <!-- 1. AUTHENTICATION SCREEN (LOGIN PORTAL - 3 ROLES) -->
@@ -201,31 +201,31 @@
             </button>
           </div>
 
-          <!-- COMPACT MODULE HEADER + 2 TABS ON ONE CLEAN BAR -->
-          <section class="module-hero-card compact-hero">
-            <div class="compact-hero-row">
+          <!-- STREAMLINED SINGLE-ROW MODULE BAR & TABS (MAX READING AREA) -->
+          <section class="module-hero-card ultra-compact-hero">
+            <div class="ultra-compact-row">
               <div class="compact-hero-title-group">
                 <button type="button" class="btn-inline-open-sidebar hidden" id="btnInlineOpenSidebar">
                   Danh sách bài
                 </button>
                 <span class="lesson-code-tag" id="saleModCode">HP01</span>
-                <h2 class="module-main-title" id="saleModTitle">Tên bài học</h2>
+                <h2 class="module-main-title compact-title" id="saleModTitle">Tên bài học</h2>
               </div>
-              <div id="saleModStatusArea"></div>
-            </div>
-
-            <!-- 2 SIMPLE TABS: 1. XEM TÀI LIỆU | 2. LÀM TRẮC NGHIỆM -->
-            <div class="sale-mode-tabs compact-tabs" role="tablist">
-              <button type="button" class="sale-mode-tab active" id="btnSaleTabDoc" role="tab" aria-selected="true">
-                <span class="tab-step-num">1</span>
-                <strong>Xem Tài liệu</strong>
-                <span class="tab-inline-sub" id="lblSaleDocStatus"></span>
-              </button>
-              <button type="button" class="sale-mode-tab" id="btnSaleTabQuiz" role="tab" aria-selected="false">
-                <span class="tab-step-num">2</span>
-                <strong>Làm Trắc nghiệm</strong>
-                <span class="tab-inline-sub" id="lblSaleQuizStatus"></span>
-              </button>
+              <div class="ultra-compact-right">
+                <div id="saleModStatusArea"></div>
+                <div class="sale-mode-tabs inline-pill-tabs" role="tablist">
+                  <button type="button" class="sale-mode-tab compact-pill-tab active" id="btnSaleTabDoc" role="tab" aria-selected="true">
+                    <span class="tab-step-num">1</span>
+                    <strong>Tài liệu</strong>
+                    <span class="tab-inline-sub" id="lblSaleDocStatus"></span>
+                  </button>
+                  <button type="button" class="sale-mode-tab compact-pill-tab" id="btnSaleTabQuiz" role="tab" aria-selected="false">
+                    <span class="tab-step-num">2</span>
+                    <strong>Thi trắc nghiệm</strong>
+                    <span class="tab-inline-sub" id="lblSaleQuizStatus"></span>
+                  </button>
+                </div>
+              </div>
             </div>
           </section>
 
@@ -729,9 +729,35 @@
     </div>
   </dialog>
 
+  <!-- ===================================================================== -->
+  <!-- DIALOG 6: LEARNER LEARNING REPORT IMAGE PREVIEW & EXPORT              -->
+  <!-- ===================================================================== -->
+  <dialog id="learnerReportDialog" closedby="any" aria-labelledby="learnerReportDialogTitle">
+    <div class="dialog-inner" style="max-width:980px;width:96vw;">
+      <div class="dialog-header">
+        <div>
+          <h2 id="learnerReportDialogTitle">Báo cáo Kết quả Học tập của Học Viên</h2>
+          <p id="learnerReportDialogSub" style="font-size:12.5px;color:var(--ink-muted);margin:2px 0 0 0;">Xuất bản thành ảnh độ phân giải cao để gửi trực tiếp qua Zalo hoặc lưu trữ.</p>
+        </div>
+        <button type="button" class="btn-close-dialog" data-close-dialog="learnerReportDialog" aria-label="Đóng">✕</button>
+      </div>
+      <div style="display:flex;justify-content:center;background:#FFFBF5;border:1px solid #FED7AA;border-radius:12px;padding:14px;max-height:66vh;overflow-y:auto;">
+        <img id="learnerReportPreviewImg" src="" alt="Báo cáo học tập" style="max-width:100%;height:auto;border-radius:10px;box-shadow:0 10px 28px rgba(15,23,42,0.12);">
+      </div>
+      <div class="dialog-footer" style="justify-content:space-between;flex-wrap:wrap;">
+        <span style="font-size:12.5px;color:#64748B;">Gợi ý: Bấm <strong>Copy Ảnh gửi Zalo</strong> rồi dán (<code>Ctrl+V</code>) trực tiếp vào cửa sổ chat.</span>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button type="button" class="btn-secondary" id="btnDownloadLearnerReportPng">⬇️ Tải ảnh (.png)</button>
+          <button type="button" class="btn-primary" id="btnCopyLearnerReportImg">📋 Copy Ảnh gửi Zalo</button>
+          <button type="button" class="btn-secondary" data-close-dialog="learnerReportDialog">Đóng</button>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <script src="data/initial_data.js?v=22"></script>
-  <script src="app.js?v=22"></script>
+  <script src="data/initial_data.js?v=23"></script>
+  <script src="app.js?v=23"></script>
 </body>
 </html>
