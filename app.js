@@ -64,6 +64,12 @@
     return found ? found.label : "Kiến thức tư vấn";
   }
 
+  function formatLearnerExplanationText(rawExp) {
+    return String(rawExp || "")
+      .replace(/Căn cứ chuẩn\s*\([^)]*\)\s*:\s*/gi, "Căn cứ chuẩn: ")
+      .trim();
+  }
+
   function upgradeCoreModulesIfNeeded(targetDb) {
     if (!targetDb || !window.INITIAL_TRAINING_DB || !Array.isArray(window.INITIAL_TRAINING_DB.modules)) return false;
     const targetCoreVer = (window.INITIAL_TRAINING_DB.meta && window.INITIAL_TRAINING_DB.meta.coreModulesVersion) || 1;
@@ -1819,14 +1825,13 @@
           <div class="lmq-q-item" style="margin-bottom:10px;">
             <div style="font-size:13.8px;font-weight:700;color:#0F172A;line-height:1.45;">
               <span class="qq-num-badge" style="margin-right:6px;">Câu ${qIdx + 1}/${lessonQs.length}</span>
-              ${q.bloomLevel ? `<span class="mod-cat-pill" style="margin-right:6px;">${escapeHtml(q.bloomLevel)}</span>` : ""}
               ${escapeHtml(q.question)}
             </div>
             <div class="lmq-opt-grid">${optsHtml}</div>
             ${isSubmitted ? `
               <div class="lmq-feedback ${isRight ? "right" : "wrong"}">
                 <strong>${isRight ? "✓ Chính xác!" : `✕ Chưa đúng (Đáp án chuẩn là ${correctDisplayLetter}).`}</strong>
-                ${escapeHtml(q.explanation || "")}
+                ${escapeHtml(formatLearnerExplanationText(q.explanation))}
               </div>
             ` : ""}
           </div>
@@ -1953,7 +1958,7 @@
             ${hasChosen ? `
               <div class="lmq-feedback ${isRight ? "right" : "wrong"}">
                 <strong>${isRight ? "✓ Chính xác!" : `✕ Chưa đúng (Đáp án chuẩn là ${letters[q.correctIndex]}).`}</strong>
-                ${escapeHtml(q.explanation || "")}
+                ${escapeHtml(formatLearnerExplanationText(q.explanation))}
               </div>
             ` : ""}
           </div>
@@ -2220,8 +2225,6 @@
     const q = qList[activeQuizQuestionIndex];
     const selectedIdx = currentQuizAnswers[q.id];
     const isCorrect = isSubmitted && selectedIdx === Number(q.correctIndex);
-    const catKey = q.category || "kien_thuc";
-    const catLabel = q.categoryLabel || getCategoryLabel(catKey);
 
     const optOrder = (Array.isArray(examOptionOrders[q.id]) && examOptionOrders[q.id].length === (q.options || []).length)
       ? examOptionOrders[q.id]
@@ -2264,7 +2267,7 @@
       explanationHtml = `
         <div class="qq-explanation-box">
           <div style="margin-bottom:4px;">${statusTag}</div>
-          <div><strong>Giải thích:</strong> ${escapeHtml(q.explanation || "")}</div>
+          <div><strong>Giải thích:</strong> ${escapeHtml(formatLearnerExplanationText(q.explanation))}</div>
         </div>
       `;
     }
@@ -2296,7 +2299,6 @@
       <div class="qq-head">
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
           <span class="qq-num-badge">Câu ${activeQuizQuestionIndex + 1} / ${qList.length}</span>
-          <span class="qq-cat-badge ${escapeHtml(catKey)}">${escapeHtml(catLabel)}</span>
         </div>
         <button type="button" class="btn-inline-report-bug" id="btnReportCurrentQuestionBug">
           Báo lỗi câu này
