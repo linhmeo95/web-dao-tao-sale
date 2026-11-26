@@ -65,7 +65,7 @@
     }
     if (!result) {
       result = {
-        meta: { appName: "Cẩm Nang Tư Vấn Mầm Non Chuyển Giao", adminPin: "8888", defaultPassThreshold: 80 },
+        meta: { appName: "Cẩm Nang Tư Vấn Mầm Non Chuyển Giao", adminPin: "Nvs123456", defaultPassThreshold: 80 },
         users: [],
         modules: [],
         progress: []
@@ -77,10 +77,11 @@
         ? JSON.parse(JSON.stringify(window.INITIAL_TRAINING_DB.users))
         : [];
     }
-    const targetRosterVersion = (window.INITIAL_TRAINING_DB && window.INITIAL_TRAINING_DB.meta && window.INITIAL_TRAINING_DB.meta.rosterVersion) || 2;
+    const targetRosterVersion = (window.INITIAL_TRAINING_DB && window.INITIAL_TRAINING_DB.meta && window.INITIAL_TRAINING_DB.meta.rosterVersion) || 3;
     if (!result.meta) result.meta = {};
     if ((result.meta.rosterVersion || 0) < targetRosterVersion && window.INITIAL_TRAINING_DB && Array.isArray(window.INITIAL_TRAINING_DB.users)) {
       result.users = JSON.parse(JSON.stringify(window.INITIAL_TRAINING_DB.users));
+      result.meta.adminPin = (window.INITIAL_TRAINING_DB.meta && window.INITIAL_TRAINING_DB.meta.adminPin) || "Nvs123456";
       result.meta.rosterVersion = targetRosterVersion;
       result.meta.updatedAt = new Date().toISOString();
     }
@@ -99,7 +100,7 @@
     const params = new URLSearchParams(window.location.search);
     const userParam = params.get("user") || params.get("gv");
     const pinParam = params.get("pin");
-    const adminPin = (db.meta && db.meta.adminPin) ? String(db.meta.adminPin).trim() : "8888";
+    const adminPin = (db.meta && db.meta.adminPin) ? String(db.meta.adminPin).trim() : "Nvs123456";
 
     if (userParam === "admin" && pinParam === adminPin) {
       const adminObj = { id: "admin", name: "Admin", role: "admin" };
@@ -223,8 +224,10 @@
       if (cloudConfig) {
         const cloudTime = Date.parse((cloudConfig.meta && cloudConfig.meta.updatedAt) || "") || 0;
         const localTime = Date.parse((db.meta && db.meta.updatedAt) || "") || 0;
+        const cloudRosterVer = (cloudConfig.meta && cloudConfig.meta.rosterVersion) || 0;
+        const localRosterVer = (db.meta && db.meta.rosterVersion) || 3;
 
-        if (cloudTime >= localTime) {
+        if (cloudRosterVer >= localRosterVer && cloudTime >= localTime) {
           if (cloudConfig.meta) {
             db.meta = { ...db.meta, ...cloudConfig.meta };
           }
@@ -500,7 +503,7 @@
         e.preventDefault();
         const userId = document.getElementById("authSelectUploader").value;
         const pin = document.getElementById("authUploaderPin").value.trim();
-        const adminPin = (db.meta && db.meta.adminPin) ? String(db.meta.adminPin).trim() : "8888";
+        const adminPin = (db.meta && db.meta.adminPin) ? String(db.meta.adminPin).trim() : "Nvs123456";
         const user = (db.users || []).find(u => u.id === userId && u.role === "uploader");
         if (!user || (String(user.pin).trim() !== pin && pin !== adminPin)) {
           errUploader.textContent = "Mã PIN Đào tạo chưa đúng.";
@@ -520,7 +523,7 @@
       formAdmin.addEventListener("submit", e => {
         e.preventDefault();
         const pin = document.getElementById("authAdminPin").value.trim();
-        const adminPin = (db.meta && db.meta.adminPin) ? String(db.meta.adminPin).trim() : "8888";
+        const adminPin = (db.meta && db.meta.adminPin) ? String(db.meta.adminPin).trim() : "Nvs123456";
         if (pin !== adminPin) {
           errAdmin.textContent = "Mã PIN Admin không chính xác.";
           errAdmin.classList.remove("hidden");
@@ -2646,7 +2649,7 @@
     renderRoleList(saleBox, "sale");
     renderRoleList(upBox, "uploader");
 
-    document.getElementById("settingAdminPin").value = (db.meta && db.meta.adminPin) ? db.meta.adminPin : "8888";
+    document.getElementById("settingAdminPin").value = (db.meta && db.meta.adminPin) ? db.meta.adminPin : "Nvs123456";
     document.getElementById("settingDefaultThreshold").value = (db.meta && db.meta.defaultPassThreshold) ? db.meta.defaultPassThreshold : 80;
   }
 
@@ -3350,7 +3353,7 @@
     }
 
     document.getElementById("btnSaveAdminSettings").addEventListener("click", () => {
-      const newPin = document.getElementById("settingAdminPin").value.trim() || "8888";
+      const newPin = document.getElementById("settingAdminPin").value.trim() || "Nvs123456";
       const newThresh = Number(document.getElementById("settingDefaultThreshold").value || 80);
       db.meta.adminPin = newPin;
       db.meta.defaultPassThreshold = newThresh;
