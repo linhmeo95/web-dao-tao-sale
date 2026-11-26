@@ -3,9 +3,7 @@
 
   const STORAGE_KEY = "NOVASTARS_SALE_TRAINING_DB_V1";
   const SESSION_KEY = "NOVASTARS_SALE_CURRENT_USER_V1";
-  const SUPABASE_URL = "https://altabwyuskgvxtcnzlbw.supabase.co";
-  const SUPABASE_KEY = "sb_publishable_LxTa5ODn1kObt_BBAwvLxw_2E3OXZUd";
-  const SUPABASE_TABLE = "novastars_app_state";
+  const NEON_FUNCTION_URL = "https://br-proud-wildflower-bisjmocc-hello.compute.c-5.ap-southeast-1.aws.neon.tech";
   const ROW_CONFIG_ID = "sale_training__config";
   const ROW_PROG_PREFIX = "sale_training__prog__";
 
@@ -186,22 +184,29 @@
   }
 
   // =========================================================================
-  // SUPABASE CLOUD & LOCAL SERVER SYNC
+  // NEON LAKEBASE POSTGRES & FUNCTIONS CLOUD SYNC
   // =========================================================================
+  async function fetchNeonStateRows() {
+    try {
+      const localRes = await fetch("/api/state", { cache: "no-store" });
+      if (localRes.ok) {
+        const rows = await localRes.json();
+        if (Array.isArray(rows)) return rows;
+      }
+    } catch (e) {}
+    try {
+      const fnRes = await fetch(`${NEON_FUNCTION_URL}/state`, { cache: "no-store" });
+      if (fnRes.ok) {
+        const rows = await fnRes.json();
+        if (Array.isArray(rows)) return rows;
+      }
+    } catch (e) {}
+    return null;
+  }
+
   async function fetchCloudDb(forceRender = false) {
     try {
-      const res = await fetch(
-        `${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?id=like.sale_training__*&select=id,payload,updated_at`,
-        {
-          headers: {
-            "apikey": SUPABASE_KEY,
-            "Authorization": `Bearer ${SUPABASE_KEY}`
-          },
-          cache: "no-store"
-        }
-      );
-      if (!res.ok) return false;
-      const rows = await res.json();
+      const rows = await fetchNeonStateRows();
       if (!Array.isArray(rows) || rows.length === 0) return false;
 
       let cloudConfig = null;
@@ -310,17 +315,20 @@
 
   async function saveRowsToSupabase(rowsToUpsert) {
     try {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?on_conflict=id`, {
+      const localRes = await fetch("/api/state", {
         method: "POST",
-        headers: {
-          "apikey": SUPABASE_KEY,
-          "Authorization": `Bearer ${SUPABASE_KEY}`,
-          "Content-Type": "application/json",
-          "Prefer": "resolution=merge-duplicates,return=minimal"
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(rowsToUpsert)
       });
-      return res.ok;
+      if (localRes.ok) return true;
+    } catch (e) {}
+    try {
+      const fnRes = await fetch(`${NEON_FUNCTION_URL}/state`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(rowsToUpsert)
+      });
+      return fnRes.ok;
     } catch (e) {
       return false;
     }

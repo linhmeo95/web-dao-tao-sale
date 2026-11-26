@@ -1,0 +1,26 @@
+{
+  "name": "web-dao-tao-sale",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/src/server.js",
+    "dev": "tsx src/server.ts"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.1018.0",
+    "@aws-sdk/s3-presigned-post": "^3.1018.0",
+    "@aws-sdk/s3-request-presigner": "^3.1018.0",
+    "@neon/auth": "^0.8.2",
+    "@neon/config": "^1.14.8",
+    "@neon/env": "^2.1.11",
+    "@neon/functions": "^0.11.0",
+    "@types/node": "^25.5.0",
+    "@types/pg": "^8.20.0",
+    "files-sdk": "^3.2.1",
+    "jose": "^6.2.2",
+    "pg": "^8.20.0",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  }
+}
