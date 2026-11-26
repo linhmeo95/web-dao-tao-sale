@@ -158,6 +158,18 @@
     return (db.modules || []).filter(m => m.status !== "draft" && m.status !== "pending");
   }
 
+  function canCurrentUserEditModule(mod) {
+    if (!currentUser || !mod) return false;
+    if (currentUser.role === "admin") return true;
+    if (currentUser.role === "uploader") {
+      if (mod.authorId && mod.authorId === currentUser.id) return true;
+      const aName = String(mod.authorName || "").trim().toLowerCase();
+      const uName = String(currentUser.name || "").trim().toLowerCase();
+      return Boolean(aName && uName && aName === uName);
+    }
+    return false;
+  }
+
   function getCurrentModule() {
     const list = (activeWorkspaceView === "uploader") ? (db.modules || []) : getVisibleModulesForLearner();
     return list.find(m => m.id === currentModuleId) || list[0] || (db.modules || [])[0] || null;
@@ -849,8 +861,13 @@
         }
       }
 
+      const canEditThis = canCurrentUserEditModule(mod);
+      const authorPermTag = (currentUser && currentUser.role === "uploader")
+        ? (canEditThis ? `<span style="color:#059669;font-weight:700;">Của bạn</span>` : `<span>Chỉ xem</span>`)
+        : `<span>${qCount} câu</span>`;
+
       const authorLineHtml = showAuthorInSidebar
-        ? `<div class="sidebar-author-line"><span>Tác giả: <strong>${escapeHtml(mod.authorName || "Đào tạo")}</strong></span><span>${qCount} câu</span></div>`
+        ? `<div class="sidebar-author-line"><span>Tác giả: <strong>${escapeHtml(mod.authorName || "Đào tạo")}</strong></span>${authorPermTag}</div>`
         : "";
 
       btn.innerHTML = `
@@ -1830,25 +1847,44 @@
       renderBugReportsPanelInto("uploaderBugsContainer");
     }
 
+    const canEdit = canCurrentUserEditModule(mod);
+
     document.getElementById("upModStatus").value = mod.status || "published";
+    document.getElementById("upModStatus").disabled = !canEdit;
     document.getElementById("upModCode").value = mod.code || "HP";
     document.getElementById("upModCategory").value = mod.category || "Tài liệu Đào tạo";
     document.getElementById("upModDuration").value = mod.durationMinutes || 20;
     document.getElementById("upModThreshold").value = mod.passThreshold || 80;
     document.getElementById("upModTitle").value = mod.title || "";
+    document.getElementById("upModTitle").readOnly = !canEdit;
     document.getElementById("upModSubtitle").value = mod.subtitle || "";
     document.getElementById("upModSummaryPoints").value = (mod.summaryPoints || []).join("\n");
     const lblAuthor = document.getElementById("lblUploaderModuleAuthor");
     if (lblAuthor) {
-      lblAuthor.textContent = `Tác giả: ${mod.authorName || "Đào tạo"}`;
+      lblAuthor.textContent = `Tác giả: ${mod.authorName || "Đào tạo"}${canEdit ? " (Có quyền chỉnh sửa)" : " (Chỉ xem)"}`;
     }
+
+    const btnDelMod = document.getElementById("btnUploaderDeleteModule");
+    const btnSaveMod = document.getElementById("btnUploaderSaveModule");
+    const btnSubApp = document.getElementById("btnUploaderSubmitForApproval");
+    if (btnDelMod) btnDelMod.classList.toggle("hidden", !canEdit);
+    if (btnSaveMod) btnSaveMod.classList.toggle("hidden", !canEdit);
+    if (btnSubApp) btnSubApp.classList.toggle("hidden", !canEdit);
+
+    const uploadLabelBtn = document.querySelector(".up-doc-toolbar .btn-upload-doc-primary");
+    if (uploadLabelBtn) uploadLabelBtn.classList.toggle("hidden", !canEdit);
+
+    const quizToolbar = document.querySelector(".up-quiz-one-line-bar");
+    if (quizToolbar) quizToolbar.classList.toggle("hidden", !canEdit);
 
     const textContent = mod.contentText || buildPlainTextFromStructuredData(mod);
     const contentTa = document.getElementById("upModContentText");
     contentTa.value = textContent;
+    contentTa.readOnly = !canEdit;
     document.getElementById("lblDocCharCount").textContent = `${textContent.length.toLocaleString("vi-VN")} ký tự`;
 
     contentTa.oninput = () => {
+      if (!canCurrentUserEditModule(mod)) return;
       mod.contentText = contentTa.value;
       document.getElementById("lblDocCharCount").textContent = `${contentTa.value.length.toLocaleString("vi-VN")} ký tự`;
       triggerAutoSave(false, true);
@@ -1857,6 +1893,7 @@
     const titleInp = document.getElementById("upModTitle");
     if (titleInp) {
       titleInp.oninput = () => {
+        if (!canCurrentUserEditModule(mod)) return;
         mod.title = titleInp.value.trim() || mod.title;
         triggerAutoSave(false, true);
         renderSidebar();
@@ -1864,8 +1901,10 @@
     }
 
     document.getElementById("btnGoToQuizGenerator").onclick = () => {
-      syncUploaderDocFieldsToModule(mod);
-      triggerAutoSave(true, true);
+      if (canCurrentUserEditModule(mod)) {
+        syncUploaderDocFieldsToModule(mod);
+        triggerAutoSave(true, true);
+      }
       activeUploaderTab = "quiz";
       renderUploaderWorkspace();
       renderSidebar();
@@ -1913,7 +1952,7 @@
   }
 
   function syncUploaderDocFieldsToModule(mod) {
-    if (!mod) return;
+    if (!mod || !canCurrentUserEditModule(mod)) return;
     mod.status = document.getElementById("upModStatus").value || "published";
     mod.title = document.getElementById("upModTitle").value.trim() || mod.title || "Bài học mới";
     mod.contentText = document.getElementById("upModContentText").value;
@@ -1923,6 +1962,7 @@
   function renderUploaderQuestionBank(mod) {
     if (!Array.isArray(mod.questions)) mod.questions = [];
     const qList = mod.questions;
+    const canEdit = canCurrentUserEditModule(mod);
     document.getElementById("lblUpQuestionCount").textContent = String(qList.length);
 
     const listContainer = document.getElementById("uploaderQuestionsList");
@@ -1931,7 +1971,10 @@
     if (qList.length === 0) {
       listContainer.innerHTML = `
         <div class="up-card" style="text-align:center;padding:28px;color:#64748B;">
-          Chưa có câu hỏi nào. Hãy bấm <strong>"Tạo tự động từ tài liệu"</strong> hoặc <strong>"📁 Tải file câu hỏi có sẵn"</strong> ở thanh công cụ phía trên.
+          ${canEdit
+            ? `Chưa có câu hỏi nào. Hãy bấm <strong>"Tạo tự động từ tài liệu"</strong> hoặc <strong>"Tải file câu hỏi có sẵn"</strong> ở thanh công cụ phía trên.`
+            : `Học phần này của <strong>${escapeHtml(mod.authorName || "Đào tạo")}</strong> hiện chưa có câu hỏi trắc nghiệm.`
+          }
         </div>
       `;
       return;
@@ -1956,8 +1999,8 @@
             <span class="up-q-row-ans" title="Đáp án đúng: ${letters[cIdx]}. ${escapeHtml(correctText)}">
               ✓ ${letters[cIdx]}. ${escapeHtml(correctText)}
             </span>
-            <button type="button" class="btn-q-mini" data-expand-q="${qIdx}">Sửa</button>
-            <button type="button" class="btn-q-mini danger" data-del-q="${qIdx}" title="Xóa câu này"></button>
+            <button type="button" class="btn-q-mini" data-expand-q="${qIdx}">${canEdit ? "Sửa" : "Xem"}</button>
+            ${canEdit ? `<button type="button" class="btn-q-mini danger" data-del-q="${qIdx}" title="Xóa câu này">Xóa</button>` : ""}
           </div>
         `;
 
@@ -1967,22 +2010,25 @@
           renderUploaderQuestionBank(mod);
         });
 
-        row.querySelector(`[data-del-q="${qIdx}"]`).addEventListener("click", e => {
-          e.stopPropagation();
-          if (confirm(`Xóa Câu ${qIdx + 1}?`)) {
-            qList.splice(qIdx, 1);
-            if (expandedUploaderQuestionIndex === qIdx) expandedUploaderQuestionIndex = null;
-            triggerAutoSave(true, true);
-            renderUploaderQuestionBank(mod);
-            renderSidebar();
-          }
-        });
+        const delBtn = row.querySelector(`[data-del-q="${qIdx}"]`);
+        if (delBtn && canEdit) {
+          delBtn.addEventListener("click", e => {
+            e.stopPropagation();
+            if (confirm(`Xóa Câu ${qIdx + 1}?`)) {
+              qList.splice(qIdx, 1);
+              if (expandedUploaderQuestionIndex === qIdx) expandedUploaderQuestionIndex = null;
+              triggerAutoSave(true, true);
+              renderUploaderQuestionBank(mod);
+              renderSidebar();
+            }
+          });
+        }
 
         listContainer.appendChild(row);
         return;
       }
 
-      // EXPANDED EDITOR FOR ONLY THE SELECTED QUESTION
+      // EXPANDED EDITOR / VIEWER FOR ONLY THE SELECTED QUESTION
       const card = document.createElement("div");
       card.className = "up-q-card";
 
@@ -1991,10 +2037,10 @@
         const optVal = (q.options && q.options[oIdx]) ? q.options[oIdx] : "";
         return `
           <div class="up-q-opt-row">
-            <button type="button" class="up-opt-radio-btn ${isCorrect ? "is-correct" : ""}" data-set-correct="${qIdx}:${oIdx}">
-              ${isCorrect ? "✓ Đúng:" : "Chọn:"} ${letters[oIdx]}
+            <button type="button" class="up-opt-radio-btn ${isCorrect ? "is-correct" : ""}" data-set-correct="${qIdx}:${oIdx}" ${canEdit ? "" : "disabled"}>
+              ${isCorrect ? "✓ Đúng:" : "Phương án:"} ${letters[oIdx]}
             </button>
-            <input type="text" class="input-control" data-edit-opt="${qIdx}:${oIdx}" value="${escapeHtml(optVal)}" placeholder="Phương án ${letters[oIdx]}...">
+            <input type="text" class="input-control" data-edit-opt="${qIdx}:${oIdx}" value="${escapeHtml(optVal)}" placeholder="Phương án ${letters[oIdx]}..." ${canEdit ? "" : "readonly"}>
           </div>
         `;
       }).join("");
@@ -2002,17 +2048,17 @@
       card.innerHTML = `
         <div class="up-q-top">
           <div class="up-q-top-left">
-            <span class="qq-num-badge">Đang sửa Câu ${qIdx + 1}</span>
+            <span class="qq-num-badge">${canEdit ? `Đang sửa Câu ${qIdx + 1}` : `Chi tiết Câu ${qIdx + 1} (Chỉ xem)`}</span>
           </div>
           <div class="up-q-actions">
-            <button type="button" class="btn-q-mini danger" data-del-q="${qIdx}">Xóa câu</button>
-            <button type="button" class="btn-primary" data-collapse-q="${qIdx}" style="padding:5px 12px;font-size:12px;">✓ Xong (Thu gọn)</button>
+            ${canEdit ? `<button type="button" class="btn-q-mini danger" data-del-q="${qIdx}">Xóa câu</button>` : ""}
+            <button type="button" class="btn-primary" data-collapse-q="${qIdx}" style="padding:5px 12px;font-size:12px;">${canEdit ? "✓ Xong (Thu gọn)" : "Thu gọn"}</button>
           </div>
         </div>
 
         <div class="form-group">
           <label>Câu hỏi:</label>
-          <textarea class="input-control" rows="2" data-edit-qtext="${qIdx}">${escapeHtml(q.question || "")}</textarea>
+          <textarea class="input-control" rows="2" data-edit-qtext="${qIdx}" ${canEdit ? "" : "readonly"}>${escapeHtml(q.question || "")}</textarea>
         </div>
 
         <div class="up-q-options-grid">
@@ -2021,54 +2067,59 @@
 
         <div class="form-group">
           <label>Giải thích &amp; Gợi ý tư vấn:</label>
-          <textarea class="input-control" rows="2" data-edit-exp="${qIdx}">${escapeHtml(q.explanation || "")}</textarea>
+          <textarea class="input-control" rows="2" data-edit-exp="${qIdx}" ${canEdit ? "" : "readonly"}>${escapeHtml(q.explanation || "")}</textarea>
         </div>
       `;
 
       card.querySelector(`[data-collapse-q="${qIdx}"]`).addEventListener("click", () => {
         expandedUploaderQuestionIndex = null;
-        triggerAutoSave(true, true);
+        if (canEdit) triggerAutoSave(true, true);
         renderUploaderQuestionBank(mod);
       });
 
-      card.querySelector(`[data-edit-qtext="${qIdx}"]`).addEventListener("input", e => {
-        q.question = e.target.value;
-        triggerAutoSave(false, true);
-      });
-
-      card.querySelector(`[data-edit-exp="${qIdx}"]`).addEventListener("input", e => {
-        q.explanation = e.target.value;
-        triggerAutoSave(false, true);
-      });
-
-      card.querySelectorAll("[data-edit-opt]").forEach(inp => {
-        inp.addEventListener("input", e => {
-          const [, oStr] = inp.dataset.editOpt.split(":");
-          const oIdx = Number(oStr);
-          if (!Array.isArray(q.options)) q.options = ["", "", "", ""];
-          q.options[oIdx] = e.target.value;
+      if (canEdit) {
+        card.querySelector(`[data-edit-qtext="${qIdx}"]`).addEventListener("input", e => {
+          q.question = e.target.value;
           triggerAutoSave(false, true);
         });
-      });
 
-      card.querySelectorAll("[data-set-correct]").forEach(btn => {
-        btn.addEventListener("click", () => {
-          const [, oStr] = btn.dataset.setCorrect.split(":");
-          q.correctIndex = Number(oStr);
-          triggerAutoSave(true, true);
-          renderUploaderQuestionBank(mod);
+        card.querySelector(`[data-edit-exp="${qIdx}"]`).addEventListener("input", e => {
+          q.explanation = e.target.value;
+          triggerAutoSave(false, true);
         });
-      });
 
-      card.querySelector(`[data-del-q="${qIdx}"]`).addEventListener("click", () => {
-        if (confirm(`Xóa Câu ${qIdx + 1}?`)) {
-          qList.splice(qIdx, 1);
-          expandedUploaderQuestionIndex = null;
-          triggerAutoSave(true, true);
-          renderUploaderQuestionBank(mod);
-          renderSidebar();
+        card.querySelectorAll("[data-edit-opt]").forEach(inp => {
+          inp.addEventListener("input", e => {
+            const [, oStr] = inp.dataset.editOpt.split(":");
+            const oIdx = Number(oStr);
+            if (!Array.isArray(q.options)) q.options = ["", "", "", ""];
+            q.options[oIdx] = e.target.value;
+            triggerAutoSave(false, true);
+          });
+        });
+
+        card.querySelectorAll("[data-set-correct]").forEach(btn => {
+          btn.addEventListener("click", () => {
+            const [, oStr] = btn.dataset.setCorrect.split(":");
+            q.correctIndex = Number(oStr);
+            triggerAutoSave(true, true);
+            renderUploaderQuestionBank(mod);
+          });
+        });
+
+        const delCardBtn = card.querySelector(`[data-del-q="${qIdx}"]`);
+        if (delCardBtn) {
+          delCardBtn.addEventListener("click", () => {
+            if (confirm(`Xóa Câu ${qIdx + 1}?`)) {
+              qList.splice(qIdx, 1);
+              expandedUploaderQuestionIndex = null;
+              triggerAutoSave(true, true);
+              renderUploaderQuestionBank(mod);
+              renderSidebar();
+            }
+          });
         }
-      });
+      }
 
       listContainer.appendChild(card);
     });
@@ -3157,6 +3208,7 @@
           durationMinutes: 20,
           passThreshold: (db.meta && db.meta.defaultPassThreshold) || 80,
           status: (currentUser && currentUser.role === "admin") ? "published" : "pending",
+          authorId: currentUser ? currentUser.id : "",
           authorName: currentUser ? currentUser.name : "Đào tạo",
           updatedAt: new Date().toISOString(),
           summaryPoints: [
@@ -3489,6 +3541,10 @@
       }
       const mod = getCurrentModule();
       if (!mod) return;
+      if (!canCurrentUserEditModule(mod)) {
+        alert(`Học phần này do "${mod.authorName || "nhân sự khác"}" tải lên. Bạn chỉ có quyền xóa học phần do chính bạn tải lên.`);
+        return;
+      }
       if (confirm(`Bạn có chắc muốn xóa học phần "${mod.code}: ${mod.title}" không?`)) {
         db.modules = db.modules.filter(m => m.id !== mod.id);
         currentModuleId = db.modules[0].id;
