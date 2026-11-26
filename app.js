@@ -932,6 +932,36 @@
   let examWarningMsg = "";
   let lastViolationTimestamp = 0;
   let examBroadcastChannel = null;
+  let examShuffledQuestionIds = [];
+  let examOptionOrders = {}; // { [questionId]: [origIdx0, origIdx1, origIdx2, origIdx3] }
+
+  function shuffleArray(arr) {
+    const copy = arr.slice();
+    for (let i = copy.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      const tmp = copy[i];
+      copy[i] = copy[j];
+      copy[j] = tmp;
+    }
+    return copy;
+  }
+
+  function getOrderedExamQuestions(mod) {
+    const qList = Array.isArray(mod && mod.questions) ? mod.questions : [];
+    if (!Array.isArray(examShuffledQuestionIds) || examShuffledQuestionIds.length === 0) {
+      return qList;
+    }
+    const qMap = new Map(qList.map(q => [q.id, q]));
+    const ordered = [];
+    examShuffledQuestionIds.forEach(id => {
+      if (qMap.has(id)) {
+        ordered.push(qMap.get(id));
+        qMap.delete(id);
+      }
+    });
+    qMap.forEach(q => ordered.push(q));
+    return ordered;
+  }
 
   try {
     if ("BroadcastChannel" in window) {
@@ -962,6 +992,8 @@
     examSecondsRemaining = 0;
     examTabSwitchCount = 0;
     examWarningMsg = "";
+    examShuffledQuestionIds = [];
+    examOptionOrders = {};
   }
 
   function formatMMSS(sec) {
@@ -980,6 +1012,16 @@
     activeQuizQuestionIndex = 0;
     examTabSwitchCount = 0;
     examWarningMsg = "";
+
+    // Shuffle both question order and A/B/C/D option order per attempt to prevent memorization
+    examShuffledQuestionIds = shuffleArray(qList.map(q => q.id));
+    examOptionOrders = {};
+    qList.forEach(q => {
+      const optLen = Array.isArray(q.options) ? q.options.length : 4;
+      const baseIndices = Array.from({ length: optLen }, (_, k) => k);
+      examOptionOrders[q.id] = shuffleArray(baseIndices);
+    });
+
     examTotalSeconds = qList.length * SECONDS_PER_QUESTION;
     examSecondsRemaining = examTotalSeconds;
     isExamInProgress = true;
@@ -1864,7 +1906,7 @@
   }
 
   function renderSaleQuizPanel(mod, prog) {
-    const qList = Array.isArray(mod.questions) ? mod.questions : [];
+    const qList = getOrderedExamQuestions(mod);
     const thresh = Number(mod.passThreshold || 80);
     const resultBanner = document.getElementById("saleQuizResultBanner");
     const stageContainer = document.getElementById("saleQuizQuestionsList");
@@ -1895,9 +1937,10 @@
           </div>
 
           <ul class="exam-rules-list">
-            <li><strong>Khóa tài liệu khi làm bài:</strong> Ngay khi bấm bắt đầu, mục <em>Xem Tài liệu</em> sẽ bị khóa. Nếu thoát ra mở lại tài liệu, bài đang làm sẽ bị hủy.</li>
+            <li><strong>Đảo đề &amp; đáp án tự động:</strong> Mỗi lượt thi, thứ tự câu hỏi và các phương án A/B/C/D đều được xáo trộn ngẫu nhiên.</li>
+            <li><strong>Khóa tài liệu khi làm bài:</strong> Ngay khi bấm bắt đầu, mục <em>Tài liệu</em> sẽ bị khóa. Nếu thoát ra mở lại tài liệu, bài đang làm sẽ bị hủy.</li>
             <li><strong>Giới hạn thời gian đếm ngược:</strong> Đồng hồ đếm ngược <strong>${totalTimeStr}</strong>. Hết giờ hệ thống sẽ tự động thu bài và chấm điểm.</li>
-            <li><strong>Chống chuyển tab / mở tài liệu khác:</strong> Hệ thống tự động phát hiện khi bạn chuyển sang tab khác hoặc mở cửa sổ ứng dụng khác trên máy. Mọi lần chuyển tab đều được ghi nhận báo cáo cho Admin và bài thi sẽ tự động bị thu nếu rời màn hình quá ${MAX_ALLOWED_TAB_SWITCHES} lần.</li>
+            <li><strong>Chống chuyển tab / mở tài liệu khác:</strong> Hệ thống tự động phát hiện khi bạn chuyển sang tab hoặc cửa sổ khác. Mọi lần vi phạm đều báo về Admin và tự động thu bài nếu vượt quá ${MAX_ALLOWED_TAB_SWITCHES} lần.</li>
           </ul>
 
           <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
@@ -1971,13 +2014,25 @@
     const catKey = q.category || "kien_thuc";
     const catLabel = q.categoryLabel || getCategoryLabel(catKey);
 
-    const optsHtml = (q.options || []).map((optText, oIdx) => {
-      const isSel = selectedIdx === oIdx;
+    const optOrder = (Array.isArray(examOptionOrders[q.id]) && examOptionOrders[q.id].length === (q.options || []).length)
+      ? examOptionOrders[q.id]
+      : (q.options || []).map((_, k) => k);
+
+    let displayCorrectLetter = letters[q.correctIndex] || "A";
+    let displaySelectedLetter = "Chưa chọn";
+
+    const optsHtml = optOrder.map((origIdx, visIdx) => {
+      const optText = (q.options || [])[origIdx] || "";
+      const visLetter = letters[visIdx] || String(visIdx + 1);
+      if (origIdx === Number(q.correctIndex)) displayCorrectLetter = visLetter;
+      const isSel = selectedIdx === origIdx;
+      if (isSel) displaySelectedLetter = visLetter;
+
       let optClass = "qq-option-btn";
       if (isSubmitted) {
-        if (oIdx === Number(q.correctIndex)) {
+        if (origIdx === Number(q.correctIndex)) {
           optClass += " correct-answer";
-        } else if (isSel && oIdx !== Number(q.correctIndex)) {
+        } else if (isSel && origIdx !== Number(q.correctIndex)) {
           optClass += " wrong-selected";
         }
       } else if (isSel) {
@@ -1985,8 +2040,8 @@
       }
 
       return `
-        <button type="button" class="${optClass}" data-opt-idx="${oIdx}" ${isSubmitted ? "disabled" : ""}>
-          <span class="qq-opt-letter">${letters[oIdx] || oIdx + 1}</span>
+        <button type="button" class="${optClass}" data-opt-idx="${origIdx}" ${isSubmitted ? "disabled" : ""}>
+          <span class="qq-opt-letter">${visLetter}</span>
           <span>${escapeHtml(optText)}</span>
         </button>
       `;
@@ -1995,8 +2050,8 @@
     let explanationHtml = "";
     if (isSubmitted) {
       const statusTag = isCorrect
-        ? `<span style="color:#059669;font-weight:800;">✓ ĐÚNG (Đáp án ${letters[q.correctIndex]})</span>`
-        : `<span style="color:#DC2626;font-weight:800;">✕ Bạn chọn ${selectedIdx !== undefined ? letters[selectedIdx] : "Chưa chọn"} — Đáp án đúng là ${letters[q.correctIndex]}</span>`;
+        ? `<span style="color:#059669;font-weight:800;">✓ ĐÚNG (Đáp án ${displayCorrectLetter})</span>`
+        : `<span style="color:#DC2626;font-weight:800;">✕ Bạn chọn ${displaySelectedLetter} — Đáp án đúng là ${displayCorrectLetter}</span>`;
       explanationHtml = `
         <div class="qq-explanation-box">
           <div style="margin-bottom:4px;">${statusTag}</div>
@@ -2469,134 +2524,243 @@
   }
 
   // =========================================================================
-  // AI QUIZ CONVERTER ENGINE (DOCUMENTS -> 4-CRITERIA MULTIPLE-CHOICE QUIZ)
+  // NOVASTARS 5-STANDARD QUIZ ENGINE (HALADYNA + BLOOM + NEAR-MISS DISTRACTORS)
   // =========================================================================
+  function trimNaturalClause(text, maxLen = 210) {
+    const clean = String(text || "").replace(/\s+/g, " ").trim();
+    if (clean.length <= maxLen) return clean;
+    const sliced = clean.slice(0, maxLen);
+    const lastStop = Math.max(sliced.lastIndexOf("."), sliced.lastIndexOf(";"), sliced.lastIndexOf(","));
+    if (lastStop > maxLen * 0.55) {
+      return sliced.slice(0, lastStop).trim() + ".";
+    }
+    const lastSpace = sliced.lastIndexOf(" ");
+    return (lastSpace > 40 ? sliced.slice(0, lastSpace) : sliced).trim() + "...";
+  }
+
+  function buildNearMissVariant(factText, variantSeed = 0) {
+    let mutated = String(factText || "").trim();
+    if (!mutated) return "";
+    const rules = [
+      // Swap preschool age blocks
+      [/Khối\s+(?:Mẫu\s*giáo\s*)?Bé(?:\s*\(3\s*[-–]\s*4\s*tuổi\))?/gi, "Khối Mẫu giáo Nhỡ (4–5 tuổi)"],
+      [/Khối\s+(?:Mẫu\s*giáo\s*)?Nhỡ(?:\s*\(4\s*[-–]\s*5\s*tuổi\))?/gi, "Khối Mẫu giáo Lớn (5–6 tuổi)"],
+      [/Khối\s+(?:Mẫu\s*giáo\s*)?Lớn(?:\s*\(5\s*[-–]\s*6\s*tuổi\))?/gi, "Khối Mẫu giáo Bé (3–4 tuổi)"],
+      // Shift numbers / durations / thresholds plausibly
+      [/\b72\s*tiết\b/gi, "36 tiết"],
+      [/\b36\s*tiết\b/gi, "24 tiết"],
+      [/\b30\s*cm\b/gi, "15cm"],
+      [/\b216\s*tiết\b/gi, "108 tiết"],
+      [/\b2\s*tiết\/tuần\b/gi, "1 tiết/tuần"],
+      [/\b114\b/g, "115"],
+      [/\b(?:85|90|100)%\b/g, "50%"],
+      [/\b(?:70|80)%\b/g, "45%"],
+      // Flip key procedural order or surface-level error
+      [/cúi\s*(?:gập\s*người|thấp)[^,.;]*/gi, "chạy nhanh đứng thẳng theo hàng dọc qua đám khói"],
+      [/làm\s*ướt[^,.;]*/gi, "giữ khô hoàn toàn bằng khăn giấy sạch"],
+      [/tô\s*màu[^,.;]*mới\s*phát\s*kéo/gi, "phát kéo trước ngay đầu giờ để trẻ tự cắt rồi mới tô màu"],
+      [/thùng\s*(?:màu\s*)?Xanh\s*lá/gi, "thùng màu Cam"],
+      [/tay\s*trái[^,.;]*chữ\s*b/gi, "tay trái là chữ d, tay phải là chữ b"],
+      [/chỉ\s*làm\s*theo\s*lời\s*(?:nhân\s*vật\s*)?Su/gi, "làm theo đúng động tác tay cô giáo làm mẫu để luyện phản xạ"]
+    ];
+
+    const rotatedRules = rules.slice(variantSeed % rules.length).concat(rules.slice(0, variantSeed % rules.length));
+    for (let i = 0; i < rotatedRules.length; i++) {
+      const [regex, repl] = rotatedRules[i];
+      if (regex.test(mutated)) {
+        const candidate = mutated.replace(regex, repl);
+        if (candidate !== mutated) return candidate;
+      }
+    }
+    return "";
+  }
+
+  function equalizeOptionLength(optStr, targetLen) {
+    const clean = String(optStr || "").replace(/\s+/g, " ").trim();
+    const upperBound = Math.max(95, Math.round(targetLen * 1.25));
+    if (clean.length > upperBound) {
+      return trimNaturalClause(clean, upperBound);
+    }
+    return clean;
+  }
+
   function generateQuizFromModuleDocument(mod, desiredCount) {
     const rawText = (mod.contentText || buildPlainTextFromStructuredData(mod) || "").trim();
     const summaryPts = Array.isArray(mod.summaryPoints) ? mod.summaryPoints.filter(Boolean) : [];
     const tables = Array.isArray(mod.uploadedTables) ? mod.uploadedTables : [];
 
-    // Collect meaningful facts/statements from summaryPoints, tables, and paragraphs
+    // 1. Extract domain-specific Knowledge Atoms
     const knowledgeAtoms = [];
+    const seenFacts = new Set();
+
+    function pushAtom(atom) {
+      const normFact = String(atom.fact || "").replace(/\s+/g, " ").trim();
+      if (normFact.length < 30 || seenFacts.has(normFact.slice(0, 65))) return;
+      seenFacts.add(normFact.slice(0, 65));
+      knowledgeAtoms.push({
+        ...atom,
+        topic: trimNaturalClause(atom.topic || mod.title, 85),
+        fact: trimNaturalClause(normFact, 210),
+        pitch: trimNaturalClause(atom.pitch || normFact, 190)
+      });
+    }
 
     summaryPts.forEach(pt => {
-      if (pt.length > 20) {
-        knowledgeAtoms.push({
-          type: "summary",
-          topic: mod.title,
-          fact: pt,
-          pitch: pt
-        });
-      }
+      pushAtom({ type: "summary", topic: mod.title, fact: pt, pitch: pt });
     });
 
     tables.forEach(tbl => {
       const rows = tbl.rows || [];
       const headers = rows[0] || [];
       for (let r = 1; r < rows.length; r++) {
-        const row = rows[r];
-        const nonEmpty = row.filter(c => c && c.length > 3);
+        const row = rows[r] || [];
+        const nonEmpty = row.map(c => String(c || "").trim()).filter(c => c.length > 3);
         if (nonEmpty.length >= 2) {
-          const topic = row[1] || row[0] || tbl.sheet || mod.title;
+          const topic = (row[1] && row[1].length > 3 ? row[1] : row[0]) || tbl.sheet || mod.title;
           const detail = nonEmpty.slice(1).join(" — ");
           const pitchCell = row[row.length - 1] || row[row.length - 2] || detail;
-          if (detail.length > 25) {
-            knowledgeAtoms.push({
-              type: "table_row",
-              topic: topic.slice(0, 90),
-              fact: detail.slice(0, 320),
-              pitch: pitchCell.slice(0, 280),
-              headers
-            });
-          }
+          pushAtom({ type: "table_row", topic, fact: detail, pitch: pitchCell, headers });
         }
       }
     });
 
     rawText.split(/\n+/).forEach(line => {
       const cleaned = line.replace(/^[•\-*\d.)\s]+/, "").trim();
-      if (cleaned.length >= 35 && !cleaned.startsWith("===")) {
-        const parts = cleaned.split(/[:：—–-]/);
-        const topic = parts.length > 1 && parts[0].length < 70 ? parts[0].trim() : mod.title;
-        knowledgeAtoms.push({
-          type: "paragraph",
-          topic,
-          fact: cleaned.slice(0, 320),
-          pitch: cleaned.slice(0, 280)
-        });
+      if (cleaned.length >= 38 && !cleaned.startsWith("===") && !/^STT\s*\|/i.test(cleaned)) {
+        const parts = cleaned.split(/[:：—–]/);
+        const topic = parts.length > 1 && parts[0].length >= 6 && parts[0].length < 65 ? parts[0].trim() : mod.title;
+        const factBody = (parts.length > 1 && parts[0].length < 65 && parts.slice(1).join(":").trim().length > 25)
+          ? parts.slice(1).join(":").trim()
+          : cleaned;
+        pushAtom({ type: "paragraph", topic, fact: factBody, pitch: cleaned });
       }
     });
 
     if (knowledgeAtoms.length === 0) {
-      knowledgeAtoms.push({
+      pushAtom({
         type: "fallback",
-        topic: mod.title || "Chương trình Mầm non Chuyển giao Novastars",
+        topic: mod.title || "Chương trình Kĩ năng sống Novastars",
         fact: mod.subtitle || "Chương trình Kĩ năng sống Novastars 72 tiết/năm cho 3 khối Bé, Nhỡ, Lớn kèm phần mềm tương tác và giáo án chuẩn.",
         pitch: "Giúp trường mầm non có chương trình mũi nhọn đồng bộ, giáo viên dạy nhàn và thu hút tuyển sinh."
       });
     }
 
-    const realisticDistractorPool = [
-      "Chỉ dạy gói gọn trong 1 tiết học lý thuyết rời rạc, cô giáo tự lên mạng tìm nhạc và cắt ghép video mà không có phần mềm đồng bộ.",
-      "Thay thế hoàn toàn 100% chương trình khung bắt buộc 5 mặt phát triển của Bộ GD&ĐT và không cần giáo viên của trường đứng lớp.",
-      "Cho trẻ ngồi im tại chỗ xem phim hoạt hình suốt 30 phút liên tục mà không có hoạt động vận động, thực hành hay thuyết trình.",
-      "Chỉ phát phiếu bé ngoan hoặc tranh tô màu đen trắng về nhà cuối tuần, không có mục tiêu định lượng hay hoạt động quay video thuyết trình.",
-      "Yêu cầu mỗi lớp học phải bố trí tối thiểu 4 cô giáo và mua sắm thêm nhiều thiết bị thí nghiệm đắt tiền mới tổ chức được tiết học.",
-      "Chỉ áp dụng riêng cho học sinh lớp 5 tuổi chuẩn bị vào lớp 1, không có lộ trình cho khối Mẫu giáo Bé (3–4 tuổi) và Mẫu giáo Nhỡ (4–5 tuổi).",
-      "Cô giáo là người nói và làm mẫu hoàn toàn trên bảng, học sinh chỉ ngồi nghe và trả lời đúng hoặc sai theo tranh lô tô truyền thống.",
-      "Bắt trẻ học thuộc lòng các khái niệm trừu tượng mà không chia nhỏ kỹ năng thành từng cử chỉ mắt nhìn – miệng cười – tay thực hành cụ thể."
+    // 2. Domain-Matched + Sales Anti-Pattern Trap Builders (paired cleanly with question length)
+    const contextualTrapFactories = [
+      (atom) => `Ghi nhận ý kiến của trường về "${atom.topic}" và gửi bảng giá kèm giáo trình PDF qua email trước để Hiệu trưởng tự nghiên cứu thay vì phân tích giá trị trực tiếp.`,
+      (atom) => `Áp dụng phương pháp giảng giải miệng kết hợp cho trẻ xem tranh minh họa tĩnh về "${atom.topic}" để rút ngắn thời gian chuẩn bị, bỏ qua phần thực hành và tương tác.`,
+      (atom) => `Chỉ triển khai nội dung "${atom.topic}" mang tính tự phát khi giáo viên còn thời gian trống cuối tuần, không cần tách thành chuỗi tiết nối tiếp có mục tiêu đầu ra.`,
+      (atom) => `Để giáo viên tự tìm video trên mạng và tự thiết kế trò chơi vận động cho "${atom.topic}" thay vì sử dụng hệ thống bài giảng và học liệu đồng bộ sẵn có.`,
+      (atom) => `Lược bớt bước thực hành theo nhóm và hoạt động đứng thuyết trình về "${atom.topic}" để tập trung vào việc cô giáo hỏi đáp đúng – sai ngay tại bàn.`
     ];
 
-    const questionTemplates = [
+    // Bloom-tiered question rotation matching: 30% Understand, 45% Apply Scenario, 25% Analyze
+    const bloomTemplates = [
+      {
+        cat: "xu_ly_tinh_huong",
+        catLabel: "4. Xử lý tình huống",
+        bloomLevel: "Vận dụng Tình huống",
+        makeQ: (atom) => `Khi Hiệu trưởng trao đổi: "Nội dung '${atom.topic}' các cô ở trường dạy lướt cho nhanh là được, cần gì triển khai cầu kỳ?" — Sale chọn hướng phân tích nào thuyết phục và sát chuẩn Novastars nhất?`,
+        trapReason: "Các phương án nhiễu thường rơi vào bẫy thụ động (gửi báo giá xong chờ), giảng giải một chiều hoặc cắt bỏ thực hành tương tác của trẻ."
+      },
       {
         cat: "kien_thuc",
         catLabel: "1. Cấu trúc chương trình",
-        makeQ: (atom) => `Theo tài liệu đào tạo học phần "${mod.title}", nội dung trọng tâm về "${atom.topic}" được quy định chính xác như thế nào?`
+        bloomLevel: "Hiểu & Phân biệt",
+        makeQ: (atom) => `Khi đối chiếu chi tiết chuyên đề "${atom.topic}", phương án nào mô tả CHÍNH XÁC nhất yêu cầu / thông số đúng trong tài liệu (chú ý bẫy sai độ tuổi, số liệu hoặc thứ tự)?`,
+        trapReason: "Cần nắm chính xác từng thông số, độ tuổi và trình tự thao tác chuẩn để không bị nhầm với nội dung của khối hoặc tiết khác."
       },
       {
         cat: "usp_khac_biet",
         catLabel: "2. Điểm khác biệt USP",
-        makeQ: (atom) => `Điểm khác biệt "ăn tiền" của chương trình Novastars đối với "${atom.topic}" so với cách dạy mầm non truyền thống là gì?`
+        bloomLevel: "Phân tích Sư phạm",
+        makeQ: (atom) => `Vì sao trong phần "${atom.topic}", thiết kế sư phạm của Novastars lại tạo ra khác biệt vượt trội hơn hẳn cách dạy truyền thống của giáo viên mầm non?`,
+        trapReason: "Cách dạy truyền thống thường dừng ở kể chuyện – hỏi đáp – gắn tranh trên bảng, chưa chạm tới bản chất thay đổi hành vi thực tế."
       },
       {
         cat: "dan_chung_bai_mau",
         catLabel: "3. Dẫn chứng bài mẫu",
-        makeQ: (atom) => `Khi cần lấy dẫn chứng cụ thể từ tài liệu về "${atom.topic}" để minh họa cho Hiệu trưởng, Sale cần nêu chính xác thông tin nào sau đây?`
+        bloomLevel: "Vận dụng Dẫn chứng",
+        makeQ: (atom) => `Trong buổi tư vấn trực tiếp với Chủ trường, khi được hỏi bằng chứng thực tế về hiệu quả của "${atom.topic}", Sale nên đưa ra dẫn chứng chính xác nào?`,
+        trapReason: "Tránh nhầm lẫn dẫn chứng của chuyên đề này với số liệu hoặc hoạt động của chuyên đề khác trong cùng học phần."
       },
       {
         cat: "xu_ly_tinh_huong",
         catLabel: "4. Xử lý tình huống",
-        makeQ: (atom) => `Khi Chủ trường / Hiệu trưởng băn khoăn về "${atom.topic}", Sale nên sử dụng luận điểm tư vấn nào dưới đây để thuyết phục đúng chuẩn tài liệu gốc?`
+        bloomLevel: "Đánh giá Chiến lược",
+        makeQ: (atom) => `Nếu giáo viên phụ trách phản hồi rằng họ ngại áp dụng "${atom.topic}" vì sợ quá tải hoặc tốn công soạn giáo án, luận điểm phản biện chuẩn xác nhất dành cho Sale là gì?`,
+        trapReason: "Không nên khuyên trường cắt bớt mục tiêu bài học hay để cô giáo tự tìm học liệu ngoài."
       }
     ];
 
     const generated = [];
-    const targetPattern = [0, 2, 1, 3, 1, 3, 0, 2];
     const totalToGenerate = (!desiredCount || desiredCount <= 0)
       ? Math.max(knowledgeAtoms.length, 10)
       : desiredCount;
 
     for (let i = 0; i < totalToGenerate; i++) {
       const atom = knowledgeAtoms[i % knowledgeAtoms.length];
-      const tpl = questionTemplates[i % questionTemplates.length];
-      const correctPos = targetPattern[i % targetPattern.length];
+      const tpl = bloomTemplates[i % bloomTemplates.length];
+      const correctText = equalizeOptionLength(atom.fact, Math.max(120, atom.fact.length));
+      const targetLen = correctText.length;
 
-      // Pick 3 distinct distractors
-      const d1 = realisticDistractorPool[(i * 3) % realisticDistractorPool.length];
-      const d2 = realisticDistractorPool[(i * 3 + 1) % realisticDistractorPool.length];
-      const d3 = realisticDistractorPool[(i * 3 + 2) % realisticDistractorPool.length];
+      // Build 3 distinct, domain-matched, length-balanced distractors
+      const distractors = [];
+      const usedNorm = new Set([correctText.toLowerCase().slice(0, 48)]);
 
-      const options = [d1, d2, d3];
-      options.splice(correctPos, 0, atom.fact);
+      const tryAddDistractor = (cand) => {
+        const balanced = equalizeOptionLength(cand, targetLen);
+        const key = balanced.toLowerCase().slice(0, 48);
+        if (balanced.length >= 28 && !usedNorm.has(key)) {
+          usedNorm.add(key);
+          distractors.push(balanced);
+          return true;
+        }
+        return false;
+      };
+
+      // Priority 1: Near-Miss variant mutated directly from the correct fact (wrong age/number/step)
+      const nm1 = buildNearMissVariant(atom.fact, i);
+      if (nm1) tryAddDistractor(nm1);
+      const nm2 = buildNearMissVariant(atom.fact, i + 5);
+      if (distractors.length < 3 && nm2) tryAddDistractor(nm2);
+
+      // Priority 2: Cross-atom real facts from OTHER sections/topics in the same module (Domain-Matched)
+      if (knowledgeAtoms.length > 1) {
+        for (let offset = 1; offset < knowledgeAtoms.length && distractors.length < 2; offset++) {
+          const other = knowledgeAtoms[(i + offset * 3) % knowledgeAtoms.length];
+          if (other.topic !== atom.topic) {
+            tryAddDistractor(other.fact);
+          }
+        }
+      }
+
+      // Priority 3: Context-aware Sales Anti-Pattern / Traditional Surface-Level Traps
+      let trapCursor = 0;
+      while (distractors.length < 3 && trapCursor < contextualTrapFactories.length * 2) {
+        const factory = contextualTrapFactories[(i + trapCursor) % contextualTrapFactories.length];
+        tryAddDistractor(factory(atom));
+        trapCursor++;
+      }
+
+      while (distractors.length < 3) {
+        distractors.push(`Triển khai nội dung "${atom.topic}" theo hình thức đọc chép quy tắc truyền thống mà không tổ chức trò chơi tương tác hay kiểm tra đầu ra.`);
+      }
+
+      const rawOptions = [correctText, distractors[0], distractors[1], distractors[2]];
+      const perm = shuffleArray([0, 1, 2, 3]);
+      const options = perm.map(idx => rawOptions[idx]);
+      const correctPos = perm.indexOf(0);
 
       generated.push({
-        id: `${(mod.code || "hp").toLowerCase()}-ai-${Date.now().toString(36)}-${i + 1}`,
+        id: `${(mod.code || "hp").toLowerCase()}-std-${Date.now().toString(36)}-${i + 1}`,
         category: tpl.cat,
         categoryLabel: tpl.catLabel,
+        bloomLevel: tpl.bloomLevel,
         question: tpl.makeQ(atom),
         options,
         correctIndex: correctPos,
-        explanation: `Căn cứ tài liệu gốc (${mod.title}): ${atom.fact}. Gợi ý tư vấn Chủ trường/Hiệu trưởng: ${atom.pitch}`
+        explanation: `Căn cứ chuẩn (${tpl.bloomLevel} — ${mod.code}): ${correctText} | Phân biệt bẫy sai: ${tpl.trapReason}`
       });
     }
 
@@ -4438,7 +4602,10 @@
         syncUploaderDocFieldsToModule(mod);
         const text = mod.contentText || buildPlainTextFromStructuredData(mod);
         const promptPackage =
-          `Hãy chuyển tài liệu đào tạo Sale dưới đây sang bộ câu hỏi trắc nghiệm 4 đáp án (A, B, C, D) theo đúng 4 nhóm tiêu chí (1. Cấu trúc chương trình, 2. Điểm khác biệt USP, 3. Dẫn chứng bài mẫu, 4. Xử lý tình huống) kèm Đáp án đúng và Giải thích & Gợi ý tư vấn:\n\n` +
+          `Hãy soạn bộ câu hỏi trắc nghiệm 4 đáp án (A, B, C, D) ĐẠT CHUẨN 5 TIÊU CHÍ ĐÁNH GIÁ CHUYÊN SÂU cho tài liệu dưới đây:\n` +
+          `- Tỷ trọng độ khó Bloom: 30% Hiểu & Phân biệt (số liệu, lứa tuổi, thứ tự bước) | 45% Vận dụng tình huống phản biện Chủ trường/Hiệu trưởng | 25% Phân tích sư phạm.\n` +
+          `- Chuẩn Haladyna viết phương án nhiễu: Cả 4 đáp án A/B/C/D phải CÙNG CHỦ ĐỀ, độ dài cân đương nhau (±25%), KHÔNG dùng "Tất cả đều đúng", 3 câu sai phải "gần đúng nhưng lệch 1 chi tiết/sai lứa tuổi/cạm bẫy Sale hay mắc" để không thể đoán mò.\n` +
+          `- Phân nhóm: (1. Cấu trúc chương trình, 2. Điểm khác biệt USP, 3. Dẫn chứng bài mẫu, 4. Xử lý tình huống) kèm Giải thích 2 vế (tại sao đúng + bẫy sai cần tránh).\n\n` +
           `TÊN HỌC PHẦN: ${mod.code} - ${mod.title}\n` +
           `NỘI DUNG TÀI LIỆU:\n${text}`;
         try {
