@@ -18,6 +18,13 @@
     { key: "xu_ly_tinh_huong", label: "4. Xử lý tình huống" }
   ];
 
+  const CORE_MODULE_IDS = new Set([
+    "mod-01-tong-quan",
+    "mod-02-nen-tang-sp",
+    "mod-03-10-bai-mau",
+    "mod-04-lo-trinh-72-tiet"
+  ]);
+
   let db = loadInitialDb();
   let currentUser = loadInitialUser();
   let activeWorkspaceView = determineInitialWorkspaceView(); // "sale" | "uploader" | "admin"
@@ -56,13 +63,6 @@
     const found = QUESTION_CATEGORIES.find(c => c.key === catKey);
     return found ? found.label : "Kiến thức tư vấn";
   }
-
-  const CORE_MODULE_IDS = new Set([
-    "mod-01-tong-quan",
-    "mod-02-nen-tang-sp",
-    "mod-03-10-bai-mau",
-    "mod-04-lo-trinh-72-tiet"
-  ]);
 
   function upgradeCoreModulesIfNeeded(targetDb) {
     if (!targetDb || !window.INITIAL_TRAINING_DB || !Array.isArray(window.INITIAL_TRAINING_DB.modules)) return false;
