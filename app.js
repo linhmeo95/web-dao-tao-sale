@@ -782,7 +782,7 @@
       btnCreateMod.classList.toggle("hidden", !isUploaderView);
     }
 
-    // Learner Overall Progress Card
+    // Learner Overall Progress Card (Compact 1-Line)
     const progBox = document.getElementById("sidebarProgressBox");
     if (progBox) {
       const pubMods = getVisibleModulesForLearner();
@@ -793,15 +793,13 @@
       });
       const pct = pubMods.length > 0 ? Math.round((passedCount * 100) / pubMods.length) : 0;
       document.getElementById("lblSidebarProgressTitle").textContent =
-        isUploaderView ? "Tổng quan Học phần" : `Tiến độ: ${learner.name}`;
+        isUploaderView ? "Đã duyệt" : "Đã đạt";
       document.getElementById("lblSidebarProgressPct").textContent =
-        isUploaderView ? `${pubMods.length}/${(db.modules || []).length}` : `${pct}%`;
+        isUploaderView ? `${pubMods.length}/${(db.modules || []).length} bài` : `${passedCount}/${pubMods.length} bài (${pct}%)`;
       document.getElementById("sidebarProgressBarFill").style.width =
-        isUploaderView ? "100%" : `${pct}%`;
-      document.getElementById("lblSidebarProgressSub").textContent =
         isUploaderView
-          ? `${pubMods.length} bài đã xuất bản · ${db.modules.reduce((acc, m) => acc + (m.questions ? m.questions.length : 0), 0)} câu hỏi`
-          : `Đã đạt ${passedCount}/${pubMods.length} học phần (Điểm chuẩn >= 80%)`;
+          ? `${(db.modules || []).length > 0 ? Math.round((pubMods.length * 100) / (db.modules || []).length) : 100}%`
+          : `${pct}%`;
     }
 
     const q = sidebarSearchQuery.trim().toLowerCase();
@@ -810,104 +808,82 @@
       return (
         (m.code || "").toLowerCase().includes(q) ||
         (m.title || "").toLowerCase().includes(q) ||
-        (m.category || "").toLowerCase().includes(q)
+        (m.authorName || "").toLowerCase().includes(q)
       );
     });
 
     if (filtered.length === 0) {
-      listEl.innerHTML = `<div style="padding:24px 12px;text-align:center;color:#64748B;font-size:12.5px;">Không tìm thấy học phần phù hợp.</div>`;
+      listEl.innerHTML = `<div style="padding:20px 10px;text-align:center;color:#64748B;font-size:12.5px;">Không tìm thấy bài học.</div>`;
       return;
     }
 
-    // Group by category
-    const grouped = {};
-    filtered.forEach(m => {
-      const cat = m.category || "Chuyên đề Đào tạo";
-      if (!grouped[cat]) grouped[cat] = [];
-      grouped[cat].push(m);
-    });
+    const showAuthorInSidebar = isUploaderView && currentUser && (currentUser.role === "uploader" || currentUser.role === "admin");
 
     listEl.innerHTML = "";
-    Object.keys(grouped).forEach(catName => {
-      const groupEl = document.createElement("div");
-      groupEl.className = "sidebar-grade-group";
+    filtered.forEach(mod => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "sidebar-lesson-item" + (mod.id === currentModuleId ? " active" : "");
 
-      const titleEl = document.createElement("div");
-      titleEl.className = "grade-group-title";
-      titleEl.innerHTML = `<span>${escapeHtml(catName)}</span><span>${grouped[catName].length} bài</span>`;
-      groupEl.appendChild(titleEl);
+      let statusHtml = "";
+      const qCount = Array.isArray(mod.questions) ? mod.questions.length : 0;
 
-      const itemsWrap = document.createElement("div");
-      itemsWrap.className = "grade-lessons-list";
-
-      grouped[catName].forEach(mod => {
-        const btn = document.createElement("button");
-        btn.type = "button";
-        btn.className = "sidebar-lesson-item" + (mod.id === currentModuleId ? " active" : "");
-
-        let statusHtml = "";
-        const qCount = Array.isArray(mod.questions) ? mod.questions.length : 0;
-
-        if (isUploaderView) {
-          if (mod.status === "pending") {
-            statusHtml = `<span class="sidebar-item-status pending">Chờ Admin duyệt</span>`;
-          } else if (mod.status === "draft") {
-            statusHtml = `<span class="sidebar-item-status draft">Bản nháp</span>`;
-          } else {
-            statusHtml = `<span class="sidebar-item-status done">Đã duyệt · ${qCount} câu</span>`;
-          }
+      if (isUploaderView) {
+        if (mod.status === "pending") {
+          statusHtml = `<span class="sidebar-item-status pending">Chờ duyệt</span>`;
+        } else if (mod.status === "draft") {
+          statusHtml = `<span class="sidebar-item-status draft">Bản nháp</span>`;
         } else {
-          const prog = (db.progress || []).find(p => p.userId === learner.id && p.moduleId === mod.id);
-          if (prog && prog.passed) {
-            statusHtml = `<span class="sidebar-item-status done">✓ Đạt ${prog.bestScore}%</span>`;
-          } else if (prog && Array.isArray(prog.attempts) && prog.attempts.length > 0) {
-            statusHtml = `<span class="sidebar-item-status failed">${prog.bestScore}% (Làm lại)</span>`;
-          } else if (prog && prog.docViewed) {
-            statusHtml = `<span class="sidebar-item-status reading">Đã đọc bài</span>`;
-          } else {
-            statusHtml = `<span class="sidebar-item-status empty">Chưa học</span>`;
-          }
+          statusHtml = `<span class="sidebar-item-status done">Đã duyệt</span>`;
         }
+      } else {
+        const prog = (db.progress || []).find(p => p.userId === learner.id && p.moduleId === mod.id);
+        if (prog && prog.passed) {
+          statusHtml = `<span class="sidebar-item-status done">✓ ${prog.bestScore}%</span>`;
+        } else if (prog && Array.isArray(prog.attempts) && prog.attempts.length > 0) {
+          statusHtml = `<span class="sidebar-item-status failed">${prog.bestScore}%</span>`;
+        } else if (prog && prog.docViewed) {
+          statusHtml = `<span class="sidebar-item-status reading">Đã đọc</span>`;
+        } else {
+          statusHtml = `<span class="sidebar-item-status empty">Chưa học</span>`;
+        }
+      }
 
-        btn.innerHTML = `
-          <div class="sidebar-item-top">
-            <span class="sidebar-item-code">${escapeHtml(mod.code)}</span>
-            ${statusHtml}
-          </div>
-          <div class="sidebar-item-title">${escapeHtml(mod.title)}</div>
-          <div class="sidebar-item-meta">
-            <span>${qCount} câu trắc nghiệm</span>
-            <span>·</span>
-            <span>Chuẩn &ge;${mod.passThreshold || 80}%</span>
-          </div>
-        `;
+      const authorLineHtml = showAuthorInSidebar
+        ? `<div class="sidebar-author-line"><span>Tác giả: <strong>${escapeHtml(mod.authorName || "Đào tạo")}</strong></span><span>${qCount} câu</span></div>`
+        : "";
 
-        btn.addEventListener("click", () => {
-          if (mod.id === currentModuleId) {
-            const sb = document.getElementById("moduleSidebar");
-            const bd = document.getElementById("sidebarBackdrop");
-            if (sb) sb.classList.remove("open");
-            if (bd) bd.classList.add("hidden");
-            return;
-          }
-          if (isExamInProgress) {
-            const ok = confirm("Bạn đang trong lượt làm bài trắc nghiệm. Nếu chuyển sang học phần khác, lượt làm bài hiện tại sẽ bị hủy. Bạn có chắc muốn chuyển không?");
-            if (!ok) return;
-          }
-          currentModuleId = mod.id;
-          resetActiveQuizState();
-          renderAll();
+      btn.innerHTML = `
+        <div class="sidebar-item-top">
+          <span class="sidebar-item-code">${escapeHtml(mod.code)}</span>
+          ${statusHtml}
+        </div>
+        <div class="sidebar-item-title">${escapeHtml(mod.title)}</div>
+        ${authorLineHtml}
+      `;
+
+      btn.addEventListener("click", () => {
+        if (mod.id === currentModuleId) {
           const sb = document.getElementById("moduleSidebar");
           const bd = document.getElementById("sidebarBackdrop");
           if (sb) sb.classList.remove("open");
           if (bd) bd.classList.add("hidden");
-        });
-
-        itemsWrap.appendChild(btn);
+          return;
+        }
+        if (isExamInProgress) {
+          const ok = confirm("Bạn đang trong lượt làm bài trắc nghiệm. Nếu chuyển sang học phần khác, lượt làm bài hiện tại sẽ bị hủy. Bạn có chắc muốn chuyển không?");
+          if (!ok) return;
+        }
+        currentModuleId = mod.id;
+        resetActiveQuizState();
+        renderAll();
+        const sb = document.getElementById("moduleSidebar");
+        const bd = document.getElementById("sidebarBackdrop");
+        if (sb) sb.classList.remove("open");
+        if (bd) bd.classList.add("hidden");
       });
 
-      groupEl.appendChild(itemsWrap);
-      listEl.appendChild(groupEl);
+      listEl.appendChild(btn);
     });
   }
 
@@ -1862,6 +1838,10 @@
     document.getElementById("upModTitle").value = mod.title || "";
     document.getElementById("upModSubtitle").value = mod.subtitle || "";
     document.getElementById("upModSummaryPoints").value = (mod.summaryPoints || []).join("\n");
+    const lblAuthor = document.getElementById("lblUploaderModuleAuthor");
+    if (lblAuthor) {
+      lblAuthor.textContent = `Tác giả: ${mod.authorName || "Đào tạo"}`;
+    }
 
     const textContent = mod.contentText || buildPlainTextFromStructuredData(mod);
     const contentTa = document.getElementById("upModContentText");
@@ -2471,7 +2451,7 @@
     const table = document.getElementById("progressMatrixTable");
     let thead = `<thead><tr><th>Nhân viên Sale</th><th>PIN</th><th>Tiến độ cá nhân</th>`;
     pubMods.forEach(m => {
-      thead += `<th>${escapeHtml(m.code)} — ${escapeHtml(m.title)}</th>`;
+      thead += `<th><div>${escapeHtml(m.code)} — ${escapeHtml(m.title)}</div><span class="admin-mod-author-sub">Tác giả: ${escapeHtml(m.authorName || "Đào tạo")}</span></th>`;
     });
     thead += `</tr></thead>`;
 
@@ -2654,7 +2634,10 @@
 
       return `
         <tr>
-          <td><strong>${escapeHtml(m.code)}</strong> — ${escapeHtml(m.title)}</td>
+          <td>
+            <div><strong>${escapeHtml(m.code)}</strong> — ${escapeHtml(m.title)}</div>
+            <span class="admin-mod-author-sub">Tác giả: ${escapeHtml(m.authorName || "Đào tạo")}</span>
+          </td>
           <td>${statusBadge}</td>
           <td><strong>${attCnt > 0 ? `${p.bestScore}%` : "—"}</strong> (Chuẩn &ge;${m.passThreshold || 80}%)</td>
           <td>${attCnt} lần</td>
@@ -2770,7 +2753,7 @@
         <div class="admin-card-head" style="padding-top:8px;border-top:1px solid #FFEDD5;">
           <div>
             <h2 class="admin-title">Phân tích Câu hỏi Trắc nghiệm — ${escapeHtml(mod.code)}: ${escapeHtml(mod.title)}</h2>
-            <p class="admin-sub">Giúp Quản lý nắm được câu hỏi nào Sale trả lời tốt và kiến thức nào Sale hay nhầm lẫn để đào tạo bổ sung.</p>
+            <p class="admin-sub">Tác giả học phần: <strong>${escapeHtml(mod.authorName || "Đào tạo")}</strong> · Giúp Quản lý nắm được câu hỏi nào Sale trả lời tốt và kiến thức nào Sale hay nhầm lẫn.</p>
           </div>
           <button type="button" class="btn-primary" id="btnAnalyticsEditQuiz">Chỉnh sửa bộ câu hỏi này</button>
         </div>

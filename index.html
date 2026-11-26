@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=14">
+  <link rel="stylesheet" href="styles.css?v=15">
 </head>
 <body>
   <!-- 1. AUTHENTICATION SCREEN (LOGIN PORTAL - 3 ROLES) -->
@@ -151,16 +151,16 @@
           </button>
         </div>
 
-        <!-- LEARNER OVERALL PROGRESS MINI CARD -->
+        <!-- LEARNER OVERALL PROGRESS MINI CARD (COMPACT 1-LINE) -->
         <div class="sidebar-progress-box" id="sidebarProgressBox">
           <div class="sp-top">
-            <span class="sp-label" id="lblSidebarProgressTitle">Tiến độ hoàn thành</span>
-            <strong class="sp-val" id="lblSidebarProgressPct">0%</strong>
+            <span class="sp-label" id="lblSidebarProgressTitle">Tiến độ</span>
+            <strong class="sp-val" id="lblSidebarProgressPct">0/4 bài</strong>
           </div>
           <div class="sp-bar-track">
             <div class="sp-bar-fill" id="sidebarProgressBarFill" style="width: 0%;"></div>
           </div>
-          <div class="sp-sub" id="lblSidebarProgressSub">Đã đạt 0/4 học phần (Chuẩn &ge; 80%)</div>
+          <div class="sp-sub hidden" id="lblSidebarProgressSub"></div>
         </div>
 
         <!-- UPLOADER QUICK CREATE MODULE BUTTON -->
@@ -289,7 +289,10 @@
             <div class="up-card">
               <div class="up-minimal-row">
                 <div class="form-group" style="flex:1;">
-                  <label for="upModTitle">Tên bài học / Tài liệu:</label>
+                  <div class="label-row-between">
+                    <label for="upModTitle">Tên bài học / Tài liệu:</label>
+                    <span class="up-author-tag" id="lblUploaderModuleAuthor">Tác giả: —</span>
+                  </div>
                   <input type="text" id="upModTitle" class="input-control" placeholder="Nhập tên bài học cho Sale...">
                 </div>
                 <div class="form-group" style="width:210px;">
@@ -701,7 +704,7 @@
   </dialog>
 
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
-  <script src="data/initial_data.js?v=14"></script>
-  <script src="app.js?v=14"></script>
+  <script src="data/initial_data.js?v=15"></script>
+  <script src="app.js?v=15"></script>
 </body>
 </html>

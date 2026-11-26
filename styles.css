@@ -3415,3 +3415,75 @@ dialog::backdrop {
   background: #FFEDD5;
   border-color: #FB923C;
 }
+
+
+/* ========================================================================= */
+/* 13. COMPACT LEFT SIDEBAR & AUTHOR TAGS FOR ADMIN / ĐÀO TẠO                */
+/* ========================================================================= */
+.lesson-sidebar {
+  width: 272px;
+}
+
+.sidebar-header {
+  padding: 11px 12px;
+  gap: 8px;
+}
+
+.sidebar-progress-box {
+  padding: 8px 10px;
+  gap: 5px;
+}
+
+.sidebar-lessons-scroll {
+  padding: 8px 10px;
+  gap: 7px;
+}
+
+.sidebar-lesson-item {
+  padding: 9px 11px;
+  gap: 4px;
+}
+
+.sidebar-item-title {
+  font-size: 12.6px;
+  font-weight: 700;
+  color: #1E293B;
+  line-height: 1.36;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.sidebar-author-line {
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748B;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  margin-top: 1px;
+}
+
+.sidebar-author-line strong {
+  color: #475569;
+}
+
+.up-author-tag {
+  font-size: 11.8px;
+  font-weight: 700;
+  color: #C2410C;
+  background: #FFF7ED;
+  border: 1px solid #FED7AA;
+  padding: 2px 9px;
+  border-radius: 99px;
+}
+
+.admin-mod-author-sub {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748B;
+  margin-top: 2px;
+}
