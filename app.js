@@ -33,10 +33,12 @@
 
   // Study document interactive filters (for HP03 sample lessons & HP04 72 lessons)
   let hp03GradeFilter = "ALL";
-  let hp03LessonSubTab = "compare"; // "compare" | "activities" | "quiz"
+  let hp03LessonSubTab = "compare"; // "compare" | "activities"
   let hp04SearchQuery = "";
   let hp04TermFilter = "ALL";
   let inlineMiniQuizAnswers = {}; // { [questionId]: selectedOptionIndex }
+  let inlineMiniQuizSubmitted = {}; // { [lessonIndex]: boolean }
+  let hp03QuickQuizOptionOrders = {}; // { [questionId]: number[] }
 
   // Active quiz state for the Sale currently taking a quiz
   let currentQuizAnswers = {}; // { [questionId]: selectedOptionIndex }
@@ -53,6 +55,46 @@
   function getCategoryLabel(catKey) {
     const found = QUESTION_CATEGORIES.find(c => c.key === catKey);
     return found ? found.label : "Kiến thức tư vấn";
+  }
+
+  const CORE_MODULE_IDS = new Set([
+    "mod-01-tong-quan",
+    "mod-02-nen-tang-sp",
+    "mod-03-10-bai-mau",
+    "mod-04-lo-trinh-72-tiet"
+  ]);
+
+  function upgradeCoreModulesIfNeeded(targetDb) {
+    if (!targetDb || !window.INITIAL_TRAINING_DB || !Array.isArray(window.INITIAL_TRAINING_DB.modules)) return false;
+    const targetCoreVer = (window.INITIAL_TRAINING_DB.meta && window.INITIAL_TRAINING_DB.meta.coreModulesVersion) || 1;
+    if (!targetDb.meta) targetDb.meta = {};
+    if ((targetDb.meta.coreModulesVersion || 0) >= targetCoreVer) return false;
+
+    const initMap = new Map();
+    window.INITIAL_TRAINING_DB.modules.forEach(m => {
+      if (m && m.id && CORE_MODULE_IDS.has(m.id)) initMap.set(m.id, m);
+    });
+    if (!Array.isArray(targetDb.modules)) targetDb.modules = [];
+
+    targetDb.modules = targetDb.modules.map(m => {
+      if (m && m.id && initMap.has(m.id)) {
+        const fresh = initMap.get(m.id);
+        return {
+          ...m,
+          questions: JSON.parse(JSON.stringify(fresh.questions || [])),
+          lessonQuickQuizzes: Array.isArray(fresh.lessonQuickQuizzes)
+            ? JSON.parse(JSON.stringify(fresh.lessonQuickQuizzes))
+            : undefined,
+          structuredData: fresh.structuredData ? JSON.parse(JSON.stringify(fresh.structuredData)) : m.structuredData,
+          updatedAt: fresh.updatedAt || new Date().toISOString()
+        };
+      }
+      return m;
+    });
+
+    targetDb.meta.coreModulesVersion = targetCoreVer;
+    targetDb.meta.updatedAt = new Date().toISOString();
+    return true;
   }
 
   function loadInitialDb() {
@@ -96,6 +138,7 @@
         ? JSON.parse(JSON.stringify(window.INITIAL_TRAINING_DB.modules))
         : [];
     }
+    upgradeCoreModulesIfNeeded(result);
     if (!Array.isArray(result.progress)) result.progress = [];
     if (!result.presence || typeof result.presence !== "object") result.presence = {};
     if (!Array.isArray(result.activityLogs)) result.activityLogs = [];
@@ -313,6 +356,10 @@
           // Local changes are newer than cloud; push local config to cloud
           triggerAutoSave(true, true);
         }
+      }
+
+      if (upgradeCoreModulesIfNeeded(db)) {
+        triggerAutoSave(true, true);
       }
 
       if (cloudProgress.length > 0) {
@@ -1272,13 +1319,17 @@
   }
 
   function getLessonInlineQuestions(mod, stepIdx) {
-    if (!mod || !Array.isArray(mod.questions)) return [];
-    const matched = mod.questions.filter(q => q.lessonIndex === stepIdx);
+    if (!mod) return [];
+    const quickBank = Array.isArray(mod.lessonQuickQuizzes) && mod.lessonQuickQuizzes.length > 0
+      ? mod.lessonQuickQuizzes
+      : (Array.isArray(mod.questions) ? mod.questions : []);
+    if (quickBank.length === 0) return [];
+    const matched = quickBank.filter(q => q.lessonIndex === stepIdx);
     if (matched.length > 0) return matched;
     if (mod.structuredType === "sample_10_lessons" && Array.isArray(mod.structuredData) && mod.structuredData[stepIdx]) {
       const code = String(mod.structuredData[stepIdx].bai_hoc || "").split(/[\s\-]/)[0].trim();
       if (code) {
-        return mod.questions.filter(q => q.lessonCode === code || (q.question && q.question.includes(code)));
+        return quickBank.filter(q => q.lessonCode === code || (q.question && q.question.includes(code)));
       }
     }
     return [];
@@ -1357,14 +1408,14 @@
       }));
     }
 
-    // 3. HP03: 10 Sample Lessons -> 3 clean horizontal sub-tabs per lesson (fits 1 screen cleanly without long scroll)
+    // 3. HP03: 10 Sample Lessons -> 2 clean horizontal sub-tabs + Floating Modal CTA for per-lesson Quick Quiz
     if (mod.structuredType === "sample_10_lessons" && Array.isArray(mod.structuredData)) {
       return mod.structuredData.map((item, idx) => {
         const lessonCode = String(item.bai_hoc || "").split(/[\s\-]/)[0].trim();
         const lessonQs = getLessonInlineQuestions(mod, idx);
-        const answeredMini = lessonQs.filter(q => inlineMiniQuizAnswers[q.id] !== undefined).length;
+        const isMiniSubmitted = Boolean(inlineMiniQuizSubmitted[idx]);
         const rightMini = lessonQs.filter(q => inlineMiniQuizAnswers[q.id] === Number(q.correctIndex)).length;
-        const letters = ["A", "B", "C", "D"];
+        const isAllRight = isMiniSubmitted && lessonQs.length > 0 && rightMini === lessonQs.length;
 
         let tabBodyHtml = "";
         if (hp03LessonSubTab === "activities") {
@@ -1373,56 +1424,6 @@
               <div class="stc-timeline-card" style="margin-top:0;">
                 <div class="stc-box-label" style="color:#C2410C;">Tiến trình tổ chức &amp; Thực hành trên lớp</div>
                 ${formatTimelineStepsHtml(item.cach_trien_khai)}
-              </div>
-            </div>
-          `;
-        } else if (hp03LessonSubTab === "quiz") {
-          const qCardsHtml = lessonQs.map((q, qIdx) => {
-            const chosen = inlineMiniQuizAnswers[q.id];
-            const hasChosen = chosen !== undefined;
-            const isRight = hasChosen && chosen === Number(q.correctIndex);
-            const optsHtml = (q.options || []).map((optText, oIdx) => {
-              let cls = "lmq-opt-btn";
-              if (hasChosen) {
-                if (oIdx === Number(q.correctIndex)) cls += " right";
-                else if (chosen === oIdx) cls += " wrong";
-              }
-              return `
-                <button type="button" class="${cls}" data-mini-q="${escapeHtml(q.id)}" data-mini-opt="${oIdx}">
-                  <span class="qq-opt-letter">${letters[oIdx] || oIdx + 1}</span>
-                  <span>${escapeHtml(optText)}</span>
-                </button>
-              `;
-            }).join("");
-
-            return `
-              <div class="lmq-q-item">
-                <div style="font-size:13.8px;font-weight:700;color:#0F172A;line-height:1.45;">
-                  <span class="qq-num-badge" style="margin-right:6px;">Câu ${qIdx + 1}/${lessonQs.length}</span>
-                  ${escapeHtml(q.question)}
-                </div>
-                <div class="lmq-opt-grid">${optsHtml}</div>
-                ${hasChosen ? `
-                  <div class="lmq-feedback ${isRight ? "right" : "wrong"}">
-                    <strong>${isRight ? "✓ Chính xác!" : `✕ Chưa đúng (Đáp án chuẩn là ${letters[q.correctIndex]}).`}</strong>
-                    ${escapeHtml(q.explanation || "")}
-                  </div>
-                ` : ""}
-              </div>
-            `;
-          }).join("");
-
-          tabBodyHtml = `
-            <div class="stc-tier-stack">
-              <div class="lesson-mini-quiz-box" style="margin-top:0;border:none;padding:4px 0;box-shadow:none;background:transparent;">
-                <div class="lmq-head">
-                  <div>
-                    <div class="lmq-title">Trắc nghiệm ôn ngay Bài ${idx + 1} (${lessonCode}) — ${lessonQs.length} câu</div>
-                    <div style="font-size:12.2px;color:#64748B;">Đã đúng: <strong style="color:#059669;">${rightMini}/${lessonQs.length}</strong> (đã chọn ${answeredMini}/${lessonQs.length}).</div>
-                  </div>
-                  ${answeredMini > 0 ? `<button type="button" class="btn-row-act" id="btnResetMiniQuizStep">Làm lại 3 câu này</button>` : ""}
-                </div>
-                ${qCardsHtml}
               </div>
             </div>
           `;
@@ -1448,6 +1449,27 @@
           `;
         }
 
+        const quickQuizCtaHtml = lessonQs.length > 0 ? `
+          <div class="hp03-quick-quiz-cta-bar ${isAllRight ? "done" : ""}">
+            <div class="hp03-quick-quiz-cta-info">
+              <strong>${isAllRight
+                ? `✓ Đã hoàn thành kiểm tra nhanh Bài ${idx + 1} (${rightMini}/${lessonQs.length} câu đúng)`
+                : (isMiniSubmitted
+                  ? `Kết quả kiểm tra nhanh Bài ${idx + 1}: ${rightMini}/${lessonQs.length} câu đúng`
+                  : `Kiểm tra nhanh kiến thức &amp; phản biện Bài ${idx + 1} (${lessonCode})`
+                )
+              }</strong>
+              <span>${isMiniSubmitted
+                ? "Bấm để xem lại giải thích chi tiết hoặc làm lại bộ câu hỏi của riêng bài này."
+                : `Gồm ${lessonQs.length} câu riêng cho bài vừa đọc (không trùng đề thi tổng hợp cuối học phần).`
+              }</span>
+            </div>
+            <button type="button" class="btn-hp03-quick-quiz" data-open-hp03-quiz="${idx}">
+              ${isMiniSubmitted ? `Xem lại / Làm lại (${rightMini}/${lessonQs.length})` : `Kiểm tra nhanh bài này (${lessonQs.length} câu)`}
+            </button>
+          </div>
+        ` : "";
+
         return {
           pillLabel: `Bài ${idx + 1} (${lessonCode})`,
           lessonCode,
@@ -1472,11 +1494,9 @@
                 <button type="button" class="hp03-subtab-btn ${hp03LessonSubTab === 'activities' ? 'active' : ''}" data-hp03-subtab="activities">
                   2. Các hoạt động trên lớp
                 </button>
-                <button type="button" class="hp03-subtab-btn ${hp03LessonSubTab === 'quiz' ? 'active' : ''}" data-hp03-subtab="quiz">
-                  3. Trắc nghiệm bài này (${rightMini}/${lessonQs.length})
-                </button>
               </div>
               ${tabBodyHtml}
+              ${quickQuizCtaHtml}
             </article>
           `
         };
@@ -1726,6 +1746,159 @@
     return customSteps;
   }
 
+  function openHp03QuickQuizModal(mod, prog, stepIdx) {
+    const dlg = document.getElementById("hp03QuickQuizDialog");
+    if (!dlg || !mod) return;
+    const lessonItem = (Array.isArray(mod.structuredData) && mod.structuredData[stepIdx]) ? mod.structuredData[stepIdx] : null;
+    const lessonQs = getLessonInlineQuestions(mod, stepIdx);
+    if (lessonQs.length === 0) return;
+
+    const titleEl = document.getElementById("hp03QuickQuizTitle");
+    const subEl = document.getElementById("hp03QuickQuizSub");
+    const bodyEl = document.getElementById("hp03QuickQuizBody");
+    const footerEl = document.getElementById("hp03QuickQuizFooter");
+    const letters = ["A", "B", "C", "D"];
+
+    if (titleEl) {
+      titleEl.textContent = `Kiểm tra nhanh Bài ${stepIdx + 1}: ${lessonItem ? lessonItem.bai_hoc : ""}`;
+    }
+    if (subEl) {
+      subEl.textContent = "Chọn đủ đáp án cho các câu hỏi bên dưới rồi bấm \"Kiểm tra kết quả\" để tự đánh giá mức độ hiểu bài.";
+    }
+
+    function ensureShuffledOrders() {
+      lessonQs.forEach(q => {
+        const optLen = Array.isArray(q.options) ? q.options.length : 0;
+        if (!Array.isArray(hp03QuickQuizOptionOrders[q.id]) || hp03QuickQuizOptionOrders[q.id].length !== optLen) {
+          hp03QuickQuizOptionOrders[q.id] = shuffleArray(Array.from({ length: optLen }, (_, k) => k));
+        }
+      });
+    }
+
+    function renderModalContent() {
+      ensureShuffledOrders();
+      const isSubmitted = Boolean(inlineMiniQuizSubmitted[stepIdx]);
+      const answeredCount = lessonQs.filter(q => inlineMiniQuizAnswers[q.id] !== undefined).length;
+      const rightCount = lessonQs.filter(q => inlineMiniQuizAnswers[q.id] === Number(q.correctIndex)).length;
+
+      let resultBannerHtml = "";
+      if (isSubmitted) {
+        const isPerfect = rightCount === lessonQs.length;
+        resultBannerHtml = `
+          <div class="hp03-qq-result-banner ${isPerfect ? "perfect" : "partial"}">
+            <span>${isPerfect
+              ? `✓ Tuyệt vời! Bạn trả lời đúng cả ${rightCount}/${lessonQs.length} câu của Bài ${stepIdx + 1}.`
+              : `Kết quả: ${rightCount}/${lessonQs.length} câu đúng — Xem phân tích bên dưới để phân biệt bẫy sai.`
+            }</span>
+          </div>
+        `;
+      }
+
+      const cardsHtml = lessonQs.map((q, qIdx) => {
+        const chosenOrig = inlineMiniQuizAnswers[q.id];
+        const correctOrig = Number(q.correctIndex);
+        const isRight = isSubmitted && chosenOrig === correctOrig;
+        const optOrder = hp03QuickQuizOptionOrders[q.id] || (q.options || []).map((_, k) => k);
+        const correctDisplayPos = optOrder.indexOf(correctOrig);
+        const correctDisplayLetter = letters[correctDisplayPos >= 0 ? correctDisplayPos : correctOrig];
+
+        const optsHtml = optOrder.map((origIdx, dispPos) => {
+          const optText = (q.options || [])[origIdx] || "";
+          let cls = "lmq-opt-btn";
+          if (isSubmitted) {
+            if (origIdx === correctOrig) cls += " right";
+            else if (chosenOrig === origIdx) cls += " wrong";
+          } else if (chosenOrig === origIdx) {
+            cls += " selected";
+          }
+          return `
+            <button type="button" class="${cls}" data-qq-modal-q="${escapeHtml(q.id)}" data-qq-modal-opt="${origIdx}" ${isSubmitted ? "disabled" : ""}>
+              <span class="qq-opt-letter">${letters[dispPos] || dispPos + 1}</span>
+              <span>${escapeHtml(optText)}</span>
+            </button>
+          `;
+        }).join("");
+
+        return `
+          <div class="lmq-q-item" style="margin-bottom:10px;">
+            <div style="font-size:13.8px;font-weight:700;color:#0F172A;line-height:1.45;">
+              <span class="qq-num-badge" style="margin-right:6px;">Câu ${qIdx + 1}/${lessonQs.length}</span>
+              ${q.bloomLevel ? `<span class="mod-cat-pill" style="margin-right:6px;">${escapeHtml(q.bloomLevel)}</span>` : ""}
+              ${escapeHtml(q.question)}
+            </div>
+            <div class="lmq-opt-grid">${optsHtml}</div>
+            ${isSubmitted ? `
+              <div class="lmq-feedback ${isRight ? "right" : "wrong"}">
+                <strong>${isRight ? "✓ Chính xác!" : `✕ Chưa đúng (Đáp án chuẩn là ${correctDisplayLetter}).`}</strong>
+                ${escapeHtml(q.explanation || "")}
+              </div>
+            ` : ""}
+          </div>
+        `;
+      }).join("");
+
+      bodyEl.innerHTML = `${resultBannerHtml}${cardsHtml}`;
+
+      if (!isSubmitted) {
+        footerEl.innerHTML = `
+          <span style="font-size:12.5px;color:#64748B;">Đã chọn <strong>${answeredCount}/${lessonQs.length}</strong> câu hỏi</span>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button type="button" class="btn-secondary" id="btnCloseHp03QqModal">Đóng</button>
+            <button type="button" class="btn-primary" id="btnSubmitHp03QuickQuiz" ${answeredCount < lessonQs.length ? "disabled" : ""}>
+              Kiểm tra kết quả (${answeredCount}/${lessonQs.length})
+            </button>
+          </div>
+        `;
+      } else {
+        footerEl.innerHTML = `
+          <span style="font-size:12.5px;color:#64748B;">Đúng <strong>${rightCount}/${lessonQs.length}</strong> câu · Dữ liệu ôn bài không trùng đề thi tổng hợp cuối HP03.</span>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button type="button" class="btn-row-act" id="btnResetHp03QuickQuizModal">Làm lại ${lessonQs.length} câu (đảo đáp án)</button>
+            <button type="button" class="btn-primary" id="btnCloseHp03QqModal">Đóng</button>
+          </div>
+        `;
+      }
+
+      bodyEl.querySelectorAll("[data-qq-modal-q]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          if (inlineMiniQuizSubmitted[stepIdx]) return;
+          inlineMiniQuizAnswers[btn.dataset.qqModalQ] = Number(btn.dataset.qqModalOpt);
+          renderModalContent();
+        });
+      });
+
+      const btnSubmit = document.getElementById("btnSubmitHp03QuickQuiz");
+      if (btnSubmit) {
+        btnSubmit.onclick = () => {
+          inlineMiniQuizSubmitted[stepIdx] = true;
+          renderModalContent();
+          renderSaleDocumentPanel(mod, prog);
+        };
+      }
+
+      const btnReset = document.getElementById("btnResetHp03QuickQuizModal");
+      if (btnReset) {
+        btnReset.onclick = () => {
+          delete inlineMiniQuizSubmitted[stepIdx];
+          lessonQs.forEach(q => {
+            delete inlineMiniQuizAnswers[q.id];
+            delete hp03QuickQuizOptionOrders[q.id];
+          });
+          renderModalContent();
+          renderSaleDocumentPanel(mod, prog);
+        };
+      }
+
+      const btnClose = document.getElementById("btnCloseHp03QqModal");
+      if (btnClose) {
+        btnClose.onclick = () => dlg.close();
+      }
+    }
+
+    renderModalContent();
+    if (!dlg.open) dlg.showModal();
+  }
+
   function renderSaleDocumentPanel(mod, prog, docSteps) {
     const steps = docSteps || buildDocumentSteps(mod);
     if (activeDocStepIndex >= steps.length) activeDocStepIndex = 0;
@@ -1737,7 +1910,9 @@
 
     const pillsHtml = steps.map((st, idx) => {
       const lessonQs = getLessonInlineQuestions(mod, idx);
-      const isLessonMiniDone = lessonQs.length > 0 && lessonQs.every(q => inlineMiniQuizAnswers[q.id] === Number(q.correctIndex));
+      const isLessonMiniDone = lessonQs.length > 0
+        && (mod.structuredType !== "sample_10_lessons" || Boolean(inlineMiniQuizSubmitted[idx]))
+        && lessonQs.every(q => inlineMiniQuizAnswers[q.id] === Number(q.correctIndex));
       return `
         <button type="button" class="doc-step-pill ${idx === activeDocStepIndex ? 'active' : ''} ${isLessonMiniDone ? 'mini-done' : ''}" data-doc-step="${idx}">
           ${isLessonMiniDone ? "✓ " : ""}${escapeHtml(st.pillLabel)}
@@ -1861,6 +2036,12 @@
       btn.addEventListener("click", () => {
         hp03LessonSubTab = btn.dataset.hp03Subtab;
         renderSaleDocumentPanel(mod, prog);
+      });
+    });
+
+    bodyContainer.querySelectorAll("[data-open-hp03-quiz]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        openHp03QuickQuizModal(mod, prog, Number(btn.dataset.openHp03Quiz));
       });
     });
 

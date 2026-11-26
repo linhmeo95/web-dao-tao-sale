@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=27">
+  <link rel="stylesheet" href="styles.css?v=28">
 </head>
 <body>
   <!-- 1. AUTHENTICATION SCREEN (LOGIN PORTAL - 3 ROLES) -->
@@ -755,9 +755,23 @@
     </div>
   </dialog>
 
+  <dialog id="hp03QuickQuizDialog" closedby="any" aria-labelledby="hp03QuickQuizTitle">
+    <div class="dialog-inner" style="max-width:780px;width:96vw;">
+      <div class="dialog-header">
+        <div>
+          <h2 id="hp03QuickQuizTitle">Kiểm tra nhanh bài học</h2>
+          <p id="hp03QuickQuizSub" style="font-size:12.5px;color:var(--ink-muted);margin:2px 0 0 0;"></p>
+        </div>
+        <button type="button" class="btn-close-dialog" data-close-dialog="hp03QuickQuizDialog" aria-label="Đóng">✕</button>
+      </div>
+      <div id="hp03QuickQuizBody" style="max-height:66vh;overflow-y:auto;padding-right:4px;"></div>
+      <div class="dialog-footer" id="hp03QuickQuizFooter" style="justify-content:space-between;flex-wrap:wrap;gap:10px;"></div>
+    </div>
+  </dialog>
+
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <script src="data/initial_data.js?v=27"></script>
-  <script src="app.js?v=27"></script>
+  <script src="data/initial_data.js?v=28"></script>
+  <script src="app.js?v=28"></script>
 </body>
 </html>
