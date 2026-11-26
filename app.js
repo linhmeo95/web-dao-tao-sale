@@ -1371,7 +1371,7 @@
                 </div>
               </div>
               <div class="stc-box usp">
-                <div class="stc-box-label">Điểm khác biệt ăn tiền</div>
+                <div class="stc-box-label">Giá trị sư phạm nổi bật</div>
                 <div class="stc-box-content">${formatStudyRichTextHtml(item.khac_biet_an_tien)}</div>
               </div>
             </div>
@@ -1418,6 +1418,7 @@
     if (mod.structuredType === "sample_10_lessons" && Array.isArray(mod.structuredData)) {
       return mod.structuredData.map((item, idx) => {
         const lessonCode = String(item.bai_hoc || "").split(/[\s\-]/)[0].trim();
+        const lessonTitle = String(item.bai_hoc || "").replace(/^[A-Za-z]+\d+\s*[-–:.]\s*/i, "").trim() || item.bai_hoc;
         const lessonQs = getLessonInlineQuestions(mod, idx);
         const isMiniSubmitted = Boolean(inlineMiniQuizSubmitted[idx]);
         const rightMini = lessonQs.filter(q => inlineMiniQuizAnswers[q.id] === Number(q.correctIndex)).length;
@@ -1437,7 +1438,7 @@
           tabBodyHtml = `
             <div class="stc-tier-stack">
               <div class="stc-pitch-spotlight">
-                <div class="stc-box-label">Điểm ăn tiền để Sale thuyết phục Chủ trường</div>
+                <div class="stc-box-label">Giá trị sư phạm nổi bật để Sale thuyết phục Chủ trường</div>
                 ${formatStudyRichTextHtml(item.diem_an_tien)}
               </div>
 
@@ -1459,21 +1460,23 @@
           <div class="hp03-quick-quiz-cta-bar ${isAllRight ? "done" : ""}">
             <div class="hp03-quick-quiz-cta-info">
               <strong>${isAllRight
-                ? `✓ Đã hoàn thành kiểm tra nhanh Bài ${idx + 1} (${rightMini}/${lessonQs.length} câu đúng)`
+                ? `✓ Đã hoàn thành kiểm tra nhanh ${escapeHtml(lessonCode)} (${rightMini}/${lessonQs.length} câu đúng)`
                 : (isMiniSubmitted
-                  ? `Kết quả kiểm tra nhanh Bài ${idx + 1}: ${rightMini}/${lessonQs.length} câu đúng`
-                  : `Kiểm tra nhanh kiến thức &amp; phản biện Bài ${idx + 1} (${lessonCode})`
+                  ? `Kết quả kiểm tra nhanh ${escapeHtml(lessonCode)}: ${rightMini}/${lessonQs.length} câu đúng`
+                  : `Kiểm tra nhanh kiến thức &amp; phản biện (${escapeHtml(lessonCode)})`
                 )
               }</strong>
             </div>
             <button type="button" class="btn-hp03-quick-quiz" data-open-hp03-quiz="${idx}">
-              ${isMiniSubmitted ? `Xem lại / Làm lại (${rightMini}/${lessonQs.length})` : `Kiểm tra nhanh bài này (${lessonQs.length} câu)`}
+              ${isMiniSubmitted ? `Xem lại / Làm lại (${rightMini}/${lessonQs.length})` : `Kiểm tra nhanh (${lessonQs.length} câu)`}
             </button>
           </div>
         ` : "";
 
         return {
-          pillLabel: `Bài ${idx + 1} (${lessonCode})`,
+          pillCode: lessonCode,
+          pillTitle: lessonTitle,
+          pillLabel: `${lessonCode} · ${lessonTitle}`,
           lessonCode,
           title: `${item.bai_hoc}`,
           hasEmbeddedQuiz: true,
@@ -1491,7 +1494,7 @@
               </div>
               <div class="hp03-subtab-bar" role="tablist">
                 <button type="button" class="hp03-subtab-btn ${hp03LessonSubTab === 'compare' ? 'active' : ''}" data-hp03-subtab="compare">
-                  1. Điểm ăn tiền &amp; So sánh
+                  1. Giá trị sư phạm nổi bật &amp; So sánh
                 </button>
                 <button type="button" class="hp03-subtab-btn ${hp03LessonSubTab === 'activities' ? 'active' : ''}" data-hp03-subtab="activities">
                   2. Các hoạt động trên lớp
@@ -1762,7 +1765,7 @@
     const letters = ["A", "B", "C", "D"];
 
     if (titleEl) {
-      titleEl.textContent = `Kiểm tra nhanh Bài ${stepIdx + 1}: ${lessonItem ? lessonItem.bai_hoc : ""}`;
+      titleEl.textContent = `Kiểm tra nhanh: ${lessonItem ? lessonItem.bai_hoc : ""}`;
     }
     if (subEl) {
       subEl.textContent = "Chọn đủ đáp án cho các câu hỏi bên dưới rồi bấm \"Kiểm tra kết quả\" để tự đánh giá mức độ hiểu bài.";
@@ -1786,10 +1789,11 @@
       let resultBannerHtml = "";
       if (isSubmitted) {
         const isPerfect = rightCount === lessonQs.length;
+        const lessonLabel = lessonItem ? String(lessonItem.bai_hoc || "").split(/[\s\-]/)[0].trim() : `mục ${stepIdx + 1}`;
         resultBannerHtml = `
           <div class="hp03-qq-result-banner ${isPerfect ? "perfect" : "partial"}">
             <span>${isPerfect
-              ? `✓ Tuyệt vời! Bạn trả lời đúng cả ${rightCount}/${lessonQs.length} câu của Bài ${stepIdx + 1}.`
+              ? `✓ Tuyệt vời! Bạn trả lời đúng cả ${rightCount}/${lessonQs.length} câu của ${escapeHtml(lessonLabel)}.`
               : `Kết quả: ${rightCount}/${lessonQs.length} câu đúng — Xem phân tích bên dưới để phân biệt bẫy sai.`
             }</span>
           </div>
@@ -1909,11 +1913,24 @@
     const bodyContainer = document.getElementById("saleDocBodyContainer");
     const letters = ["A", "B", "C", "D"];
 
+    const useGrid5 = steps.length >= 8 && steps.some(st => st.pillCode && st.pillTitle);
+
     const pillsHtml = steps.map((st, idx) => {
       const lessonQs = getLessonInlineQuestions(mod, idx);
       const isLessonMiniDone = lessonQs.length > 0
         && (mod.structuredType !== "sample_10_lessons" || Boolean(inlineMiniQuizSubmitted[idx]))
         && lessonQs.every(q => inlineMiniQuizAnswers[q.id] === Number(q.correctIndex));
+      if (st.pillCode && st.pillTitle) {
+        return `
+          <button type="button" class="doc-step-pill is-grid-card ${idx === activeDocStepIndex ? 'active' : ''} ${isLessonMiniDone ? 'mini-done' : ''}" data-doc-step="${idx}" title="${escapeHtml(st.pillLabel)}">
+            <span class="dsp-code-row">
+              <span class="dsp-code">${escapeHtml(st.pillCode)}</span>
+              ${isLessonMiniDone ? '<span class="dsp-done-badge">✓ Đạt</span>' : ''}
+            </span>
+            <span class="dsp-name">${escapeHtml(st.pillTitle)}</span>
+          </button>
+        `;
+      }
       return `
         <button type="button" class="doc-step-pill ${idx === activeDocStepIndex ? 'active' : ''} ${isLessonMiniDone ? 'mini-done' : ''}" data-doc-step="${idx}">
           ${isLessonMiniDone ? "✓ " : ""}${escapeHtml(st.pillLabel)}
@@ -1983,13 +2000,16 @@
 
     bodyContainer.innerHTML = `
       <div class="doc-stepper-bar">
-        <div class="doc-step-pills">${pillsHtml}</div>
-        <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
-          ${downloadBtnHtml}
-          <button type="button" class="btn-inline-report-bug" id="btnReportDocStepBug">
-            Báo lỗi mục này
-          </button>
+        <div class="doc-stepper-utils-row">
+          <span class="doc-stepper-meta-label">${mod.structuredType === "sample_10_lessons" ? `Chọn bài mẫu (${steps.length} bài)` : `Chọn mục tài liệu (${steps.length} mục)`}</span>
+          <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
+            ${downloadBtnHtml}
+            <button type="button" class="btn-inline-report-bug" id="btnReportDocStepBug">
+              Báo lỗi mục này
+            </button>
+          </div>
         </div>
+        <div class="doc-step-pills ${useGrid5 ? "is-grid-5" : ""}">${pillsHtml}</div>
       </div>
 
       <div class="doc-active-step-body">
@@ -2517,7 +2537,7 @@
         lines.push(`[Mục ${r.stt}: ${r.title}]`);
         lines.push(`- Chương trình Bộ GD&ĐT: ${r.bo_gddt}`);
         lines.push(`- Chương trình KNS Novastars: ${r.novastars}`);
-        lines.push(`- Điểm khác biệt ăn tiền: ${r.khac_biet_an_tien}`);
+        lines.push(`- Giá trị sư phạm nổi bật: ${r.khac_biet_an_tien}`);
         lines.push(`- Câu chốt Sale nói với Chủ trường/Hiệu trưởng: ${r.sale_pitch}\n`);
       });
     } else if (mod.structuredType === "pedagogy_6_reasons" && Array.isArray(mod.structuredData)) {
@@ -2534,7 +2554,7 @@
         lines.push(`- Đề tài trường vẫn dạy (${r.de_tai_quen_thuoc}): ${r.cach_truong_thuong_day}`);
         lines.push(`- Nội dung Novastars: ${r.noi_dung_novastars}`);
         lines.push(`- Cách triển khai: ${r.cach_trien_khai}`);
-        lines.push(`- Điểm ăn tiền thuyết phục Chủ trường: ${r.diem_an_tien}\n`);
+        lines.push(`- Giá trị sư phạm nổi bật thuyết phục Chủ trường: ${r.diem_an_tien}\n`);
       });
     } else if (mod.structuredType === "roadmap_72_lessons" && mod.structuredData) {
       (mod.structuredData.ageSummaries || []).forEach(a => {
