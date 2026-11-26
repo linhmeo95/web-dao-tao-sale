@@ -2650,35 +2650,52 @@
   // =========================================================================
   // VIEW C: ADMIN (MANAGER) DASHBOARD RENDERING
   // =========================================================================
+  let adminMatrixSearchQuery = "";
+  let adminModuleStatusFilter = "ALL";
+  let adminModuleAuthorFilter = "ALL";
+  let adminModuleSearchQuery = "";
+  let adminActivitySearchQuery = "";
+
   function renderAdminWorkspace() {
-    const sales = (db.users || []).filter(u => u.role === "sale");
+    const allUsers = db.users || [];
+    const sales = allUsers.filter(u => u.role === "sale");
+    const uploaders = allUsers.filter(u => u.role === "uploader");
     const pubMods = getVisibleModulesForLearner();
 
     const allMods = db.modules || [];
     const pendingModsCount = allMods.filter(m => m.status === "pending").length;
-    const openBugsCount = (db.bugReports || []).filter(b => b.status !== "resolved").length;
+    const allBugs = db.bugReports || [];
+    const openBugsCount = allBugs.filter(b => b.status !== "resolved").length;
     const nowMs = Date.now();
-    const onlineUsersCount = (db.users || []).filter(u => {
+    const allTrackedUsers = [...allUsers, { id: "admin", name: "Admin", role: "admin" }];
+    const onlineUsersCount = allTrackedUsers.filter(u => {
       const pr = db.presence && db.presence[u.id];
       return pr && (nowMs - (Date.parse(pr.lastSeenAt || "") || 0) < ONLINE_THRESHOLD_MS);
     }).length;
 
-    document.getElementById("badgeAdminMatrixCount").textContent = `${sales.length} Học Viên`;
+    document.getElementById("badgeAdminMatrixCount").textContent = `${sales.length} HV`;
     document.getElementById("badgeAdminAnalyticsCount").textContent = `${pubMods.length} bài`;
+    const badgeUsers = document.getElementById("badgeAdminUsersCount");
+    if (badgeUsers) {
+      badgeUsers.textContent = `${sales.length} HV · ${uploaders.length} ĐT`;
+    }
     const badgeMods = document.getElementById("badgeAdminModulesCount");
     if (badgeMods) {
       badgeMods.textContent = pendingModsCount > 0 ? `${pendingModsCount} chờ duyệt` : `${allMods.length} bài`;
+      badgeMods.classList.toggle("alert", pendingModsCount > 0);
     }
     const badgeAct = document.getElementById("badgeAdminActivityCount");
     if (badgeAct) {
       badgeAct.textContent = `${onlineUsersCount} online`;
+      badgeAct.classList.toggle("live", onlineUsersCount > 0);
     }
     const badgeBugs = document.getElementById("badgeAdminBugsCount");
     if (badgeBugs) {
-      badgeBugs.textContent = openBugsCount > 0 ? `${openBugsCount} chờ xử lý` : "0 lỗi";
+      badgeBugs.textContent = openBugsCount > 0 ? `${openBugsCount} chờ xử lý` : `${allBugs.length} mục`;
+      badgeBugs.classList.toggle("alert", openBugsCount > 0);
     }
 
-    // Render KPI Strip
+    // Render Interactive 5-Card KPI Command Strip
     const kpiBar = document.getElementById("adminKpiBar");
     let totalCells = sales.length * pubMods.length;
     let passedCells = 0;
@@ -2702,30 +2719,46 @@
 
     const completionRate = totalCells > 0 ? Math.round((passedCells * 100) / totalCells) : 0;
     const avgScore = scoredPairs > 0 ? Math.round(sumBestScores / scoredPairs) : 0;
-    const totalQuestions = pubMods.reduce((acc, m) => acc + (Array.isArray(m.questions) ? m.questions.length : 0), 0);
+    const totalQuestions = allMods.reduce((acc, m) => acc + (Array.isArray(m.questions) ? m.questions.length : 0), 0);
 
     kpiBar.innerHTML = `
-      <div class="kpi-card">
-        <span class="kpi-label">Học Viên</span>
-        <span class="kpi-val">${sales.length} Học Viên</span>
-        <span class="kpi-sub">Đang tham gia đào tạo</span>
-      </div>
-      <div class="kpi-card">
+      <button type="button" class="kpi-card ${activeAdminTab === 'matrix' ? 'active-kpi' : ''}" data-kpi-goto="matrix" title="Bấm để xem Ma trận Tiến độ Học Viên">
+        <span class="kpi-label">Tiến độ Đạt Toàn đội</span>
+        <span class="kpi-val" style="color:#059669;">${completionRate}% (${passedCells}/${totalCells})</span>
+        <span class="kpi-sub">${sales.length} Học Viên · Điểm TB: ${avgScore}% (${totalAttempts} lượt thi)</span>
+      </button>
+      <button type="button" class="kpi-card ${activeAdminTab === 'modules' ? 'active-kpi' : ''}" data-kpi-goto="modules" title="Bấm để Quản lý & Duyệt Học phần">
         <span class="kpi-label">Học phần &amp; Câu hỏi</span>
-        <span class="kpi-val">${pubMods.length} bài</span>
-        <span class="kpi-sub">Tổng ${totalQuestions} câu trắc nghiệm</span>
-      </div>
-      <div class="kpi-card">
-        <span class="kpi-label">Tỷ lệ Đạt toàn đội</span>
-        <span class="kpi-val" style="color:#059669;">${completionRate}%</span>
-        <span class="kpi-sub">${passedCells}/${totalCells} lượt học phần đã Đạt</span>
-      </div>
-      <div class="kpi-card">
-        <span class="kpi-label">Điểm TB các bài đã thi</span>
-        <span class="kpi-val">${avgScore}%</span>
-        <span class="kpi-sub">Tổng cộng ${totalAttempts} lượt nộp bài</span>
-      </div>
+        <span class="kpi-val">${allMods.length} bài · ${totalQuestions} câu</span>
+        <span class="kpi-sub" style="${pendingModsCount > 0 ? 'color:#D97706;font-weight:700;' : ''}">
+          ${pendingModsCount > 0 ? `● ${pendingModsCount} bài chờ Admin duyệt` : `✓ ${pubMods.length} bài đã xuất bản`}
+        </span>
+      </button>
+      <button type="button" class="kpi-card ${activeAdminTab === 'users' ? 'active-kpi' : ''}" data-kpi-goto="users" title="Bấm để Quản lý Nhân sự & Mã PIN">
+        <span class="kpi-label">Nhân sự &amp; Mã PIN</span>
+        <span class="kpi-val">${allUsers.length} nhân sự</span>
+        <span class="kpi-sub">${sales.length} Học Viên · ${uploaders.length} Đào tạo</span>
+      </button>
+      <button type="button" class="kpi-card ${activeAdminTab === 'activity' ? 'active-kpi' : ''}" data-kpi-goto="activity" title="Bấm để xem Trạng thái Online & Lịch sử Hoạt động">
+        <span class="kpi-label">Trực tuyến &amp; Hoạt động</span>
+        <span class="kpi-val" style="color:#059669;">● ${onlineUsersCount} đang online</span>
+        <span class="kpi-sub">${(db.activityLogs || []).length} bản ghi lịch sử hoạt động</span>
+      </button>
+      <button type="button" class="kpi-card ${activeAdminTab === 'bugs' ? 'active-kpi' : ''}" data-kpi-goto="bugs" title="Bấm để xem Báo lỗi & Phản hồi">
+        <span class="kpi-label">Báo lỗi &amp; Phản hồi</span>
+        <span class="kpi-val" style="color:${openBugsCount > 0 ? '#DC2626' : '#059669'};">
+          ${openBugsCount > 0 ? `${openBugsCount} chờ xử lý` : `✓ 0 lỗi tồn đọng`}
+        </span>
+        <span class="kpi-sub">Tổng cộng ${allBugs.length} báo lỗi / góp ý đã gửi</span>
+      </button>
     `;
+
+    kpiBar.querySelectorAll("[data-kpi-goto]").forEach(btn => {
+      btn.onclick = () => {
+        activeAdminTab = btn.dataset.kpiGoto;
+        renderAdminWorkspace();
+      };
+    });
 
     // Sidebar tab buttons
     document.querySelectorAll("[data-admin-tab]").forEach(btn => {
@@ -2743,6 +2776,7 @@
     const pModules = document.getElementById("adminPanelModules");
     const pActivity = document.getElementById("adminPanelActivity");
     const pBugs = document.getElementById("adminPanelBugs");
+    const pUsers = document.getElementById("adminPanelUsers");
 
     pMatrix.classList.toggle("hidden", activeAdminTab !== "matrix");
     pDossier.classList.toggle("hidden", activeAdminTab !== "dossier");
@@ -2750,11 +2784,14 @@
     if (pModules) pModules.classList.toggle("hidden", activeAdminTab !== "modules");
     if (pActivity) pActivity.classList.toggle("hidden", activeAdminTab !== "activity");
     if (pBugs) pBugs.classList.toggle("hidden", activeAdminTab !== "bugs");
+    if (pUsers) pUsers.classList.toggle("hidden", activeAdminTab !== "users");
 
     if (activeAdminTab === "matrix") {
       renderAdminMatrixPanel(sales, pubMods);
     } else if (activeAdminTab === "modules") {
       renderAdminModulesPanel();
+    } else if (activeAdminTab === "users") {
+      renderAdminUsersPanel();
     } else if (activeAdminTab === "activity") {
       renderAdminActivityPanel();
     } else if (activeAdminTab === "bugs") {
@@ -2768,26 +2805,72 @@
 
   function renderAdminMatrixPanel(sales, pubMods) {
     const table = document.getElementById("progressMatrixTable");
-    let thead = `<thead><tr><th>Họ và tên Học Viên</th><th>PIN</th><th>Tiến độ cá nhân</th>`;
+    const searchInp = document.getElementById("inputAdminMatrixSearch");
+    if (searchInp && !searchInp.dataset.boundMatrixSearch) {
+      searchInp.dataset.boundMatrixSearch = "1";
+      searchInp.addEventListener("input", () => {
+        adminMatrixSearchQuery = searchInp.value.trim().toLowerCase();
+        renderAdminMatrixPanel((db.users || []).filter(u => u.role === "sale"), getVisibleModulesForLearner());
+      });
+    }
+
+    const filteredSales = sales.filter(s => {
+      if (!adminMatrixSearchQuery) return true;
+      return (
+        (s.name || "").toLowerCase().includes(adminMatrixSearchQuery) ||
+        String(s.pin || "").toLowerCase().includes(adminMatrixSearchQuery)
+      );
+    });
+
+    let thead = `<thead><tr><th style="min-width:175px;">Học Viên &amp; Trạng thái Live</th><th style="width:68px;text-align:center;">PIN</th><th style="width:128px;text-align:center;">Tiến độ chung</th>`;
     pubMods.forEach(m => {
-      thead += `<th><div>${escapeHtml(m.code)} — ${escapeHtml(m.title)}</div><span class="admin-mod-author-sub">Tác giả: ${escapeHtml(m.authorName || "Đào tạo")}</span></th>`;
+      const qCount = Array.isArray(m.questions) ? m.questions.length : 0;
+      thead += `
+        <th title="${escapeHtml(m.code)} — ${escapeHtml(m.title)} (Tác giả: ${escapeHtml(m.authorName || 'Đào tạo')})">
+          <div class="matrix-mod-th-head">
+            <div class="matrix-mod-th-top">
+              <span class="matrix-mod-th-code">${escapeHtml(m.code)}</span>
+              <span class="matrix-mod-th-qcnt">${qCount} câu</span>
+            </div>
+            <div class="matrix-mod-th-title">${escapeHtml(m.title)}</div>
+            <span class="admin-mod-author-sub">TG: ${escapeHtml(m.authorName || "Đào tạo")}</span>
+          </div>
+        </th>
+      `;
     });
     thead += `</tr></thead>`;
 
+    const nowMs = Date.now();
     let tbody = `<tbody>`;
-    sales.forEach(s => {
+    if (filteredSales.length === 0) {
+      tbody += `<tr><td colspan="${pubMods.length + 3}" style="text-align:center;padding:24px;color:#64748B;">Không tìm thấy Học Viên phù hợp.</td></tr>`;
+    }
+    filteredSales.forEach(s => {
       let sPassed = 0;
       pubMods.forEach(m => {
         const p = (db.progress || []).find(pr => pr.userId === s.id && pr.moduleId === m.id);
         if (p && p.passed) sPassed++;
       });
       const sPct = pubMods.length > 0 ? Math.round((sPassed * 100) / pubMods.length) : 0;
+      const pr = db.presence && db.presence[s.id];
+      const isOnline = pr && pr.lastSeenAt && (nowMs - (Date.parse(pr.lastSeenAt) || 0) < ONLINE_THRESHOLD_MS);
+      const liveText = pr && pr.statusText
+        ? `${isOnline ? "● Online:" : "○"} ${pr.statusText}`
+        : "○ Chưa có hoạt động gần đây";
 
       tbody += `
         <tr>
-          <td><strong>${escapeHtml(s.name)}</strong></td>
-          <td><code>${escapeHtml(s.pin)}</code></td>
           <td>
+            <div class="matrix-learner-cell">
+              <button type="button" class="matrix-learner-name-btn" data-goto-learner-dossier="${escapeHtml(s.id)}" title="Bấm để xem Hồ sơ chi tiết của ${escapeHtml(s.name)}">
+                <span class="presence-dot ${isOnline ? "online" : ""}"></span>
+                ${escapeHtml(s.name)}
+              </button>
+              <span class="matrix-learner-live-sub">${escapeHtml(liveText)}</span>
+            </div>
+          </td>
+          <td style="text-align:center;"><code>${escapeHtml(s.pin)}</code></td>
+          <td style="text-align:center;">
             <span class="sidebar-item-status ${sPassed === pubMods.length && pubMods.length > 0 ? 'done' : 'reading'}">
               ${sPassed}/${pubMods.length} bài (${sPct}%)
             </span>
@@ -2812,7 +2895,7 @@
         } else if (p && p.docViewed) {
           cls = "reading";
           label = `Đã mở tài liệu`;
-          sub = `Chưa nộp bài thi`;
+          sub = `Chưa nộp bài`;
         }
 
         tbody += `
@@ -2833,6 +2916,14 @@
     table.querySelectorAll("[data-inspect-sale]").forEach(btn => {
       btn.addEventListener("click", () => {
         openQuickInspectSaleModal(btn.dataset.inspectSale, btn.dataset.inspectMod);
+      });
+    });
+
+    table.querySelectorAll("[data-goto-learner-dossier]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        activeDossierSaleId = btn.dataset.gotoLearnerDossier;
+        activeAdminTab = "dossier";
+        renderAdminWorkspace();
       });
     });
   }
@@ -4289,78 +4380,134 @@
     const panel = document.getElementById("adminPanelModules");
     if (!panel) return;
     const allMods = db.modules || [];
+    const sales = (db.users || []).filter(u => u.role === "sale");
     const pendingCount = allMods.filter(m => m.status === "pending").length;
+    const publishedCount = allMods.filter(m => m.status !== "pending" && m.status !== "draft").length;
+    const draftCount = allMods.filter(m => m.status === "draft").length;
 
-    const rowsHtml = allMods.map(m => {
-      const qCount = Array.isArray(m.questions) ? m.questions.length : 0;
-      const author = m.authorName || "Đào tạo";
-      const updatedStr = m.updatedAt ? new Date(m.updatedAt).toLocaleString("vi-VN") : "—";
-      const fileLabel = (m.sourceFile && m.sourceFile.name) ? m.sourceFile.name : "Soạn trực tiếp";
-      let statusBadge = `<span class="sidebar-item-status done">Đã duyệt · Hiển thị cho Học Viên</span>`;
-      if (m.status === "pending") {
-        statusBadge = `<span class="sidebar-item-status pending">Chờ Admin duyệt</span>`;
-      } else if (m.status === "draft") {
-        statusBadge = `<span class="sidebar-item-status draft">Bản nháp · Đang ẩn</span>`;
+    const authors = Array.from(new Set(allMods.map(m => m.authorName || "Đào tạo").filter(Boolean)));
+
+    const filteredMods = allMods.filter(m => {
+      if (adminModuleStatusFilter === "PUBLISHED" && (m.status === "pending" || m.status === "draft")) return false;
+      if (adminModuleStatusFilter === "PENDING" && m.status !== "pending") return false;
+      if (adminModuleStatusFilter === "DRAFT" && m.status !== "draft") return false;
+      if (adminModuleAuthorFilter !== "ALL" && (m.authorName || "Đào tạo") !== adminModuleAuthorFilter) return false;
+      if (adminModuleSearchQuery) {
+        const q = adminModuleSearchQuery.toLowerCase();
+        const hit =
+          (m.code || "").toLowerCase().includes(q) ||
+          (m.title || "").toLowerCase().includes(q) ||
+          (m.authorName || "").toLowerCase().includes(q);
+        if (!hit) return false;
       }
+      return true;
+    });
 
-      return `
-        <tr>
-          <td>
-            <div><strong>${escapeHtml(m.code)} — ${escapeHtml(m.title)}</strong></div>
-            <div style="font-size:12px;color:#64748B;margin-top:3px;">
-              Danh mục: ${escapeHtml(m.category || "Chuyên đề Đào tạo")} · File gốc: <code>${escapeHtml(fileLabel)}</code>
-            </div>
-          </td>
-          <td>
-            <div><strong>${escapeHtml(author)}</strong></div>
-            <div style="font-size:11.5px;color:#64748B;">${escapeHtml(updatedStr)}</div>
-          </td>
-          <td style="text-align:center;">
-            <strong>${qCount} câu</strong>
-            <div style="font-size:11.5px;color:#64748B;">Chuẩn &ge;${m.passThreshold || 80}%</div>
-          </td>
-          <td>${statusBadge}</td>
-          <td>
-            <div style="display:flex;gap:6px;flex-wrap:wrap;">
-              ${m.status !== "published"
-                ? `<button type="button" class="btn-row-act save" data-mod-approve="${escapeHtml(m.id)}">✓ Duyệt xuất bản</button>`
-                : `<button type="button" class="btn-row-act" data-mod-unpublish="${escapeHtml(m.id)}">Tạm ẩn</button>`
-              }
-              <button type="button" class="btn-row-act" data-mod-edit="${escapeHtml(m.id)}">Xem / Sửa bài</button>
-              <button type="button" class="btn-row-act" data-mod-preview="${escapeHtml(m.id)}">Xem như Học Viên</button>
-              <button type="button" class="btn-row-act danger" data-mod-delete="${escapeHtml(m.id)}">Xóa</button>
-            </div>
-          </td>
-        </tr>
-      `;
-    }).join("");
+    const rowsHtml = filteredMods.length === 0
+      ? `<tr><td colspan="6" style="text-align:center;padding:24px;color:#64748B;">Không có học phần nào khớp với bộ lọc hiện tại.</td></tr>`
+      : filteredMods.map(m => {
+          const qCount = Array.isArray(m.questions) ? m.questions.length : 0;
+          const author = m.authorName || "Đào tạo";
+          const updatedStr = m.updatedAt ? new Date(m.updatedAt).toLocaleString("vi-VN") : "—";
+          const fileLabel = (m.sourceFile && m.sourceFile.name) ? m.sourceFile.name : "Soạn trực tiếp";
+          let passedLearners = 0;
+          sales.forEach(s => {
+            const p = (db.progress || []).find(pr => pr.userId === s.id && pr.moduleId === m.id);
+            if (p && p.passed) passedLearners++;
+          });
+
+          let statusBadge = `<span class="sidebar-item-status done">✓ Đã duyệt (Hiển thị)</span>`;
+          if (m.status === "pending") {
+            statusBadge = `<span class="sidebar-item-status pending">Chờ Admin duyệt</span>`;
+          } else if (m.status === "draft") {
+            statusBadge = `<span class="sidebar-item-status draft">Bản nháp (Ẩn)</span>`;
+          }
+
+          return `
+            <tr>
+              <td style="width:74px;text-align:center;">
+                <span class="matrix-mod-th-code">${escapeHtml(m.code)}</span>
+              </td>
+              <td>
+                <div style="font-weight:800;color:#0F172A;line-height:1.4;">${escapeHtml(m.title)}</div>
+                <div style="font-size:11.8px;color:#64748B;margin-top:3px;">
+                  Chuyên đề: ${escapeHtml(m.category || "Đào tạo")} · File: <code>${escapeHtml(fileLabel)}</code>
+                </div>
+              </td>
+              <td>
+                <div style="font-weight:700;color:#1E293B;">${escapeHtml(author)}</div>
+                <div style="font-size:11.2px;color:#64748B;">${escapeHtml(updatedStr)}</div>
+              </td>
+              <td style="text-align:center;">
+                <div><strong>${qCount} câu</strong> <span style="font-size:11.5px;color:#64748B;">(&ge;${m.passThreshold || 80}%)</span></div>
+                <div style="font-size:11.5px;color:#059669;font-weight:700;margin-top:2px;">Đạt: ${passedLearners}/${sales.length} HV</div>
+              </td>
+              <td>${statusBadge}</td>
+              <td>
+                <div style="display:flex;gap:5px;flex-wrap:wrap;">
+                  ${m.status !== "published"
+                    ? `<button type="button" class="btn-row-act save" data-mod-approve="${escapeHtml(m.id)}">✓ Duyệt</button>`
+                    : `<button type="button" class="btn-row-act" data-mod-unpublish="${escapeHtml(m.id)}">Tạm ẩn</button>`
+                  }
+                  <button type="button" class="btn-row-act" data-mod-edit="${escapeHtml(m.id)}">Sửa bài</button>
+                  <button type="button" class="btn-row-act" data-mod-preview="${escapeHtml(m.id)}">Xem thử</button>
+                  <button type="button" class="btn-row-act" data-mod-analytics="${escapeHtml(m.id)}" title="Xem thống kê câu hỏi">Thống kê</button>
+                  <button type="button" class="btn-row-act danger" data-mod-delete="${escapeHtml(m.id)}">Xóa</button>
+                </div>
+              </td>
+            </tr>
+          `;
+        }).join("");
+
+    const authorOptionsHtml = [
+      `<option value="ALL" ${adminModuleAuthorFilter === "ALL" ? "selected" : ""}>Tất cả tác giả (${authors.length})</option>`,
+      ...authors.map(a => `<option value="${escapeHtml(a)}" ${adminModuleAuthorFilter === a ? "selected" : ""}>Tác giả: ${escapeHtml(a)}</option>`)
+    ].join("");
 
     panel.innerHTML = `
       <div class="admin-card">
         <div class="admin-card-head">
           <div>
-            <h2 class="admin-title">Quản lý Học phần &amp; Phê duyệt Nội dung Đào tạo tải lên</h2>
+            <h2 class="admin-title">Quản lý Học phần &amp; Phê duyệt Nội dung Đào tạo (${allMods.length} học phần)</h2>
             <p class="admin-sub">
-              Kiểm soát toàn bộ tài liệu và bộ câu hỏi trắc nghiệm do nhân sự Đào tạo biên tập. Bài ở trạng thái <strong>Chờ Admin duyệt</strong> hoặc <strong>Bản nháp</strong> sẽ chỉ hiển thị cho Học Viên sau khi Admin bấm <strong>Duyệt xuất bản</strong>.
+              Admin có toàn quyền xem, sửa, phê duyệt xuất bản hoặc tạm ẩn tất cả học phần của mọi tác giả.
             </p>
           </div>
-          <div style="display:flex;gap:8px;align-items:center;">
-            ${pendingCount > 0
-              ? `<span class="sidebar-item-status pending" style="font-size:12.5px;padding:6px 12px;">Có ${pendingCount} học phần đang chờ duyệt</span>`
-              : `<span class="sidebar-item-status done" style="font-size:12.5px;padding:6px 12px;">Tất cả đã xử lý</span>`
-            }
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+            ${pendingCount > 0 ? `
+              <button type="button" class="btn-row-act save" id="btnAdminApproveAllPending" style="padding:8px 13px;font-size:12.5px;">
+                ✓ Duyệt xuất bản tất cả (${pendingCount} bài chờ)
+              </button>
+            ` : ""}
             <button type="button" class="btn-primary" id="btnAdminCreateNewModule">+ Tạo học phần mới</button>
           </div>
         </div>
+
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding-bottom:6px;border-bottom:1px solid #FFEDD5;">
+          <div class="study-filter-pills">
+            <button type="button" class="study-filter-pill ${adminModuleStatusFilter === 'ALL' ? 'active' : ''}" data-mod-filter="ALL">Tất cả (${allMods.length})</button>
+            <button type="button" class="study-filter-pill ${adminModuleStatusFilter === 'PUBLISHED' ? 'active' : ''}" data-mod-filter="PUBLISHED">Đã duyệt (${publishedCount})</button>
+            <button type="button" class="study-filter-pill ${adminModuleStatusFilter === 'PENDING' ? 'active' : ''}" data-mod-filter="PENDING">Chờ duyệt (${pendingCount})</button>
+            <button type="button" class="study-filter-pill ${adminModuleStatusFilter === 'DRAFT' ? 'active' : ''}" data-mod-filter="DRAFT">Bản nháp (${draftCount})</button>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+            <select id="selAdminModAuthorFilter" class="input-control" style="width:195px;padding:6px 10px;font-size:12.5px;">
+              ${authorOptionsHtml}
+            </select>
+            <input type="text" id="inpAdminModSearch" class="input-control" placeholder="Tìm mã HP, tên bài..." value="${escapeHtml(adminModuleSearchQuery)}" style="width:190px;padding:6px 10px;font-size:12.5px;">
+          </div>
+        </div>
+
         <div class="table-responsive">
           <table class="progress-matrix-table">
             <thead>
               <tr>
-                <th>Mã &amp; Tên Học phần / Tài liệu</th>
-                <th style="width:165px;">Người tải lên / Cập nhật</th>
-                <th style="width:110px;text-align:center;">Số câu hỏi</th>
-                <th style="width:180px;">Trạng thái hiển thị</th>
-                <th style="width:310px;">Thao tác Quản lý</th>
+                <th style="width:74px;text-align:center;">Mã</th>
+                <th>Tên Học phần / Tài liệu</th>
+                <th style="width:155px;">Tác giả / Cập nhật</th>
+                <th style="width:125px;text-align:center;">Câu hỏi &amp; Tỷ lệ Đạt</th>
+                <th style="width:150px;">Trạng thái</th>
+                <th style="width:295px;">Thao tác</th>
               </tr>
             </thead>
             <tbody>${rowsHtml}</tbody>
@@ -4371,9 +4518,49 @@
 
     const btnNew = document.getElementById("btnAdminCreateNewModule");
     if (btnNew) {
-      btnNew.onclick = () => {
-        const createBtn = document.getElementById("btnSidebarCreateModule");
-        if (createBtn) createBtn.click();
+      btnNew.onclick = () => createNewModuleForCurrentUser();
+    }
+
+    const btnApproveAll = document.getElementById("btnAdminApproveAllPending");
+    if (btnApproveAll) {
+      btnApproveAll.onclick = () => {
+        (db.modules || []).forEach(m => {
+          if (m.status === "pending") {
+            m.status = "published";
+            m.updatedAt = new Date().toISOString();
+          }
+        });
+        logUserActivity("approve_module", "Admin duyệt tất cả học phần chờ duyệt", `${pendingCount} học phần`);
+        triggerAutoSave(true, true);
+        renderAdminWorkspace();
+      };
+    }
+
+    panel.querySelectorAll("[data-mod-filter]").forEach(btn => {
+      btn.onclick = () => {
+        adminModuleStatusFilter = btn.dataset.modFilter;
+        renderAdminModulesPanel();
+      };
+    });
+
+    const selAuthor = document.getElementById("selAdminModAuthorFilter");
+    if (selAuthor) {
+      selAuthor.onchange = () => {
+        adminModuleAuthorFilter = selAuthor.value;
+        renderAdminModulesPanel();
+      };
+    }
+
+    const inpSearch = document.getElementById("inpAdminModSearch");
+    if (inpSearch) {
+      inpSearch.oninput = () => {
+        adminModuleSearchQuery = inpSearch.value;
+        renderAdminModulesPanel();
+        const newInp = document.getElementById("inpAdminModSearch");
+        if (newInp) {
+          newInp.focus();
+          newInp.setSelectionRange(newInp.value.length, newInp.value.length);
+        }
       };
     }
 
@@ -4420,6 +4607,14 @@
       };
     });
 
+    panel.querySelectorAll("[data-mod-analytics]").forEach(btn => {
+      btn.onclick = () => {
+        activeAnalyticsModuleId = btn.dataset.modAnalytics;
+        activeAdminTab = "analytics";
+        renderAdminWorkspace();
+      };
+    });
+
     panel.querySelectorAll("[data-mod-delete]").forEach(btn => {
       btn.onclick = () => {
         if ((db.modules || []).length <= 1) {
@@ -4437,6 +4632,238 @@
         }
       };
     });
+  }
+
+  // =========================================================================
+  // ADMIN PANEL 3: INLINE STAFF & PIN MANAGEMENT (NHÂN SỰ & MÃ PIN)
+  // =========================================================================
+  function renderAdminUsersPanel() {
+    const panel = document.getElementById("adminPanelUsers");
+    if (!panel) return;
+    const allUsers = db.users || [];
+    const sales = allUsers.filter(u => u.role === "sale");
+    const uploaders = allUsers.filter(u => u.role === "uploader");
+    const pubMods = getVisibleModulesForLearner();
+    const allMods = db.modules || [];
+    const nowMs = Date.now();
+
+    function buildUserTableRows(list, isUploader) {
+      if (list.length === 0) {
+        return `<tr><td colspan="5" style="text-align:center;padding:18px;color:#64748B;">Chưa có nhân sự trong nhóm này.</td></tr>`;
+      }
+      return list.map(u => {
+        const pr = db.presence && db.presence[u.id];
+        const isOnline = pr && pr.lastSeenAt && (nowMs - (Date.parse(pr.lastSeenAt) || 0) < ONLINE_THRESHOLD_MS);
+        let metricHtml = "";
+        if (isUploader) {
+          const authoredCount = allMods.filter(m => m.authorId === u.id || (m.authorName || "").trim().toLowerCase() === (u.name || "").trim().toLowerCase()).length;
+          metricHtml = `<span class="sidebar-item-status reading">${authoredCount} học phần</span>`;
+        } else {
+          let passedCount = 0;
+          pubMods.forEach(m => {
+            const p = (db.progress || []).find(item => item.userId === u.id && item.moduleId === m.id);
+            if (p && p.passed) passedCount++;
+          });
+          metricHtml = `<span class="sidebar-item-status ${passedCount === pubMods.length && pubMods.length > 0 ? 'done' : 'reading'}">${passedCount}/${pubMods.length} bài đạt</span>`;
+        }
+
+        return `
+          <tr>
+            <td>
+              <div style="display:flex;align-items:center;gap:7px;font-weight:800;color:#0F172A;">
+                <span class="presence-dot ${isOnline ? "online" : ""}"></span>
+                <input type="text" class="input-control" data-inline-user-name="${escapeHtml(u.id)}" value="${escapeHtml(u.name)}" style="padding:5px 9px;font-size:13px;font-weight:700;">
+              </div>
+            </td>
+            <td style="width:105px;">
+              <input type="text" class="input-control mono-input" data-inline-user-pin="${escapeHtml(u.id)}" value="${escapeHtml(u.pin)}" style="padding:5px 9px;font-size:13px;text-align:center;">
+            </td>
+            <td style="width:125px;text-align:center;">${metricHtml}</td>
+            <td style="width:155px;">
+              <div style="display:flex;gap:6px;justify-content:flex-end;">
+                ${!isUploader ? `<button type="button" class="btn-row-act" data-inline-act-as="${escapeHtml(u.id)}" title="Xem giao diện học dưới quyền Học Viên này">Xem thử</button>` : ""}
+                <button type="button" class="btn-row-act danger" data-inline-del-user="${escapeHtml(u.id)}">Xóa</button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    const adminPinVal = (db.meta && db.meta.adminPin) ? db.meta.adminPin : "Nvs123456";
+    const threshVal = (db.meta && db.meta.defaultPassThreshold) ? db.meta.defaultPassThreshold : 80;
+
+    panel.innerHTML = `
+      <div class="admin-card">
+        <div class="admin-card-head">
+          <div>
+            <h2 class="admin-title">Quản lý Danh sách Nhân sự &amp; Cấp Mã PIN Đăng nhập</h2>
+            <p class="admin-sub">Sửa trực tiếp Họ tên hoặc Mã PIN tại bảng (hệ thống tự động lưu Cloud ngay khi gõ) hoặc xuất Thẻ PIN gửi vào nhóm Zalo.</p>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button type="button" class="btn-secondary" id="btnUsersPanelCopyUrl">Copy Link Web</button>
+            <button type="button" class="btn-primary" id="btnUsersPanelCopyPinCard">Copy Ảnh Thẻ PIN gửi Zalo</button>
+          </div>
+        </div>
+
+        <div class="admin-users-grid">
+          <!-- HỌC VIÊN COLUMN -->
+          <div style="border:1px solid #FED7AA;border-radius:12px;padding:14px;background:#FFFBF5;display:flex;flex-direction:column;gap:10px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <h3 style="font-size:14.5px;font-weight:800;color:#9A3412;">1. Danh sách Học Viên (${sales.length})</h3>
+              <span class="presence-role-tag sale">Học &amp; Thi trắc nghiệm</span>
+            </div>
+            <div class="table-responsive">
+              <table class="progress-matrix-table" style="background:#FFFFFF;">
+                <thead>
+                  <tr>
+                    <th>Họ và tên Học Viên</th>
+                    <th style="text-align:center;">Mã PIN</th>
+                    <th style="text-align:center;">Tiến độ</th>
+                    <th style="text-align:right;">Thao tác</th>
+                  </tr>
+                </thead>
+                <tbody>${buildUserTableRows(sales, false)}</tbody>
+              </table>
+            </div>
+            <div class="add-row-form" style="margin-top:4px;">
+              <input type="text" id="inpInlineNewSaleName" class="input-control" placeholder="Nhập họ và tên Học Viên mới...">
+              <input type="text" id="inpInlineNewSalePin" class="input-control mono-input" placeholder="PIN (4 số)" style="max-width:110px;">
+              <button type="button" class="btn-primary" id="btnInlineAddSale">+ Thêm Học Viên</button>
+            </div>
+          </div>
+
+          <!-- ĐÀO TẠO COLUMN -->
+          <div style="border:1px solid #FED7AA;border-radius:12px;padding:14px;background:#FFFBF5;display:flex;flex-direction:column;gap:10px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <h3 style="font-size:14.5px;font-weight:800;color:#9A3412;">2. Nhân sự Đào tạo (${uploaders.length})</h3>
+              <span class="presence-role-tag uploader">Đăng tài liệu &amp; Câu hỏi</span>
+            </div>
+            <div class="table-responsive">
+              <table class="progress-matrix-table" style="background:#FFFFFF;">
+                <thead>
+                  <tr>
+                    <th>Họ và tên Đào tạo</th>
+                    <th style="text-align:center;">Mã PIN</th>
+                    <th style="text-align:center;">Học phần</th>
+                    <th style="text-align:right;">Thao tác</th>
+                  </tr>
+                </thead>
+                <tbody>${buildUserTableRows(uploaders, true)}</tbody>
+              </table>
+            </div>
+            <div class="add-row-form" style="margin-top:4px;">
+              <input type="text" id="inpInlineNewUploaderName" class="input-control" placeholder="Nhập họ và tên Đào tạo mới...">
+              <input type="text" id="inpInlineNewUploaderPin" class="input-control mono-input" placeholder="PIN (4 số)" style="max-width:110px;">
+              <button type="button" class="btn-primary" id="btnInlineAddUploader">+ Thêm Đào tạo</button>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top:6px;padding-top:12px;border-top:1px solid #FFEDD5;display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap;">
+          <div class="form-group" style="width:220px;">
+            <label>Mã PIN Admin (Quản lý):</label>
+            <input type="text" id="inpInlineAdminPin" class="input-control mono-input" value="${escapeHtml(adminPinVal)}">
+          </div>
+          <div class="form-group" style="width:220px;">
+            <label>Ngưỡng điểm Đạt mặc định (%):</label>
+            <input type="number" id="inpInlineDefaultThresh" class="input-control" min="50" max="100" step="5" value="${escapeHtml(threshVal)}">
+          </div>
+          <button type="button" class="btn-primary" id="btnInlineSaveAdminConfig">✓ Lưu cài đặt Admin</button>
+        </div>
+      </div>
+    `;
+
+    panel.querySelectorAll("[data-inline-user-name]").forEach(inp => {
+      inp.addEventListener("input", () => {
+        const u = (db.users || []).find(item => item.id === inp.dataset.inlineUserName);
+        if (u && inp.value.trim()) {
+          u.name = inp.value.trim();
+          triggerAutoSave(false, true);
+          populateAuthSelects();
+        }
+      });
+    });
+
+    panel.querySelectorAll("[data-inline-user-pin]").forEach(inp => {
+      inp.addEventListener("input", () => {
+        const u = (db.users || []).find(item => item.id === inp.dataset.inlineUserPin);
+        if (u && inp.value.trim()) {
+          u.pin = inp.value.trim();
+          triggerAutoSave(false, true);
+        }
+      });
+    });
+
+    panel.querySelectorAll("[data-inline-act-as]").forEach(btn => {
+      btn.onclick = () => {
+        const u = (db.users || []).find(item => item.id === btn.dataset.inlineActAs);
+        if (!u) return;
+        impersonatedSaleUser = u;
+        activeWorkspaceView = "sale";
+        resetActiveQuizState();
+        renderAll();
+      };
+    });
+
+    panel.querySelectorAll("[data-inline-del-user]").forEach(btn => {
+      btn.onclick = () => {
+        const u = (db.users || []).find(item => item.id === btn.dataset.inlineDelUser);
+        if (!u) return;
+        if (confirm(`Xóa tài khoản nhân sự "${u.name}"?`)) {
+          db.users = (db.users || []).filter(item => item.id !== u.id);
+          triggerAutoSave(true, true);
+          populateAuthSelects();
+          renderAdminWorkspace();
+        }
+      };
+    });
+
+    const addInlineUser = (role) => {
+      const nameEl = document.getElementById(role === "sale" ? "inpInlineNewSaleName" : "inpInlineNewUploaderName");
+      const pinEl = document.getElementById(role === "sale" ? "inpInlineNewSalePin" : "inpInlineNewUploaderPin");
+      const name = nameEl ? nameEl.value.trim() : "";
+      const pin = (pinEl ? pinEl.value.trim() : "") || (role === "sale" ? "1234" : "7777");
+      if (!name) return;
+      db.users.push({
+        id: `${role === "sale" ? "sale" : "up"}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 5)}`,
+        name,
+        pin,
+        role,
+        title: role === "sale" ? "Học Viên" : "Phụ trách Nội dung & Đào tạo"
+      });
+      triggerAutoSave(true, true);
+      populateAuthSelects();
+      renderAdminWorkspace();
+    };
+
+    const btnAddS = document.getElementById("btnInlineAddSale");
+    if (btnAddS) btnAddS.onclick = () => addInlineUser("sale");
+    const btnAddU = document.getElementById("btnInlineAddUploader");
+    if (btnAddU) btnAddU.onclick = () => addInlineUser("uploader");
+
+    const btnSaveCfg = document.getElementById("btnInlineSaveAdminConfig");
+    if (btnSaveCfg) {
+      btnSaveCfg.onclick = () => {
+        const newPin = document.getElementById("inpInlineAdminPin").value.trim() || "Nvs123456";
+        const newThresh = Number(document.getElementById("inpInlineDefaultThresh").value || 80);
+        db.meta.adminPin = newPin;
+        db.meta.defaultPassThreshold = newThresh;
+        document.getElementById("settingAdminPin").value = newPin;
+        document.getElementById("settingDefaultThreshold").value = String(newThresh);
+        triggerAutoSave(true, true);
+        alert("✓ Đã lưu Mã PIN Admin & Ngưỡng điểm Đạt!");
+      };
+    }
+
+    const btnCopyUrl = document.getElementById("btnUsersPanelCopyUrl");
+    if (btnCopyUrl) {
+      btnCopyUrl.onclick = () => document.getElementById("btnCopySharedUrl").click();
+    }
+    const btnCopyCard = document.getElementById("btnUsersPanelCopyPinCard");
+    if (btnCopyCard) {
+      btnCopyCard.onclick = () => document.getElementById("btnCopyPinCardImg").click();
+    }
   }
 
   // =========================================================================

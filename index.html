@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20">
+  <link rel="stylesheet" href="styles.css?v=21">
 </head>
 <body>
   <!-- 1. AUTHENTICATION SCREEN (LOGIN PORTAL - 3 ROLES) -->
@@ -397,46 +397,50 @@
       <!-- ================================================================= -->
       <section class="admin-dashboard hidden" id="adminWorkspace" aria-label="Bảng điều khiển Quản lý">
         <div class="admin-shell-layout">
-          <!-- LEFT ADMIN NAVIGATION SIDEBAR (2-Column Focused Layout like web-nhan-xet-gv) -->
+          <!-- LEFT ADMIN NAVIGATION SIDEBAR -->
           <aside class="admin-nav-sidebar" aria-label="Điều hướng Quản lý">
-            <div class="admin-nav-label">BẢNG ĐIỀU KHIỂN ADMIN</div>
+            <div class="admin-nav-label">QUẢN LÝ ĐÀO TẠO</div>
             <nav class="admin-dossier-tab-bar" id="adminNavTabBar" role="tablist">
               <button type="button" class="admin-nav-btn active" data-admin-tab="matrix">
-                <span>Tiến độ của Học Viên</span>
+                <span>1. Tiến độ Học Viên</span>
                 <span class="admin-nav-badge" id="badgeAdminMatrixCount">Học Viên</span>
               </button>
               <button type="button" class="admin-nav-btn" data-admin-tab="modules">
-                <span>Quản lý Học phần</span>
-                <span class="admin-nav-badge" id="badgeAdminModulesCount">4 bài</span>
+                <span>2. Quản lý Học phần</span>
+                <span class="admin-nav-badge" id="badgeAdminModulesCount">5 bài</span>
+              </button>
+              <button type="button" class="admin-nav-btn" data-admin-tab="users">
+                <span>3. Nhân sự &amp; Mã PIN</span>
+                <span class="admin-nav-badge" id="badgeAdminUsersCount">Nhân sự</span>
               </button>
               <button type="button" class="admin-nav-btn" data-admin-tab="activity">
-                <span>Hoạt động &amp; Online</span>
+                <span>4. Hoạt động &amp; Online</span>
                 <span class="admin-nav-badge" id="badgeAdminActivityCount">Live</span>
               </button>
               <button type="button" class="admin-nav-btn" data-admin-tab="bugs">
-                <span>Báo lỗi &amp; Phản hồi</span>
+                <span>5. Báo lỗi &amp; Phản hồi</span>
                 <span class="admin-nav-badge" id="badgeAdminBugsCount">0</span>
               </button>
-              <button type="button" class="admin-nav-btn" data-admin-tab="dossier">
-                <span>Hồ sơ từng Học Viên</span>
-                <span class="admin-nav-badge" id="badgeAdminDossierCount">Chi tiết</span>
-              </button>
               <button type="button" class="admin-nav-btn" data-admin-tab="analytics">
-                <span>Thống kê Câu hỏi</span>
-                <span class="admin-nav-badge" id="badgeAdminAnalyticsCount">4 bài</span>
+                <span>6. Thống kê Câu hỏi</span>
+                <span class="admin-nav-badge" id="badgeAdminAnalyticsCount">5 bài</span>
+              </button>
+              <button type="button" class="admin-nav-btn" data-admin-tab="dossier">
+                <span>7. Hồ sơ Học Viên</span>
+                <span class="admin-nav-badge" id="badgeAdminDossierCount">Chi tiết</span>
               </button>
             </nav>
 
             <div class="admin-sidebar-tools">
-              <div class="admin-nav-label" style="margin-bottom:6px;">CÔNG CỤ ADMIN</div>
+              <div class="admin-nav-label" style="margin-bottom:4px;">THAO TÁC NHANH</div>
               <button type="button" class="admin-tool-btn" id="btnRefreshCloud" title="Tải ngay tiến độ học & điểm thi mới nhất">
-                Làm mới dữ liệu
+                Làm mới dữ liệu Cloud
               </button>
               <button type="button" class="admin-tool-btn" id="btnOpenManageUsersModal">
-                Quản lý Nhân sự &amp; Mã PIN
+                Cài đặt &amp; Thẻ PIN nhanh
               </button>
               <button type="button" class="admin-tool-btn" id="btnAdminGoToUploader">
-                Biên tập Tài liệu &amp; Câu hỏi
+                Mở Trình biên tập bài học
               </button>
               <button type="button" class="admin-tool-btn primary" id="btnExportExcel">
                 Xuất Báo cáo Excel (.xlsx)
@@ -446,7 +450,7 @@
 
           <!-- RIGHT ADMIN MAIN WORKSPACE -->
           <div class="admin-main-area">
-            <!-- COMPACT 1-LINE KPI STRIP -->
+            <!-- INTERACTIVE 5-CARD KPI COMMAND STRIP -->
             <div class="admin-kpi-strip" id="adminKpiBar"></div>
 
             <!-- ADMIN PANEL 1: PROGRESS & SCORE MATRIX -->
@@ -455,17 +459,20 @@
                 <div class="admin-card-head">
                   <div>
                     <h2 class="admin-title">Bảng Ma trận Tiến độ Học tập &amp; Điểm Trắc nghiệm của Học Viên</h2>
-                    <p class="admin-sub">Bấm vào từng ô kết quả để xem chi tiết lịch sử làm bài và các câu trả lời đúng/sai của từng Học Viên.</p>
+                    <p class="admin-sub">Bấm vào từng ô điểm để xem chi tiết bài làm, thời gian thi và số lần chuyển tab; bấm vào tên Học Viên để xem hồ sơ cá nhân.</p>
                   </div>
-                  <div class="matrix-legend">
-                    <span class="legend-chip done">Đã đạt (&ge;80%)</span>
-                    <span class="legend-chip failed">Chưa đạt (&lt;80%)</span>
-                    <span class="legend-chip reading">Đang đọc tài liệu</span>
-                    <span class="legend-chip empty">Chưa học</span>
+                  <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                    <input type="text" id="inputAdminMatrixSearch" class="input-control" placeholder="Tìm tên Học Viên..." style="width:190px;padding:6px 11px;font-size:12.5px;">
+                    <div class="matrix-legend">
+                      <span class="legend-chip done">Đạt (&ge;80%)</span>
+                      <span class="legend-chip failed">Chưa đạt</span>
+                      <span class="legend-chip reading">Đang đọc</span>
+                      <span class="legend-chip empty">Chưa học</span>
+                    </div>
                   </div>
                 </div>
                 <div class="table-responsive">
-                  <table class="progress-matrix-table" id="progressMatrixTable"></table>
+                  <table class="progress-matrix-table admin-compact-matrix" id="progressMatrixTable"></table>
                 </div>
               </div>
             </div>
@@ -492,6 +499,11 @@
 
             <!-- ADMIN PANEL 6: BUG REPORTS & FEEDBACK MANAGEMENT -->
             <div class="admin-view-panel hidden" id="adminPanelBugs">
+              <!-- Rendered by JS -->
+            </div>
+
+            <!-- ADMIN PANEL 7: INLINE STAFF & PIN MANAGEMENT -->
+            <div class="admin-view-panel hidden" id="adminPanelUsers">
               <!-- Rendered by JS -->
             </div>
           </div>
@@ -721,7 +733,7 @@
   </dialog>
 
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
-  <script src="data/initial_data.js?v=20"></script>
-  <script src="app.js?v=20"></script>
+  <script src="data/initial_data.js?v=21"></script>
+  <script src="app.js?v=21"></script>
 </body>
 </html>
