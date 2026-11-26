@@ -514,7 +514,7 @@
         });
       }
 
-      if (Array.isArray(db.bugReports)) {
+      if (Array.isArray(db.bugReports) && (db.bugReports.length > 0 || (db.meta && db.meta.bugsModified))) {
         rows.push({
           id: ROW_BUGS_ID,
           payload: { items: db.bugReports },
@@ -1361,7 +1361,17 @@
       return steps;
     }
 
-    // 5. Uploaded Tables or Plain Text -> Split into clean steps
+    // 5. Uploaded Tables or Plain Text -> Split into clean steps with proper line breaks for each item
+    function formatMultilineCellHtml(rawVal) {
+      let str = String(rawVal == null ? "" : rawVal).trim();
+      if (!str) return "";
+      str = str
+        .replace(/\r\n/g, "\n")
+        .replace(/([^\n])\s*([•●▪✦➢])/g, "$1\n$2")
+        .replace(/([.;!?])\s+(-\s+)/g, "$1\n$2");
+      return escapeHtml(str).replace(/\n/g, "<br>");
+    }
+
     const customSteps = [];
     if (Array.isArray(mod.uploadedTables) && mod.uploadedTables.length > 0) {
       mod.uploadedTables.forEach((tbl, tIdx) => {
@@ -1369,20 +1379,24 @@
         if (rows.length === 0) return;
         const trs = rows.map((r, rIdx) => {
           const tag = rIdx === 0 ? "th" : "td";
-          const cells = r.map(c => `<${tag}>${escapeHtml(c)}</${tag}>`).join("");
+          const cellClass = rIdx === 0 ? "" : ' class="doc-multiline-cell"';
+          const cells = r.map(c => `<${tag}${cellClass}>${formatMultilineCellHtml(c)}</${tag}>`).join("");
           return `<tr>${cells}</tr>`;
         }).join("");
         customSteps.push({
           pillLabel: tbl.sheet ? tbl.sheet.slice(0, 18) : `Bảng ${tIdx + 1}`,
           title: tbl.sheet || `Bảng dữ liệu ${tIdx + 1}`,
-          html: `<div class="table-responsive" style="max-height:450px;overflow-y:auto;"><table class="progress-matrix-table">${trs}</table></div>`
+          html: `<div class="table-responsive" style="max-height:480px;overflow-y:auto;"><table class="progress-matrix-table">${trs}</table></div>`
         });
       });
     }
 
     const rawText = (mod.contentText || "").trim();
     if (rawText && customSteps.length === 0) {
-      const lines = rawText.split(/\n+/).map(l => l.trim()).filter(Boolean);
+      const normalizedRaw = rawText
+        .replace(/\r\n/g, "\n")
+        .replace(/([^\n])\s*([•●▪✦➢])/g, "$1\n$2");
+      const lines = normalizedRaw.split(/\n+/).map(l => l.trim()).filter(Boolean);
       const chunkSize = 8;
       for (let i = 0; i < lines.length; i += chunkSize) {
         const chunk = lines.slice(i, i + chunkSize);
@@ -1390,7 +1404,7 @@
         customSteps.push({
           pillLabel: `Phần ${stepNum}`,
           title: `Nội dung phần ${stepNum}`,
-          html: `<div style="display:flex;flex-direction:column;gap:10px;">${chunk.map(p => `<p style="font-size:14.2px;line-height:1.65;">${escapeHtml(p)}</p>`).join("")}</div>`
+          html: `<div style="display:flex;flex-direction:column;gap:10px;">${chunk.map(p => `<p style="font-size:14.2px;line-height:1.68;white-space:pre-line;">${formatMultilineCellHtml(p)}</p>`).join("")}</div>`
         });
       }
     }
@@ -2289,39 +2303,157 @@
       } catch (e) {}
     }
 
+    // Helper: parse answer letter/number -> 0..3
+    function parseAnswerLetterToIdx(ansRaw) {
+      const s = String(ansRaw || "").toUpperCase().trim();
+      if (!s) return 0;
+      const m = s.match(/\b([A-D])\b/) || s.match(/([A-D])/);
+      if (m) return m[1].charCodeAt(0) - 65;
+      if (s === "2") return 1;
+      if (s === "3") return 2;
+      if (s === "4") return 3;
+      return 0;
+    }
+
+    // Extract any Answer Key table or footer map (e.g. "1.A 2.B 3.C ... 20.D" or "1-A, 2-B...")
+    const answerKeyMap = {};
+    const combinedRawForKey = [
+      rawText || "",
+      ...(Array.isArray(tables) ? tables.map(t => (t.rows || []).map(r => r.join(" ")).join("\n")) : [])
+    ].join("\n");
+    const keyPairRegex = /\b(\d{1,3})\s*[.:\-)\s]\s*([A-D])\b/gi;
+    let kpMatch;
+    while ((kpMatch = keyPairRegex.exec(combinedRawForKey)) !== null) {
+      const qNum = Number(kpMatch[1]);
+      const ansChar = kpMatch[2].toUpperCase();
+      if (qNum >= 1 && qNum <= 200) {
+        answerKeyMap[qNum] = ansChar.charCodeAt(0) - 65;
+      }
+    }
+
     // 2. Try Excel/Table rows if tables are provided
+    const extraTableTextBlocks = [];
     if (Array.isArray(tables) && tables.length > 0) {
       tables.forEach(tbl => {
         const rows = tbl.rows || [];
-        rows.forEach((row, rIdx) => {
-          if (rIdx === 0 && /câu hỏi|question|stt/i.test(row.join(" "))) return;
-          const cols = row.map(c => String(c || "").trim());
-          // Support both [STT, Question, A, B, C, D, Correct, Explanation] and [Question, A, B, C, D, Correct, Explanation]
-          let qCol = 0;
-          if (/^\d+$/.test(cols[0]) && cols.length >= 6) qCol = 1;
-          const qText = cols[qCol] || "";
-          const optA = cols[qCol + 1] || "";
-          const optB = cols[qCol + 2] || "";
-          const optC = cols[qCol + 3] || "";
-          const optD = cols[qCol + 4] || "";
-          const ansRaw = (cols[qCol + 5] || "A").toUpperCase().trim();
-          const expText = cols[qCol + 6] || "";
+        if (rows.length === 0) return;
 
-          if (qText.length > 8 && optA && optB) {
-            let cIdx = 0;
-            if (ansRaw.includes("B") || ansRaw === "2") cIdx = 1;
-            else if (ansRaw.includes("C") || ansRaw === "3") cIdx = 2;
-            else if (ansRaw.includes("D") || ansRaw === "4") cIdx = 3;
+        // Detect column indices from header row if present
+        let colQ = -1;
+        let colA = -1;
+        let colB = -1;
+        let colC = -1;
+        let colD = -1;
+        let colAns = -1;
+        let colExp = -1;
+        let colCat = -1;
+        let headerRowIdx = -1;
+
+        for (let r = 0; r < Math.min(rows.length, 5); r++) {
+          const rCols = (rows[r] || []).map(c => String(c || "").trim().toLowerCase());
+          const joined = rCols.join(" | ");
+          if (/câu\s*hỏi|nội\s*dung\s*câu\s*hỏi|question/i.test(joined)) {
+            headerRowIdx = r;
+            rCols.forEach((h, idx) => {
+              if (colQ === -1 && /câu\s*hỏi|nội\s*dung|question/.test(h)) colQ = idx;
+              else if (colCat === -1 && /nhóm|chủ\s*đề|category|phân\s*loại/.test(h)) colCat = idx;
+              else if (colAns === -1 && /đáp\s*án\s*đúng|đáp\s*án|kết\s*quả|correct|answer|^đ\/a$|^đa$/.test(h)) colAns = idx;
+              else if (colExp === -1 && /giải\s*thích|gợi\s*ý|explanation|ghi\s*chú/.test(h)) colExp = idx;
+              else if (colA === -1 && (/^(?:phương\s*án\s*|đáp\s*án\s*|lựa\s*chọn\s*)?a$/.test(h) || /^a[.:)\s]/.test(h))) colA = idx;
+              else if (colB === -1 && (/^(?:phương\s*án\s*|đáp\s*án\s*|lựa\s*chọn\s*)?b$/.test(h) || /^b[.:)\s]/.test(h))) colB = idx;
+              else if (colC === -1 && (/^(?:phương\s*án\s*|đáp\s*án\s*|lựa\s*chọn\s*)?c$/.test(h) || /^c[.:)\s]/.test(h))) colC = idx;
+              else if (colD === -1 && (/^(?:phương\s*án\s*|đáp\s*án\s*|lựa\s*chọn\s*)?d$/.test(h) || /^d[.:)\s]/.test(h))) colD = idx;
+            });
+            break;
+          }
+        }
+
+        rows.forEach((row, rIdx) => {
+          if (rIdx === headerRowIdx) return;
+          const cols = row.map(c => String(c || "").trim());
+          const nonEmptyCols = cols.filter(Boolean);
+          if (nonEmptyCols.length === 0) return;
+
+          // If a table row has only 1-3 columns (common in Word tables where questions/options are in stacked rows or cells), collect its text for block parsing
+          if (nonEmptyCols.length <= 3 && colA === -1) {
+            extraTableTextBlocks.push(nonEmptyCols.join("\n"));
+            return;
+          }
+
+          let qText = "";
+          let optA = "";
+          let optB = "";
+          let optC = "";
+          let optD = "";
+          let ansRaw = "";
+          let expText = "";
+
+          if (colQ !== -1 && colA !== -1 && colB !== -1) {
+            qText = cols[colQ] || "";
+            optA = cols[colA] || "";
+            optB = cols[colB] || "";
+            optC = colC !== -1 ? (cols[colC] || "") : "";
+            optD = colD !== -1 ? (cols[colD] || "") : "";
+            ansRaw = colAns !== -1 ? (cols[colAns] || "") : "";
+            expText = colExp !== -1 ? (cols[colExp] || "") : "";
+          } else {
+            // Positional detection:
+            // [STT, Question, A, B, C, D, Ans?, Exp?] or [Question, A, B, C, D, Ans?, Exp?] or [STT, Category, Question, A, B, C, D, Ans?, Exp?]
+            let qCol = 0;
+            if (/^(?:câu\s*)?\d+[.:)]?$/i.test(cols[0]) && cols.length >= 5) {
+              qCol = 1;
+              if (cols.length >= 8 && cols[1].length < 35 && cols[2].length > cols[1].length) {
+                qCol = 2;
+              }
+            }
+            qText = cols[qCol] || "";
+            optA = cols[qCol + 1] || "";
+            optB = cols[qCol + 2] || "";
+            optC = cols[qCol + 3] || "";
+            optD = cols[qCol + 4] || "";
+            ansRaw = cols[qCol + 5] || "";
+            expText = cols[qCol + 6] || "";
+          }
+
+          // Strip leading "A. ", "B. " from table option cells if present
+          const cleanOpt = (s, letter) => {
+            const re = new RegExp(`^[-*•]?\\s*\\**${letter}[.:)\\-]\\**\\s*`, "i");
+            return String(s || "").replace(re, "").trim();
+          };
+
+          // If qText itself contains multiline question + options inside a single cell, push to text block parser
+          if (qText && !optA && !optB && /\bA[.:)]\s+/i.test(qText)) {
+            extraTableTextBlocks.push(cols.filter(Boolean).join("\n"));
+            return;
+          }
+
+          if (qText.length >= 4 && optA && optB) {
+            const qIndexNum = parsedQuestions.length + 1;
+            let cIdx = ansRaw
+              ? parseAnswerLetterToIdx(ansRaw)
+              : (answerKeyMap[qIndexNum] !== undefined ? answerKeyMap[qIndexNum] : 0);
+
+            const rawOpts = [optA, optB, optC || "Phương án C", optD || "Phương án D"];
+            const finalOpts = rawOpts.map((o, idx) => {
+              let txt = cleanOpt(o, String.fromCharCode(65 + idx));
+              if (/\(Đáp án đúng\)|\(Đúng\)|^\*|\*$/i.test(txt)) {
+                cIdx = idx;
+                txt = txt.replace(/\(Đáp án đúng\)|\(Đúng\)|^\*+|\*+$/gi, "").trim();
+              }
+              return txt || `Phương án ${String.fromCharCode(65 + idx)}`;
+            });
 
             parsedQuestions.push({
-              id: `imp-tbl-${Date.now()}-${parsedQuestions.length + 1}`,
+              id: `imp-tbl-${Date.now()}-${qIndexNum}`,
               category: "kien_thuc",
               categoryLabel: "1. Cấu trúc chương trình",
-              question: qText,
-              options: [optA, optB, optC || "Phương án C", optD || "Phương án D"],
+              question: qText.replace(/^(?:Câu(?:\s+hỏi)?\s*\d+|Q\d+|\d+)[.:)\-]\s*/i, "").trim() || qText,
+              options: finalOpts,
               correctIndex: cIdx,
               explanation: expText || "Theo bộ câu hỏi đào tạo chuẩn."
             });
+          } else if (nonEmptyCols.length > 0) {
+            extraTableTextBlocks.push(nonEmptyCols.join("\n"));
           }
         });
       });
@@ -2329,52 +2461,130 @@
     }
 
     // 3. Parse free-form Word / Markdown / Text blocks ("Câu 1: ... A. ... B. ... C. ... D. ... Đáp án: ...")
-    const lines = (rawText || "").split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+    const fullTextToParse = [rawText || "", ...extraTableTextBlocks].join("\n");
+
+    // Pre-split lines that contain multiple options on the same line (e.g. "A. ... B. ... C. ... D. ...")
+    const rawLines = fullTextToParse.split(/\r?\n/);
+    const lines = [];
+    rawLines.forEach(rawLine => {
+      let l = rawLine.replace(/\t+/g, "  ").trim();
+      if (!l || /^===\s*SHEET:/i.test(l)) return;
+      // Split inline options like "   B. " or " | B. " when preceded by whitespace or pipe
+      l = l
+        .replace(/(?:\s{2,}|\s*\|\s*)(?=(?:\*?\s*[A-D][.:)\-]\s+\S))/g, "\n")
+        .replace(/([?])(?:\s+)(?=(?:\*?\s*A[.:)\-]\s+\S))/g, "$1\n");
+      l.split(/\r?\n/).forEach(sub => {
+        const s = sub.trim();
+        if (s) lines.push(s);
+      });
+    });
+
     let curQ = null;
+    let curQNumber = 0;
 
     function pushCurQ() {
       if (curQ && curQ.question && curQ.options.filter(Boolean).length >= 2) {
-        while (curQ.options.length < 4) {
-          curQ.options.push(`Phương án ${String.fromCharCode(65 + curQ.options.length)}`);
+        const compactOpts = [];
+        for (let i = 0; i < 4; i++) {
+          if (curQ.options[i]) compactOpts.push(curQ.options[i]);
         }
+        while (compactOpts.length < 4) {
+          compactOpts.push(`Phương án ${String.fromCharCode(65 + compactOpts.length)}`);
+        }
+        curQ.options = compactOpts.slice(0, 4);
+        if (!curQ.hasExplicitAnswer && curQNumber > 0 && answerKeyMap[curQNumber] !== undefined) {
+          curQ.correctIndex = answerKeyMap[curQNumber];
+        }
+        delete curQ.hasExplicitAnswer;
         parsedQuestions.push(curQ);
       }
       curQ = null;
     }
 
     lines.forEach(line => {
-      const qMatch = line.match(/^(?:#+\s*)?(?:Câu(?:\s+hỏi)?\s*\d+|Q\d+|\d+)[.:)\-]\s*(.+)$/i);
-      const optMatch = line.match(/^[-*•]?\s*\**([A-D])[.:)\-]\**\s*(.+)$/i);
-      const ansMatch = line.match(/^(?:👉\s*)?\**(?:Đáp\s*án(?:\s*đúng)?|Correct|Answer)\**\s*[:\-]\s*\**([A-D])\**/i);
-      const expMatch = line.match(/^(?:💡\s*)?\**(?:Giải\s*thích|Ý\s*nghĩa|Gợi\s*ý(?:\s*tư\s*vấn)?)\**\s*[:\-]\s*(.+)$/i);
-
-      if (qMatch && (!curQ || curQ.options.length >= 2)) {
+      // Stop if we hit a standalone "BẢNG ĐÁP ÁN" / "ĐÁP ÁN" section header at the end
+      if (/^(?:BẢNG\s+ĐÁP\s+ÁN|ĐÁP\s+ÁN\s+THAM\s+KHẢO|PHẦN\s+ĐÁP\s+ÁN)$/i.test(line)) {
         pushCurQ();
+        return;
+      }
+
+      const qMatch = line.match(/^(?:#+\s*)?\**(?:Câu(?:\s+hỏi|\s+số)?\s*(\d+)|Question\s*(\d+)|Q(\d+)|(\d{1,3}))\**\s*[.:)\-/]\s*(.+)$/i);
+      const qHeaderOnlyMatch = !qMatch && line.match(/^(?:#+\s*)?\**(?:Câu(?:\s+hỏi|\s+số)?\s*(\d+)|Question\s*(\d+))\**\s*[.:)\-]?$/i);
+      const optMatch = line.match(/^[-*•]?\s*(\*)?\s*\**\[?([A-D])\]?[.:)\-]\**\s*(.+)$/i);
+      const ansMatch = line.match(/^(?:👉\s*|✓\s*)?\**(?:Đáp\s*án(?:\s*đúng)?|Đ\/A|ĐA|Kết\s*quả|KQ|Correct|Answer)\**\s*[:\-=.]\s*\**(?:Câu\s*|Phương\s*án\s*)?([A-D])\**/i);
+      const expMatch = line.match(/^(?:💡\s*)?\**(?:Giải\s*thích|Ý\s*nghĩa|Gợi\s*ý(?:\s*tư\s*vấn)?|Hướng\s*dẫn)\**\s*[:\-]\s*(.+)$/i);
+
+      if (qMatch && (!curQ || curQ.options.filter(Boolean).length >= 2 || /^(?:Câu|Question|Q)/i.test(line))) {
+        pushCurQ();
+        curQNumber = Number(qMatch[1] || qMatch[2] || qMatch[3] || qMatch[4] || (parsedQuestions.length + 1));
         curQ = {
           id: `imp-txt-${Date.now()}-${parsedQuestions.length + 1}`,
           category: "kien_thuc",
           categoryLabel: "1. Cấu trúc chương trình",
-          question: qMatch[1].trim(),
+          question: qMatch[5].trim(),
           options: [],
           correctIndex: 0,
+          hasExplicitAnswer: false,
           explanation: ""
         };
-      } else if (optMatch && curQ) {
-        const letter = optMatch[1].toUpperCase();
+      } else if (qHeaderOnlyMatch && (!curQ || curQ.options.filter(Boolean).length >= 2)) {
+        pushCurQ();
+        curQNumber = Number(qHeaderOnlyMatch[1] || qHeaderOnlyMatch[2] || (parsedQuestions.length + 1));
+        curQ = {
+          id: `imp-txt-${Date.now()}-${parsedQuestions.length + 1}`,
+          category: "kien_thuc",
+          categoryLabel: "1. Cấu trúc chương trình",
+          question: "",
+          options: [],
+          correctIndex: 0,
+          hasExplicitAnswer: false,
+          explanation: ""
+        };
+      } else if (optMatch) {
+        if (!curQ) {
+          curQNumber = parsedQuestions.length + 1;
+          curQ = {
+            id: `imp-txt-${Date.now()}-${curQNumber}`,
+            category: "kien_thuc",
+            categoryLabel: "1. Cấu trúc chương trình",
+            question: `Câu hỏi ${curQNumber}`,
+            options: [],
+            correctIndex: 0,
+            hasExplicitAnswer: false,
+            explanation: ""
+          };
+        }
+        const hasStarPrefix = Boolean(optMatch[1]);
+        const letter = optMatch[2].toUpperCase();
         const idx = letter.charCodeAt(0) - 65;
-        let optContent = optMatch[2].trim();
-        if (/\(Đáp án đúng\)|\(Đúng\)/i.test(optContent)) {
+        let optContent = optMatch[3].trim();
+        if (hasStarPrefix || /\(Đáp án đúng\)|\(Đúng\)|✓|\*$/i.test(optContent)) {
           curQ.correctIndex = idx;
-          optContent = optContent.replace(/\(Đáp án đúng\)|\(Đúng\)/gi, "").trim();
+          curQ.hasExplicitAnswer = true;
+          optContent = optContent.replace(/\(Đáp án đúng\)|\(Đúng\)|✓|\*+$/gi, "").trim();
         }
         curQ.options[idx] = optContent;
       } else if (ansMatch && curQ) {
         const letter = ansMatch[1].toUpperCase();
         curQ.correctIndex = Math.max(0, Math.min(3, letter.charCodeAt(0) - 65));
+        curQ.hasExplicitAnswer = true;
       } else if (expMatch && curQ) {
         curQ.explanation = expMatch[1].trim();
-      } else if (curQ && curQ.options.length === 0) {
-        curQ.question += " " + line;
+      } else if (curQ && curQ.options.filter(Boolean).length === 0) {
+        curQ.question = (curQ.question ? curQ.question + "\n" : "") + line;
+      } else if (!curQ && line.length > 10 && !/^(?:ĐÁP\s*ÁN|BÀI\s*KIỂM\s*TRA|ĐỀ\s*THI)/i.test(line)) {
+        // Unnumbered question line before A. B. C. D.
+        curQNumber = parsedQuestions.length + 1;
+        curQ = {
+          id: `imp-txt-${Date.now()}-${curQNumber}`,
+          category: "kien_thuc",
+          categoryLabel: "1. Cấu trúc chương trình",
+          question: line,
+          options: [],
+          correctIndex: 0,
+          hasExplicitAnswer: false,
+          explanation: ""
+        };
       }
     });
     pushCurQ();
@@ -3056,14 +3266,56 @@
       const xmlDoc = parser.parseFromString(xmlStr, "application/xml");
       const lines = [];
       const tables = [];
+
+      function extractParagraphTextWithMarkers(pNode) {
+        let pText = "";
+        let hasEmph = false;
+        const rNodes = pNode.getElementsByTagName("w:r");
+        if (rNodes.length > 0) {
+          for (let r = 0; r < rNodes.length; r++) {
+            const rNode = rNodes[r];
+            const rPr = rNode.getElementsByTagName("w:rPr")[0];
+            if (rPr) {
+              const bEl = rPr.getElementsByTagName("w:b")[0];
+              const uEl = rPr.getElementsByTagName("w:u")[0];
+              const hlEl = rPr.getElementsByTagName("w:highlight")[0];
+              const colEl = rPr.getElementsByTagName("w:color")[0];
+              const bVal = bEl ? (bEl.getAttribute("w:val") || "true") : "";
+              const uVal = uEl ? (uEl.getAttribute("w:val") || "single") : "";
+              const colVal = colEl ? (colEl.getAttribute("w:val") || "").toUpperCase() : "";
+              if (
+                (bEl && bVal !== "0" && bVal !== "false") ||
+                (uEl && uVal !== "none" && uVal !== "0" && uVal !== "false") ||
+                hlEl ||
+                (colVal && colVal !== "000000" && colVal !== "AUTO")
+              ) {
+                hasEmph = true;
+              }
+            }
+            Array.from(rNode.childNodes).forEach(ch => {
+              const cLocal = ch.nodeName.replace(/^.*:/, "");
+              if (cLocal === "t") pText += ch.textContent || "";
+              else if (cLocal === "br" || cLocal === "cr") pText += "\n";
+              else if (cLocal === "tab") pText += "  ";
+            });
+          }
+        } else {
+          const tNodes = pNode.getElementsByTagName("w:t");
+          for (let i = 0; i < tNodes.length; i++) pText += tNodes[i].textContent || "";
+        }
+        const trimmed = pText.trim();
+        if (hasEmph && /^[-*•]?\s*[A-D][.:)\-]\s+/i.test(trimmed) && !/\(Đáp án đúng\)|\(Đúng\)/i.test(trimmed)) {
+          return trimmed + " (Đáp án đúng)";
+        }
+        return trimmed;
+      }
+
       const body = xmlDoc.getElementsByTagName("w:body")[0] || xmlDoc.documentElement;
       Array.from(body.childNodes).forEach(node => {
         const local = node.nodeName.replace(/^.*:/, "");
         if (local === "p") {
-          const tNodes = node.getElementsByTagName("w:t");
-          let pText = "";
-          for (let i = 0; i < tNodes.length; i++) pText += tNodes[i].textContent || "";
-          if (pText.trim()) lines.push(pText.trim());
+          const pText = extractParagraphTextWithMarkers(node);
+          if (pText) lines.push(pText);
         } else if (local === "tbl") {
           const rows = [];
           const trNodes = node.getElementsByTagName("w:tr");
@@ -3071,10 +3323,13 @@
             const cells = [];
             const tcNodes = trNodes[r].getElementsByTagName("w:tc");
             for (let c = 0; c < tcNodes.length; c++) {
-              const tNodes = tcNodes[c].getElementsByTagName("w:t");
-              let cText = "";
-              for (let t = 0; t < tNodes.length; t++) cText += tNodes[t].textContent || "";
-              cells.push(cText.replace(/\s+/g, " ").trim());
+              const pNodes = tcNodes[c].getElementsByTagName("w:p");
+              const cellParas = [];
+              for (let p = 0; p < pNodes.length; p++) {
+                const pt = extractParagraphTextWithMarkers(pNodes[p]);
+                if (pt) cellParas.push(pt);
+              }
+              cells.push(cellParas.join("\n"));
             }
             if (cells.some(Boolean)) {
               rows.push(cells);
@@ -3082,6 +3337,13 @@
             }
           }
           if (rows.length > 0) tables.push({ sheet: "Bảng trong Word", rows });
+        } else {
+          // Handle nested paragraphs inside content controls (w:sdt, etc.)
+          const nestedPs = node.getElementsByTagName ? node.getElementsByTagName("w:p") : [];
+          for (let np = 0; np < nestedPs.length; np++) {
+            const pt = extractParagraphTextWithMarkers(nestedPs[np]);
+            if (pt) lines.push(pt);
+          }
         }
       });
       return { text: lines.join("\n"), tables };
@@ -3166,13 +3428,13 @@
       });
       if (res.ok) {
         const data = await res.json();
-        if (data && data.ok) {
+        if (data && data.ok && ((data.text && String(data.text).trim().length > 0) || (Array.isArray(data.tables) && data.tables.length > 0))) {
           return { text: data.text || "", tables: data.tables || [] };
         }
       }
     } catch (e) {}
 
-    // Client-side parser for .docx and .xlsx (works on static hosts like GitHub Pages & Vercel)
+    // Client-side parser for .docx and .xlsx (works on both Node server & static hosts like GitHub Pages)
     try {
       if (fname.endsWith(".docx") || fname.endsWith(".xlsx")) {
         const parsed = await parseDocxOrXlsxInBrowser(file);
@@ -4110,14 +4372,16 @@
       : filteredLogs.map(item => {
           const roleLabel = item.role === "admin" ? "Admin" : (item.role === "uploader" ? "Đào tạo" : "Học Viên");
           const timeStr = item.timestamp ? new Date(item.timestamp).toLocaleString("vi-VN") : "";
+          const isBugAct = item.actionType === "report_bug";
           return `
             <div class="activity-log-row">
-              <div class="activity-log-left">
+              <div class="activity-log-left" style="flex-wrap:wrap;gap:6px;">
                 <span class="presence-role-tag ${escapeHtml(item.role || "sale")}">${roleLabel}</span>
                 <strong>${escapeHtml(item.userName || "")}</strong>
                 <span>—</span>
                 <span style="font-weight:700;color:#C2410C;">${escapeHtml(item.actionLabel || "")}</span>
-                ${item.detail ? `<span style="color:#475569;">(${escapeHtml(item.detail)})</span>` : ""}
+                ${item.detail ? `<span style="color:#334155;white-space:pre-line;">(${escapeHtml(item.detail)})</span>` : ""}
+                ${isBugAct ? `<button type="button" class="btn-row-act" data-open-bug-list-from-act="1" style="padding:3px 9px;font-size:11.5px;">Xem chi tiết báo lỗi</button>` : ""}
               </div>
               <span class="activity-time">${escapeHtml(timeStr)}</span>
             </div>
@@ -4167,6 +4431,12 @@
         renderAdminActivityPanel();
       };
     });
+
+    panel.querySelectorAll("[data-open-bug-list-from-act]").forEach(btn => {
+      btn.onclick = () => {
+        openBugReportModal({ initialTab: "list" });
+      };
+    });
   }
 
   // =========================================================================
@@ -4175,6 +4445,37 @@
   let bugStatusFilter = "ALL";
   let pendingBugImageDataUrl = "";
   let pendingBugContextMeta = {};
+  let activeBugModalTab = "list";
+
+  function updateBugModalTabCounters() {
+    const allBugs = Array.isArray(db.bugReports) ? db.bugReports : [];
+    const openCount = allBugs.filter(b => b.status !== "resolved").length;
+    const lbl = document.getElementById("lblBugModalListCount");
+    if (lbl) {
+      lbl.textContent = openCount > 0 ? `${openCount} chờ xử lý / ${allBugs.length}` : String(allBugs.length);
+    }
+  }
+
+  function switchBugModalTab(tabName) {
+    activeBugModalTab = tabName === "form" ? "form" : "list";
+    const btnList = document.getElementById("btnBugModalTabList");
+    const btnForm = document.getElementById("btnBugModalTabForm");
+    const listView = document.getElementById("bugModalListView");
+    const formView = document.getElementById("formBugReport");
+
+    if (btnList) btnList.classList.toggle("active", activeBugModalTab === "list");
+    if (btnForm) btnForm.classList.toggle("active", activeBugModalTab === "form");
+    if (listView) listView.classList.toggle("hidden", activeBugModalTab !== "list");
+    if (formView) formView.classList.toggle("hidden", activeBugModalTab !== "form");
+
+    updateBugModalTabCounters();
+    if (activeBugModalTab === "list") {
+      renderBugReportsPanelInto("bugModalListView");
+    } else {
+      const descInp = document.getElementById("bugDescriptionInput");
+      if (descInp) descInp.focus();
+    }
+  }
 
   function renderBugReportsPanelInto(containerId) {
     const container = document.getElementById(containerId);
@@ -4182,6 +4483,8 @@
 
     const allBugs = Array.isArray(db.bugReports) ? db.bugReports : [];
     const openCount = allBugs.filter(b => b.status !== "resolved").length;
+    updateBugModalTabCounters();
+
     const filtered = allBugs.filter(b => {
       if (bugStatusFilter === "OPEN") return b.status !== "resolved";
       if (bugStatusFilter === "RESOLVED") return b.status === "resolved";
@@ -4209,7 +4512,7 @@
                 </span>
               </div>
 
-              <div style="font-size:13.8px;line-height:1.55;color:#0F172A;white-space:pre-line;">
+              <div style="font-size:14px;line-height:1.62;color:#0F172A;white-space:pre-line;background:#FFFBF5;border:1px solid #FED7AA;padding:10px 13px;border-radius:9px;">
                 ${escapeHtml(b.description || "")}
               </div>
 
@@ -4226,28 +4529,31 @@
               ` : ""}
 
               <div style="display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;padding-top:4px;">
-                ${b.moduleId ? `
+                ${(b.moduleId && currentUser && currentUser.role !== "sale") ? `
                   <button type="button" class="btn-row-act" data-bug-goto-edit="${escapeHtml(b.id)}">
                     Mở sửa câu hỏi / bài học này ngay
                   </button>
                 ` : ""}
-                <button type="button" class="btn-row-act ${isResolved ? "" : "save"}" data-bug-toggle-resolve="${escapeHtml(b.id)}">
-                  ${isResolved ? "Mở lại báo lỗi" : "✓ Đánh dấu Đã xử lý"}
-                </button>
-                <button type="button" class="btn-row-act danger" data-bug-delete="${escapeHtml(b.id)}">
-                  Xóa
-                </button>
+                ${(currentUser && currentUser.role !== "sale") ? `
+                  <button type="button" class="btn-row-act ${isResolved ? "" : "save"}" data-bug-toggle-resolve="${escapeHtml(b.id)}">
+                    ${isResolved ? "Mở lại báo lỗi" : "✓ Đánh dấu Đã xử lý"}
+                  </button>
+                  <button type="button" class="btn-row-act danger" data-bug-delete="${escapeHtml(b.id)}">
+                    Xóa
+                  </button>
+                ` : ""}
               </div>
             </div>
           `;
         }).join("");
 
+    const isInsideModal = containerId === "bugModalListView";
     container.innerHTML = `
-      <div class="admin-card">
-        <div class="admin-card-head">
+      <div class="admin-card" style="${isInsideModal ? 'border:none;padding:2px;box-shadow:none;' : ''}">
+        <div class="admin-card-head" style="${isInsideModal ? 'padding-bottom:10px;margin-bottom:10px;' : ''}">
           <div>
-            <h2 class="admin-title">Danh sách Báo lỗi &amp; Phản hồi (${openCount} lỗi chờ xử lý / Tổng ${allBugs.length})</h2>
-            <p class="admin-sub">Xem nội dung báo lỗi và ảnh chụp màn hình do Học Viên hoặc Đào tạo gửi lên. Bấm <strong>Mở sửa câu hỏi / bài học này ngay</strong> để nhảy tới đúng vị trí cần chỉnh sửa.</p>
+            <h2 class="admin-title" style="${isInsideModal ? 'font-size:15.5px;' : ''}">Danh sách Báo lỗi &amp; Phản hồi (${openCount} lỗi chờ xử lý / Tổng ${allBugs.length})</h2>
+            <p class="admin-sub">Nội dung chi tiết các báo lỗi và ảnh chụp màn hình do Học Viên hoặc Đào tạo gửi lên.</p>
           </div>
           <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
             <div class="study-filter-pills">
@@ -4255,16 +4561,22 @@
               <button type="button" class="study-filter-pill ${bugStatusFilter === 'OPEN' ? 'active' : ''}" data-bug-filter="OPEN">Chờ xử lý (${openCount})</button>
               <button type="button" class="study-filter-pill ${bugStatusFilter === 'RESOLVED' ? 'active' : ''}" data-bug-filter="RESOLVED">Đã xử lý (${allBugs.length - openCount})</button>
             </div>
-            <button type="button" class="btn-primary" id="btnNewBugFromList">+ Tạo báo lỗi mới</button>
+            <button type="button" class="btn-primary" id="btnNewBugFromList_${escapeHtml(containerId)}">+ Tạo báo lỗi mới</button>
           </div>
         </div>
         <div class="bug-card-list">${cardsHtml}</div>
       </div>
     `;
 
-    const btnNew = container.querySelector("#btnNewBugFromList");
+    const btnNew = container.querySelector(`#btnNewBugFromList_${containerId}`);
     if (btnNew) {
-      btnNew.onclick = () => openBugReportModal({});
+      btnNew.onclick = () => {
+        if (isInsideModal) {
+          switchBugModalTab("form");
+        } else {
+          openBugReportModal({ initialTab: "form" });
+        }
+      };
     }
 
     container.querySelectorAll("[data-bug-filter]").forEach(btn => {
@@ -4288,6 +4600,8 @@
       btn.onclick = () => {
         const bug = (db.bugReports || []).find(item => item.id === btn.dataset.bugGotoEdit);
         if (!bug || !bug.moduleId) return;
+        const dlg = document.getElementById("bugReportDialog");
+        if (dlg && dlg.open) dlg.close();
         currentModuleId = bug.moduleId;
         activeWorkspaceView = "uploader";
         if (bug.questionIndex !== null && bug.questionIndex !== undefined) {
@@ -4315,9 +4629,12 @@
           logUserActivity("resolve_bug", "Đánh dấu đã xử lý báo lỗi", bug.targetContext || "");
         }
         bug.updatedAt = new Date().toISOString();
+        if (!db.meta) db.meta = {};
+        db.meta.bugsModified = true;
         triggerAutoSave(true, false);
         renderTopBar();
         renderBugReportsPanelInto(containerId);
+        if (containerId !== "bugModalListView") renderBugReportsPanelInto("bugModalListView");
         if (activeWorkspaceView === "admin") renderAdminWorkspace();
       };
     });
@@ -4328,9 +4645,12 @@
         if (!bug) return;
         if (confirm("Xóa báo lỗi này?")) {
           db.bugReports = (db.bugReports || []).filter(item => item.id !== bug.id);
+          if (!db.meta) db.meta = {};
+          db.meta.bugsModified = true;
           triggerAutoSave(true, false);
           renderTopBar();
           renderBugReportsPanelInto(containerId);
+          if (containerId !== "bugModalListView") renderBugReportsPanelInto("bugModalListView");
           if (activeWorkspaceView === "admin") renderAdminWorkspace();
         }
       };
@@ -4406,14 +4726,35 @@
     if (descInp) descInp.value = "";
     setBugPreviewImage("");
 
+    const initialTab = prefill.initialTab || "form";
+    switchBugModalTab(initialTab);
+
     const dlg = document.getElementById("bugReportDialog");
     if (dlg) {
-      dlg.showModal();
-      if (descInp) descInp.focus();
+      if (!dlg.open) dlg.showModal();
+      if (initialTab === "form" && descInp) descInp.focus();
     }
+
+    // Sync latest bug reports from cloud in the background whenever the modal opens
+    fetchCloudDb(false).then(() => {
+      renderTopBar();
+      updateBugModalTabCounters();
+      if (activeBugModalTab === "list") {
+        renderBugReportsPanelInto("bugModalListView");
+      }
+    }).catch(() => {});
   }
 
   function setupBugReportDialog() {
+    const btnTabList = document.getElementById("btnBugModalTabList");
+    const btnTabForm = document.getElementById("btnBugModalTabForm");
+    if (btnTabList) {
+      btnTabList.addEventListener("click", () => switchBugModalTab("list"));
+    }
+    if (btnTabForm) {
+      btnTabForm.addEventListener("click", () => switchBugModalTab("form"));
+    }
+
     const btnTopBug = document.getElementById("btnTopOpenBugReport");
     if (btnTopBug) {
       btnTopBug.addEventListener("click", () => {
@@ -4424,12 +4765,15 @@
           targetContext = `${mod.code} — Câu hỏi ${activeQuizQuestionIndex + 1}`;
           questionIndex = activeQuizQuestionIndex;
         }
+        const hasExistingBugs = Array.isArray(db.bugReports) && db.bugReports.length > 0;
+        const isStaffOrAdmin = currentUser && (currentUser.role === "admin" || currentUser.role === "uploader");
         openBugReportModal({
           targetContext,
           moduleId: mod ? mod.id : "",
           moduleCode: mod ? mod.code : "",
           moduleTitle: mod ? mod.title : "",
-          questionIndex
+          questionIndex,
+          initialTab: (hasExistingBugs || isStaffOrAdmin) ? "list" : "form"
         });
       });
     }
@@ -4444,6 +4788,44 @@
           setBugPreviewImage(dataUrl);
         } catch (err) {}
         fileInp.value = "";
+      });
+    }
+
+    // Drag & Drop image support on #bugPasteZone (and anywhere inside #formBugReport)
+    const pasteZone = document.getElementById("bugPasteZone");
+    if (pasteZone) {
+      ["dragenter", "dragover"].forEach(evName => {
+        pasteZone.addEventListener(evName, e => {
+          e.preventDefault();
+          e.stopPropagation();
+          pasteZone.classList.add("drag-over");
+        });
+      });
+      ["dragleave", "dragend"].forEach(evName => {
+        pasteZone.addEventListener(evName, e => {
+          e.preventDefault();
+          e.stopPropagation();
+          pasteZone.classList.remove("drag-over");
+        });
+      });
+      pasteZone.addEventListener("drop", async e => {
+        e.preventDefault();
+        e.stopPropagation();
+        pasteZone.classList.remove("drag-over");
+        const dt = e.dataTransfer;
+        if (!dt) return;
+        let imgFile = null;
+        if (dt.files && dt.files.length > 0) {
+          imgFile = Array.from(dt.files).find(f => f.type && f.type.startsWith("image/")) || dt.files[0];
+        } else if (dt.items && dt.items.length > 0) {
+          const item = Array.from(dt.items).find(it => it.kind === "file" && (!it.type || it.type.startsWith("image/")));
+          if (item) imgFile = item.getAsFile();
+        }
+        if (!imgFile) return;
+        try {
+          const dataUrl = await compressImageBlobToDataUrl(imgFile);
+          setBugPreviewImage(dataUrl);
+        } catch (err) {}
       });
     }
 
@@ -4466,6 +4848,7 @@
       const blob = imgItem.getAsFile();
       if (!blob) return;
       try {
+        if (activeBugModalTab !== "form") switchBugModalTab("form");
         const dataUrl = await compressImageBlobToDataUrl(blob);
         setBugPreviewImage(dataUrl);
       } catch (err) {}
@@ -4503,9 +4886,11 @@
         };
 
         db.bugReports.unshift(newBug);
-        logUserActivity("report_bug", "Gửi báo lỗi / phản hồi", `${targetContext}: ${description.slice(0, 60)}`, newBug.moduleCode);
+        if (!db.meta) db.meta = {};
+        db.meta.bugsModified = true;
+        logUserActivity("report_bug", "Gửi báo lỗi / phản hồi", `${targetContext}: ${description}`, newBug.moduleCode);
         triggerAutoSave(true, false);
-        document.getElementById("bugReportDialog").close();
+        switchBugModalTab("list");
         renderAll();
         alert("✓ Đã gửi Báo lỗi cho Admin và bộ phận Đào tạo! Cảm ơn phản hồi của bạn.");
       });

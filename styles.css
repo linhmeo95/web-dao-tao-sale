@@ -3308,10 +3308,17 @@ dialog::backdrop {
 }
 
 .bug-paste-zone:focus,
-.bug-paste-zone:hover {
+.bug-paste-zone:hover,
+.bug-paste-zone.drag-over {
   border-color: #EA580C;
   background: #FFF7ED;
-  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.14);
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.18);
+}
+
+.doc-multiline-cell {
+  white-space: pre-line;
+  line-height: 1.65;
+  vertical-align: top;
 }
 
 .bug-paste-prompt {

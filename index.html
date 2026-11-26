@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=17">
+  <link rel="stylesheet" href="styles.css?v=19">
 </head>
 <body>
   <!-- 1. AUTHENTICATION SCREEN (LOGIN PORTAL - 3 ROLES) -->
@@ -645,16 +645,27 @@
   </dialog>
 
   <!-- ===================================================================== -->
-  <!-- DIALOG 5: REPORT BUG / FEEDBACK WITH CLIPBOARD IMAGE PASTE (Ctrl+V)   -->
+  <!-- DIALOG 5: REPORT BUG / FEEDBACK & VIEW SUBMITTED BUG REPORTS          -->
   <!-- ===================================================================== -->
   <dialog id="bugReportDialog" closedby="any" aria-labelledby="bugReportDialogTitle">
-    <div class="dialog-inner dialog-manage">
+    <div class="dialog-inner dialog-manage" style="max-width:860px;width:94vw;">
       <div class="dialog-header">
-        <h2 id="bugReportDialogTitle">Báo lỗi Câu hỏi / Tài liệu / Hệ thống</h2>
+        <h2 id="bugReportDialogTitle">Báo lỗi &amp; Phản hồi (Câu hỏi / Tài liệu / Hệ thống)</h2>
         <button type="button" class="btn-close-dialog" data-close-dialog="bugReportDialog" aria-label="Đóng">✕</button>
       </div>
 
-      <form id="formBugReport" style="display:flex;flex-direction:column;gap:12px;">
+      <div class="uploader-subtabs" style="margin-bottom:12px;">
+        <button type="button" class="uploader-subtab active" id="btnBugModalTabList">
+          Danh sách Báo lỗi đã gửi (<span id="lblBugModalListCount">0</span>)
+        </button>
+        <button type="button" class="uploader-subtab" id="btnBugModalTabForm">
+          + Gửi Báo lỗi / Phản hồi mới
+        </button>
+      </div>
+
+      <div id="bugModalListView" style="max-height:66vh;overflow-y:auto;padding-right:2px;"></div>
+
+      <form id="formBugReport" class="hidden" style="display:flex;flex-direction:column;gap:12px;">
         <div class="up-form-grid">
           <div class="form-group">
             <label for="bugTargetContext">Vị trí / Nội dung báo lỗi:</label>
@@ -673,14 +684,14 @@
 
         <div class="form-group">
           <label for="bugDescriptionInput">Mô tả chi tiết lỗi hoặc đề xuất chỉnh sửa:</label>
-          <textarea id="bugDescriptionInput" class="input-control" rows="3" placeholder="Nhập mô tả lỗi (VD: Câu 3 đáp án đúng theo tài liệu phải là B thay vì A)..." required></textarea>
+          <textarea id="bugDescriptionInput" class="input-control" rows="4" placeholder="Nhập mô tả lỗi (Mỗi nội dung có thể xuống dòng bình thường)..." required></textarea>
         </div>
 
         <div class="form-group">
-          <label>Ảnh chụp màn hình minh họa (Nhấn Ctrl+V / Cmd+V để dán ảnh trực tiếp hoặc chọn file):</label>
+          <label>Ảnh chụp màn hình minh họa (Kéo thả ảnh vào khung, nhấn Ctrl+V / Cmd+V để dán, hoặc chọn file):</label>
           <div class="bug-paste-zone" id="bugPasteZone" tabindex="0">
             <div id="bugPastePromptText" class="bug-paste-prompt">
-              <strong>Bấm vào khung này rồi nhấn Ctrl+V (hoặc Cmd+V) để dán ảnh chụp màn hình</strong>
+              <strong>Kéo &amp; thả ảnh chụp màn hình vào khung này, hoặc bấm vào đây rồi nhấn Ctrl+V (Cmd+V)</strong>
               <span>Hoặc <label class="bug-browse-link">chọn file ảnh từ máy<input type="file" id="bugImageFileInput" accept="image/*" hidden></label></span>
             </div>
             <div id="bugImagePreviewWrap" class="bug-img-preview-wrap hidden">
@@ -691,7 +702,7 @@
         </div>
 
         <div class="dialog-footer" style="margin-top:4px;">
-          <button type="button" class="btn-secondary" data-close-dialog="bugReportDialog">Hủy</button>
+          <button type="button" class="btn-secondary" data-close-dialog="bugReportDialog">Đóng</button>
           <button type="submit" class="btn-primary" id="btnSubmitBugReport">Gửi Báo lỗi cho Admin &amp; Đào tạo</button>
         </div>
       </form>
@@ -699,7 +710,7 @@
   </dialog>
 
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
-  <script src="data/initial_data.js?v=18"></script>
-  <script src="app.js?v=18"></script>
+  <script src="data/initial_data.js?v=19"></script>
+  <script src="app.js?v=19"></script>
 </body>
 </html>
