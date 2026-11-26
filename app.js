@@ -1508,7 +1508,7 @@
       <div class="quiz-num-strip-bar">
         <div class="quiz-num-pills">${numPillsHtml}</div>
         <span style="font-size:12.5px;font-weight:700;color:#64748B;">
-          Đã chọn: <strong style="color:#BE185D;">${answeredCount}/${qList.length}</strong> câu
+          Đã chọn: <strong style="color:#EA580C;">${answeredCount}/${qList.length}</strong> câu
         </span>
       </div>
 
@@ -2407,7 +2407,7 @@
     panel.innerHTML = `
       <div class="admin-card">
         <div class="dossier-selector-bar">${pillsHtml}</div>
-        <div class="admin-card-head" style="padding-top:8px;border-top:1px solid #FCE7F3;">
+        <div class="admin-card-head" style="padding-top:8px;border-top:1px solid #FFEDD5;">
           <div>
             <h2 class="admin-title">Hồ sơ Đào tạo: ${escapeHtml(sale.name)} (Mã PIN: <code>${escapeHtml(sale.pin)}</code>)</h2>
             <p class="admin-sub">Theo dõi tiến độ đọc tài liệu và lịch sử điểm trắc nghiệm ở từng học phần.</p>
@@ -2506,7 +2506,7 @@
     panel.innerHTML = `
       <div class="admin-card">
         <div class="dossier-selector-bar">${modPills}</div>
-        <div class="admin-card-head" style="padding-top:8px;border-top:1px solid #FCE7F3;">
+        <div class="admin-card-head" style="padding-top:8px;border-top:1px solid #FFEDD5;">
           <div>
             <h2 class="admin-title">Phân tích Câu hỏi Trắc nghiệm — ${escapeHtml(mod.code)}: ${escapeHtml(mod.title)}</h2>
             <p class="admin-sub">Giúp Quản lý nắm được câu hỏi nào Sale trả lời tốt và kiến thức nào Sale hay nhầm lẫn để đào tạo bổ sung.</p>
@@ -2666,10 +2666,10 @@
     const ctx = canvas.getContext("2d");
     ctx.scale(scale, scale);
 
-    ctx.fillStyle = "#FFF5F7";
+    ctx.fillStyle = "#FFFBF5";
     ctx.fillRect(0, 0, width, height);
 
-    ctx.fillStyle = "#700B33";
+    ctx.fillStyle = "#9A3412";
     ctx.fillRect(0, 0, width, headerH);
 
     ctx.fillStyle = "#FB7185";
@@ -2680,7 +2680,7 @@
     ctx.font = "bold 21px 'Plus Jakarta Sans', 'Be Vietnam Pro', sans-serif";
     ctx.fillText("BẢNG TÀI KHOẢN & MÃ PIN ĐĂNG NHẬP", 28, 68);
 
-    ctx.fillStyle = "#FBCFE8";
+    ctx.fillStyle = "#FED7AA";
     ctx.font = "600 13.5px 'JetBrains Mono', monospace";
     ctx.fillText("🔗 Link web: " + (window.location.origin + window.location.pathname), 28, 100);
 
@@ -2688,7 +2688,7 @@
     const tableW = width - 48;
     let curY = headerH + 12;
 
-    ctx.fillStyle = "#BE185D";
+    ctx.fillStyle = "#EA580C";
     ctx.fillRect(tableX, curY, tableW, tableHeadH);
 
     ctx.fillStyle = "#FFFFFF";
@@ -2703,10 +2703,10 @@
     users.forEach((u, idx) => {
       ctx.fillStyle = idx % 2 === 0 ? "#FFFFFF" : "#FFF1F2";
       ctx.fillRect(tableX, curY, tableW, rowH);
-      ctx.strokeStyle = "#FBCFE8";
+      ctx.strokeStyle = "#FED7AA";
       ctx.strokeRect(tableX, curY, tableW, rowH);
 
-      ctx.fillStyle = "#881337";
+      ctx.fillStyle = "#9A3412";
       ctx.font = "bold 13.5px 'JetBrains Mono', monospace";
       ctx.fillText(String(idx + 1), tableX + 20, curY + 27);
 
@@ -2718,7 +2718,7 @@
       ctx.font = "600 13px 'Be Vietnam Pro', sans-serif";
       ctx.fillText(u.role === "uploader" ? "Đào tạo" : "Sale", tableX + 330, curY + 27);
 
-      ctx.fillStyle = "#BE185D";
+      ctx.fillStyle = "#EA580C";
       ctx.font = "bold 15.5px 'JetBrains Mono', monospace";
       ctx.fillText(u.pin, tableX + 535, curY + 27);
 
@@ -3419,9 +3419,9 @@
   function exportExcelClientFallback() {
     const sales = (db.users || []).filter(u => u.role === "sale");
     const pubMods = getVisibleModulesForLearner();
-    let ths = `<th style="background:#9D174D;color:#fff;padding:10px;">STT</th><th style="background:#9D174D;color:#fff;padding:10px;">Họ và tên Sale</th><th style="background:#9D174D;color:#fff;padding:10px;">Mã PIN</th>`;
+    let ths = `<th style="background:#C2410C;color:#fff;padding:10px;">STT</th><th style="background:#C2410C;color:#fff;padding:10px;">Họ và tên Sale</th><th style="background:#C2410C;color:#fff;padding:10px;">Mã PIN</th>`;
     pubMods.forEach(m => {
-      ths += `<th style="background:#9D174D;color:#fff;padding:10px;">${escapeHtml(m.code)} - ${escapeHtml(m.title)}</th>`;
+      ths += `<th style="background:#C2410C;color:#fff;padding:10px;">${escapeHtml(m.code)} - ${escapeHtml(m.title)}</th>`;
     });
 
     let trs = "";
