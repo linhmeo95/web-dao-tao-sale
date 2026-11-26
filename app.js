@@ -1165,11 +1165,14 @@
 
     const statusArea = document.getElementById("saleModStatusArea");
     if (prog.passed) {
+      statusArea.style.display = "";
       statusArea.innerHTML = `<span class="sidebar-item-status done" style="font-size:12px;padding:4px 10px;">✓ Đã đạt (${prog.bestScore}%)</span>`;
     } else if (prog.attempts && prog.attempts.length > 0) {
-      statusArea.innerHTML = `<span class="sidebar-item-status failed" style="font-size:12px;padding:4px 10px;">Điểm cao nhất: ${prog.bestScore}% (Chuẩn &ge;${thresh}%)</span>`;
+      statusArea.style.display = "";
+      statusArea.innerHTML = `<span class="sidebar-item-status failed" style="font-size:12px;padding:4px 10px;">Điểm cao nhất: ${prog.bestScore}%</span>`;
     } else {
-      statusArea.innerHTML = `<span class="sidebar-item-status empty" style="font-size:12px;padding:4px 10px;">Chuẩn hoàn thành &ge;${thresh}%</span>`;
+      statusArea.innerHTML = "";
+      statusArea.style.display = "none";
     }
 
     const btnTabDoc = document.getElementById("btnSaleTabDoc");
@@ -1502,14 +1505,13 @@
       }
 
       // Tab 1: Điểm nhấn tư vấn Hiệu trưởng (tách riêng theo 3 độ tuổi)
-      const principalHighlightCardsHtml = ages.map((a, idx) => {
+      const principalHighlightCardsHtml = ages.map(a => {
         const ageLabel = (a.do_tuoi || "").replace(/\n+/g, " · ");
         const hasComparison = Boolean((a.noi_dung_bo || "").trim() || (a.noi_dung_novastars || "").trim());
         return `
           <article class="study-topic-card">
             <div class="stc-head">
               <div class="stc-head-left">
-                <span class="stc-num">Khối ${idx + 1}/${ages.length}</span>
                 <h4 class="stc-title">${escapeHtml(ageLabel)}</h4>
               </div>
             </div>
