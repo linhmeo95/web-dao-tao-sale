@@ -33,10 +33,9 @@
 
   // Study document interactive filters (for HP03 sample lessons & HP04 72 lessons)
   let hp03GradeFilter = "ALL";
+  let hp03LessonSubTab = "compare"; // "compare" | "activities" | "quiz"
   let hp04SearchQuery = "";
   let hp04TermFilter = "ALL";
-  let hp04AgeMode = "ALL"; // "ALL" | "BE" | "NHO" | "LON"
-  let hp04ExpandedTiet = "1";
   let inlineMiniQuizAnswers = {}; // { [questionId]: selectedOptionIndex }
 
   // Active quiz state for the Sale currently taking a quiz
@@ -1313,14 +1312,102 @@
       }));
     }
 
-    // 3. HP03: 10 Sample Lessons -> Scannable 3-Tier Reading Flow (Spotlight Pitch -> Balanced Compare -> Activity Timeline)
+    // 3. HP03: 10 Sample Lessons -> 3 clean horizontal sub-tabs per lesson (fits 1 screen cleanly without long scroll)
     if (mod.structuredType === "sample_10_lessons" && Array.isArray(mod.structuredData)) {
       return mod.structuredData.map((item, idx) => {
         const lessonCode = String(item.bai_hoc || "").split(/[\s\-]/)[0].trim();
+        const lessonQs = getLessonInlineQuestions(mod, idx);
+        const answeredMini = lessonQs.filter(q => inlineMiniQuizAnswers[q.id] !== undefined).length;
+        const rightMini = lessonQs.filter(q => inlineMiniQuizAnswers[q.id] === Number(q.correctIndex)).length;
+        const letters = ["A", "B", "C", "D"];
+
+        let tabBodyHtml = "";
+        if (hp03LessonSubTab === "activities") {
+          tabBodyHtml = `
+            <div class="stc-tier-stack">
+              <div class="stc-timeline-card" style="margin-top:0;">
+                <div class="stc-box-label" style="color:#C2410C;">Tiến trình tổ chức &amp; Thực hành trên lớp</div>
+                ${formatTimelineStepsHtml(item.cach_trien_khai)}
+              </div>
+            </div>
+          `;
+        } else if (hp03LessonSubTab === "quiz") {
+          const qCardsHtml = lessonQs.map((q, qIdx) => {
+            const chosen = inlineMiniQuizAnswers[q.id];
+            const hasChosen = chosen !== undefined;
+            const isRight = hasChosen && chosen === Number(q.correctIndex);
+            const optsHtml = (q.options || []).map((optText, oIdx) => {
+              let cls = "lmq-opt-btn";
+              if (hasChosen) {
+                if (oIdx === Number(q.correctIndex)) cls += " right";
+                else if (chosen === oIdx) cls += " wrong";
+              }
+              return `
+                <button type="button" class="${cls}" data-mini-q="${escapeHtml(q.id)}" data-mini-opt="${oIdx}">
+                  <span class="qq-opt-letter">${letters[oIdx] || oIdx + 1}</span>
+                  <span>${escapeHtml(optText)}</span>
+                </button>
+              `;
+            }).join("");
+
+            return `
+              <div class="lmq-q-item">
+                <div style="font-size:13.8px;font-weight:700;color:#0F172A;line-height:1.45;">
+                  <span class="qq-num-badge" style="margin-right:6px;">Câu ${qIdx + 1}/${lessonQs.length}</span>
+                  ${escapeHtml(q.question)}
+                </div>
+                <div class="lmq-opt-grid">${optsHtml}</div>
+                ${hasChosen ? `
+                  <div class="lmq-feedback ${isRight ? "right" : "wrong"}">
+                    <strong>${isRight ? "✓ Chính xác!" : `✕ Chưa đúng (Đáp án chuẩn là ${letters[q.correctIndex]}).`}</strong>
+                    ${escapeHtml(q.explanation || "")}
+                  </div>
+                ` : ""}
+              </div>
+            `;
+          }).join("");
+
+          tabBodyHtml = `
+            <div class="stc-tier-stack">
+              <div class="lesson-mini-quiz-box" style="margin-top:0;border:none;padding:4px 0;box-shadow:none;background:transparent;">
+                <div class="lmq-head">
+                  <div>
+                    <div class="lmq-title">Trắc nghiệm ôn ngay Bài ${idx + 1} (${lessonCode}) — ${lessonQs.length} câu</div>
+                    <div style="font-size:12.2px;color:#64748B;">Đã đúng: <strong style="color:#059669;">${rightMini}/${lessonQs.length}</strong> (đã chọn ${answeredMini}/${lessonQs.length}).</div>
+                  </div>
+                  ${answeredMini > 0 ? `<button type="button" class="btn-row-act" id="btnResetMiniQuizStep">Làm lại 3 câu này</button>` : ""}
+                </div>
+                ${qCardsHtml}
+              </div>
+            </div>
+          `;
+        } else {
+          tabBodyHtml = `
+            <div class="stc-tier-stack">
+              <div class="stc-pitch-spotlight">
+                <div class="stc-box-label">Điểm ăn tiền để Sale thuyết phục Chủ trường</div>
+                ${formatStudyRichTextHtml(item.diem_an_tien)}
+              </div>
+
+              <div class="stc-balanced-pair">
+                <div class="stc-box traditional">
+                  <div class="stc-box-label">Cách trường thường dạy (${escapeHtml(item.de_tai_quen_thuoc)})</div>
+                  ${formatStudyRichTextHtml(item.cach_truong_thuong_day)}
+                </div>
+                <div class="stc-box novastars">
+                  <div class="stc-box-label">Mục tiêu &amp; Điểm mới của Novastars</div>
+                  ${formatStudyRichTextHtml(item.noi_dung_novastars)}
+                </div>
+              </div>
+            </div>
+          `;
+        }
+
         return {
           pillLabel: `Bài ${idx + 1} (${lessonCode})`,
           lessonCode,
           title: `${item.bai_hoc}`,
+          hasEmbeddedQuiz: true,
           html: `
             <article class="study-topic-card">
               <div class="stc-head">
@@ -1333,188 +1420,153 @@
                   <span class="stc-badge">Thuyết trình: ${escapeHtml(item.co_thuyet_trinh)}</span>
                 </div>
               </div>
-              <div class="stc-tier-stack">
-                <div class="stc-pitch-spotlight">
-                  <div class="stc-box-label">Tầng 1 · Điểm ăn tiền để Sale thuyết phục Chủ trường</div>
-                  ${formatStudyRichTextHtml(item.diem_an_tien)}
-                </div>
-
-                <div class="stc-balanced-pair">
-                  <div class="stc-box traditional">
-                    <div class="stc-box-label">Tầng 2A · Cách trường thường dạy (${escapeHtml(item.de_tai_quen_thuoc)})</div>
-                    ${formatStudyRichTextHtml(item.cach_truong_thuong_day)}
-                  </div>
-                  <div class="stc-box novastars">
-                    <div class="stc-box-label">Tầng 2B · Mục tiêu &amp; Điểm mới của Novastars</div>
-                    ${formatStudyRichTextHtml(item.noi_dung_novastars)}
-                  </div>
-                </div>
-
-                <div class="stc-timeline-card">
-                  <div class="stc-box-label" style="color:#C2410C;">Tầng 3 · Tiến trình tổ chức lớp &amp; Thực hành trên lớp</div>
-                  ${formatTimelineStepsHtml(item.cach_trien_khai)}
-                </div>
+              <div class="hp03-subtab-bar" role="tablist">
+                <button type="button" class="hp03-subtab-btn ${hp03LessonSubTab === 'compare' ? 'active' : ''}" data-hp03-subtab="compare">
+                  1. Điểm ăn tiền &amp; So sánh
+                </button>
+                <button type="button" class="hp03-subtab-btn ${hp03LessonSubTab === 'activities' ? 'active' : ''}" data-hp03-subtab="activities">
+                  2. Các hoạt động trên lớp
+                </button>
+                <button type="button" class="hp03-subtab-btn ${hp03LessonSubTab === 'quiz' ? 'active' : ''}" data-hp03-subtab="quiz">
+                  3. Trắc nghiệm bài này (${rightMini}/${lessonQs.length})
+                </button>
               </div>
+              ${tabBodyHtml}
             </article>
           `
         };
       });
     }
 
-    // 4. HP04: 3 Age Groups + 72x3 Detailed Curriculum Lookup Table -> 4 clean steps
+    // 4. HP04: 4 Clean Age Tabs ([Tổng quan 3 khối] + [Khối Bé] + [Khối Nhỡ] + [Khối Lớn])
     if (mod.structuredType === "roadmap_72_lessons" && mod.structuredData) {
       const ages = mod.structuredData.ageSummaries || [];
       const list72 = mod.structuredData.curriculum72 || [];
-      const steps = ages.map((a, idx) => ({
-        pillLabel: idx === 0 ? "1. Khối Bé (3-4t)" : (idx === 1 ? "2. Khối Nhỡ (4-5t)" : "3. Khối Lớn (5-6t)"),
-        title: (a.do_tuoi || "").replace(/\n/g, " · "),
-        html: `
-          <article class="study-topic-card">
-            <div class="stc-head">
-              <div class="stc-head-left">
-                <span class="stc-num">Độ tuổi #${escapeHtml(a.stt)}</span>
-                <h4 class="stc-title">${escapeHtml((a.do_tuoi || "").replace(/\n/g, " · "))}</h4>
-              </div>
-            </div>
-            <div class="stc-tier-stack">
-              <div class="stc-pitch-spotlight">
-                <div class="stc-box-label">Điểm nhấn để Sale nói với Hiệu trưởng</div>
-                <div class="stc-box-content"><strong>"${escapeHtml(a.diem_nhan_sale)}"</strong></div>
-              </div>
-              <div class="stc-balanced-pair">
-                <div class="stc-box traditional">
-                  <div class="stc-box-label">Nội dung trường vẫn dạy theo khung Bộ</div>
-                  ${formatStudyRichTextHtml(a.noi_dung_bo)}
-                </div>
-                <div class="stc-box novastars">
-                  <div class="stc-box-label">Nội dung nâng cấp của Novastars</div>
-                  ${formatStudyRichTextHtml(a.noi_dung_novastars)}
-                </div>
-              </div>
-            </div>
-          </article>
-        `
-      }));
-
       const q = hp04SearchQuery.trim().toLowerCase();
-      const filtered72 = list72.filter(row => {
+      const hk1Count = list72.filter(r => r.hoc_ki === "Học kì I").length;
+      const hk2Count = list72.filter(r => r.hoc_ki === "Học kì II").length;
+
+      function buildHp04ToolbarHtml(searchPlaceholder) {
+        return `
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+            <input type="text" id="inputHp04Search" class="input-control" style="width:260px;padding:7px 11px;font-size:13px;" placeholder="${escapeHtml(searchPlaceholder)}" value="${escapeHtml(hp04SearchQuery)}">
+            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+              <button type="button" class="study-filter-pill ${hp04TermFilter === 'ALL' ? 'active' : ''}" data-hp04-term="ALL">Cả năm (${list72.length})</button>
+              <button type="button" class="study-filter-pill ${hp04TermFilter === 'Học kì I' ? 'active' : ''}" data-hp04-term="Học kì I">Học kì I (${hk1Count})</button>
+              <button type="button" class="study-filter-pill ${hp04TermFilter === 'Học kì II' ? 'active' : ''}" data-hp04-term="Học kì II">Học kì II (${hk2Count})</button>
+            </div>
+          </div>
+        `;
+      }
+
+      // Tab 1: Tổng quan 3 khối (Tóm tắt 3 độ tuổi + Đối chiếu tên bài 72 tiết, KHÔNG hiển thị nội dung chi tiết)
+      const filteredOverview = list72.filter(row => {
         if (hp04TermFilter !== "ALL" && row.hoc_ki !== hp04TermFilter) return false;
         if (!q) return true;
         return (
           (row.tiet || "").toLowerCase().includes(q) ||
           (row.mg_be || "").toLowerCase().includes(q) ||
-          (row.mg_be_nd || "").toLowerCase().includes(q) ||
           (row.mg_nho || "").toLowerCase().includes(q) ||
-          (row.mg_nho_nd || "").toLowerCase().includes(q) ||
-          (row.mg_lon || "").toLowerCase().includes(q) ||
-          (row.mg_lon_nd || "").toLowerCase().includes(q)
+          (row.mg_lon || "").toLowerCase().includes(q)
         );
       });
 
-      const hk1Count = list72.filter(r => r.hoc_ki === "Học kì I").length;
-      const hk2Count = list72.filter(r => r.hoc_ki === "Học kì II").length;
+      const ageMiniCardsHtml = ages.map(a => `
+        <div class="hp04-summary-mini-card">
+          <h5>${escapeHtml((a.do_tuoi || "").replace(/\n/g, " · "))}</h5>
+          <p>${escapeHtml(a.diem_nhan_sale || "")}</p>
+        </div>
+      `).join("");
 
-      let tableHeadHtml = "";
-      let tableBodyHtml = "";
+      const overviewRowsHtml = filteredOverview.map(r => `
+        <tr>
+          <td style="text-align:center;font-family:var(--font-mono);font-weight:800;color:#EA580C;">${escapeHtml(r.tiet)}</td>
+          <td><span class="mod-cat-pill">${escapeHtml(r.hoc_ki)}</span></td>
+          <td>${escapeHtml(r.mg_be)}</td>
+          <td>${escapeHtml(r.mg_nho)}</td>
+          <td>${escapeHtml(r.mg_lon)}</td>
+        </tr>
+      `).join("");
 
-      if (hp04AgeMode === "ALL") {
-        tableHeadHtml = `
-          <tr>
-            <th style="width:68px;text-align:center;">Tiết</th>
-            <th style="width:94px;">Học kì</th>
-            <th>Mẫu giáo Bé (3–4t)</th>
-            <th>Mẫu giáo Nhỡ (4–5t)</th>
-            <th>Mẫu giáo Lớn (5–6t)</th>
-            <th style="width:96px;text-align:center;">Nội dung</th>
-          </tr>
-        `;
-        tableBodyHtml = filtered72.map(r => {
-          const isExp = String(hp04ExpandedTiet) === String(r.tiet);
-          const hasDetails = Boolean(r.mg_be_nd || r.mg_nho_nd || r.mg_lon_nd);
-          let htmlRow = `
-            <tr data-hp04-row-tiet="${escapeHtml(r.tiet)}" style="cursor:${hasDetails ? 'pointer' : 'default'};${isExp ? 'background:#FFF7ED;' : ''}">
-              <td style="text-align:center;font-family:var(--font-mono);font-weight:800;color:#EA580C;">${escapeHtml(r.tiet)}</td>
-              <td><span class="mod-cat-pill">${escapeHtml(r.hoc_ki)}</span></td>
-              <td><strong>${escapeHtml(r.mg_be)}</strong></td>
-              <td><strong>${escapeHtml(r.mg_nho)}</strong></td>
-              <td><strong>${escapeHtml(r.mg_lon)}</strong></td>
-              <td style="text-align:center;">
-                ${hasDetails ? `<button type="button" class="btn-row-act ${isExp ? 'save' : ''}" data-hp04-toggle-tiet="${escapeHtml(r.tiet)}">${isExp ? "Thu gọn" : "Xem ND"}</button>` : "—"}
-              </td>
-            </tr>
-          `;
-          if (isExp && hasDetails) {
-            htmlRow += `
-              <tr>
-                <td colspan="6" class="hp04-detail-drawer">
-                  <div class="hp04-drawer-grid">
-                    <div class="hp04-drawer-col">
-                      <h5>Khối Bé (3–4t): ${escapeHtml(r.mg_be)}</h5>
-                      <p>${escapeHtml(r.mg_be_nd || "Đang cập nhật...")}</p>
-                    </div>
-                    <div class="hp04-drawer-col">
-                      <h5>Khối Nhỡ (4–5t): ${escapeHtml(r.mg_nho)}</h5>
-                      <p>${escapeHtml(r.mg_nho_nd || "Đang cập nhật...")}</p>
-                    </div>
-                    <div class="hp04-drawer-col">
-                      <h5>Khối Lớn (5–6t): ${escapeHtml(r.mg_lon)}</h5>
-                      <p>${escapeHtml(r.mg_lon_nd || "Đang cập nhật...")}</p>
-                    </div>
-                  </div>
-                </td>
-              </tr>
-            `;
-          }
-          return htmlRow;
-        }).join("");
-      } else {
-        const titleKey = hp04AgeMode === "BE" ? "mg_be" : (hp04AgeMode === "NHO" ? "mg_nho" : "mg_lon");
-        const ndKey = hp04AgeMode === "BE" ? "mg_be_nd" : (hp04AgeMode === "NHO" ? "mg_nho_nd" : "mg_lon_nd");
-        const ageLabel = hp04AgeMode === "BE" ? "Khối Mẫu giáo Bé (3–4 tuổi)" : (hp04AgeMode === "NHO" ? "Khối Mẫu giáo Nhỡ (4–5 tuổi)" : "Khối Mẫu giáo Lớn (5–6 tuổi)");
-        tableHeadHtml = `
-          <tr>
-            <th style="width:70px;text-align:center;">Tiết</th>
-            <th style="width:98px;">Học kì</th>
-            <th style="width:260px;">Tên bài học (${escapeHtml(ageLabel)})</th>
-            <th>Nội dung mục tiêu &amp; Kỹ năng thực hành của trẻ</th>
-          </tr>
-        `;
-        tableBodyHtml = filtered72.map(r => `
+      const steps = [
+        {
+          pillLabel: "Tổng quan 3 khối",
+          title: "Tổng quan 3 khối & Đối chiếu 72 tiết",
+          html: `
+            <div class="hp04-age-summary-grid">${ageMiniCardsHtml}</div>
+            ${buildHp04ToolbarHtml("Tìm tên bài đối chiếu 3 khối...")}
+            <div class="table-responsive" style="max-height:430px;overflow-y:auto;">
+              <table class="progress-matrix-table">
+                <thead>
+                  <tr>
+                    <th style="width:66px;text-align:center;">Tiết</th>
+                    <th style="width:98px;">Học kì</th>
+                    <th>Mẫu giáo Bé (3–4 tuổi)</th>
+                    <th>Mẫu giáo Nhỡ (4–5 tuổi)</th>
+                    <th>Mẫu giáo Lớn (5–6 tuổi)</th>
+                  </tr>
+                </thead>
+                <tbody>${overviewRowsHtml || `<tr><td colspan="5" style="text-align:center;padding:24px;color:#64748B;">Không tìm thấy tiết học phù hợp.</td></tr>`}</tbody>
+              </table>
+            </div>
+          `
+        }
+      ];
+
+      // Tabs 2, 3, 4: Khối Bé, Khối Nhỡ, Khối Lớn (Hiển thị LUÔN cột Nội dung bài học chi tiết)
+      const ageConfigs = [
+        { pillLabel: "Khối Bé (3–4t)", titleKey: "mg_be", ndKey: "mg_be_nd", summary: ages[0], fullName: "Khối Mẫu giáo Bé (3–4 tuổi)" },
+        { pillLabel: "Khối Nhỡ (4–5t)", titleKey: "mg_nho", ndKey: "mg_nho_nd", summary: ages[1], fullName: "Khối Mẫu giáo Nhỡ (4–5 tuổi)" },
+        { pillLabel: "Khối Lớn (5–6t)", titleKey: "mg_lon", ndKey: "mg_lon_nd", summary: ages[2], fullName: "Khối Mẫu giáo Lớn (5–6 tuổi)" }
+      ];
+
+      ageConfigs.forEach(cfg => {
+        const filteredSingle = list72.filter(row => {
+          if (hp04TermFilter !== "ALL" && row.hoc_ki !== hp04TermFilter) return false;
+          if (!q) return true;
+          return (
+            (row.tiet || "").toLowerCase().includes(q) ||
+            (row[cfg.titleKey] || "").toLowerCase().includes(q) ||
+            (row[cfg.ndKey] || "").toLowerCase().includes(q)
+          );
+        });
+
+        const singleRowsHtml = filteredSingle.map(r => `
           <tr>
             <td style="text-align:center;font-family:var(--font-mono);font-weight:800;color:#EA580C;">${escapeHtml(r.tiet)}</td>
             <td><span class="mod-cat-pill">${escapeHtml(r.hoc_ki)}</span></td>
-            <td><strong>${escapeHtml(r[titleKey] || "")}</strong></td>
-            <td class="doc-multiline-cell">${escapeHtml(r[ndKey] || "—")}</td>
+            <td><strong>${escapeHtml(r[cfg.titleKey] || "")}</strong></td>
+            <td class="doc-multiline-cell">${escapeHtml(r[cfg.ndKey] || "—")}</td>
           </tr>
         `).join("");
-      }
 
-      steps.push({
-        pillLabel: `4. Tra cứu ${list72.length} tiết`,
-        title: `Danh sách trọn vẹn ${list72.length} tiết × 3 khối (216 bài chi tiết)`,
-        html: `
-          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
-            <div class="study-filter-pills">
-              <button type="button" class="study-filter-pill ${hp04AgeMode === 'ALL' ? 'active' : ''}" data-hp04-age="ALL">So sánh 3 khối</button>
-              <button type="button" class="study-filter-pill ${hp04AgeMode === 'BE' ? 'active' : ''}" data-hp04-age="BE">Khối Bé (3–4t)</button>
-              <button type="button" class="study-filter-pill ${hp04AgeMode === 'NHO' ? 'active' : ''}" data-hp04-age="NHO">Khối Nhỡ (4–5t)</button>
-              <button type="button" class="study-filter-pill ${hp04AgeMode === 'LON' ? 'active' : ''}" data-hp04-age="LON">Khối Lớn (5–6t)</button>
+        const sumObj = cfg.summary || {};
+        steps.push({
+          pillLabel: cfg.pillLabel,
+          title: `${cfg.fullName} — 72 tiết chi tiết`,
+          html: `
+            <div class="stc-pitch-spotlight" style="margin-bottom:10px;">
+              <div class="stc-box-label">${escapeHtml(cfg.fullName)} · Điểm nhấn tư vấn Hiệu trưởng</div>
+              <div class="stc-box-content"><strong>"${escapeHtml(sumObj.diem_nhan_sale || "")}"</strong></div>
             </div>
-            <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
-              <input type="text" id="inputHp04Search" class="input-control" style="width:230px;padding:6px 10px;font-size:12.8px;" placeholder="Tìm tên bài hoặc nội dung..." value="${escapeHtml(hp04SearchQuery)}">
-              <button type="button" class="study-filter-pill ${hp04TermFilter === 'ALL' ? 'active' : ''}" data-hp04-term="ALL">Cả năm (${list72.length})</button>
-              <button type="button" class="study-filter-pill ${hp04TermFilter === 'Học kì I' ? 'active' : ''}" data-hp04-term="Học kì I">HK I (${hk1Count})</button>
-              <button type="button" class="study-filter-pill ${hp04TermFilter === 'Học kì II' ? 'active' : ''}" data-hp04-term="Học kì II">HK II (${hk2Count})</button>
+            ${buildHp04ToolbarHtml(`Tìm tên bài hoặc nội dung ${cfg.pillLabel}...`)}
+            <div class="table-responsive" style="max-height:460px;overflow-y:auto;">
+              <table class="progress-matrix-table">
+                <thead>
+                  <tr>
+                    <th style="width:66px;text-align:center;">Tiết</th>
+                    <th style="width:98px;">Học kì</th>
+                    <th style="width:255px;">Tên bài học (${escapeHtml(cfg.pillLabel)})</th>
+                    <th>Nội dung bài học chi tiết</th>
+                  </tr>
+                </thead>
+                <tbody>${singleRowsHtml || `<tr><td colspan="4" style="text-align:center;padding:24px;color:#64748B;">Không tìm thấy tiết học phù hợp.</td></tr>`}</tbody>
+              </table>
             </div>
-          </div>
-          <div class="table-responsive" style="max-height:490px;overflow-y:auto;">
-            <table class="progress-matrix-table">
-              <thead>${tableHeadHtml}</thead>
-              <tbody>${tableBodyHtml || `<tr><td colspan="6" style="text-align:center;padding:24px;color:#64748B;">Không tìm thấy tiết học khớp từ khóa.</td></tr>`}</tbody>
-            </table>
-          </div>
-        `
+          `
+        });
       });
+
       return steps;
     }
 
@@ -1625,7 +1677,7 @@
 
     const lessonQs = getLessonInlineQuestions(mod, activeDocStepIndex);
     let inlineQuizHtml = "";
-    if (lessonQs.length > 0) {
+    if (lessonQs.length > 0 && !currentStep.hasEmbeddedQuiz) {
       const answeredMini = lessonQs.filter(q => inlineMiniQuizAnswers[q.id] !== undefined).length;
       const rightMini = lessonQs.filter(q => inlineMiniQuizAnswers[q.id] === Number(q.correctIndex)).length;
       const qCardsHtml = lessonQs.map((q, qIdx) => {
@@ -1723,9 +1775,18 @@
 
     bodyContainer.querySelectorAll("[data-doc-step]").forEach(btn => {
       btn.addEventListener("click", () => {
-        activeDocStepIndex = Number(btn.dataset.docStep);
+        const nextIdx = Number(btn.dataset.docStep);
+        if (nextIdx !== activeDocStepIndex) hp03LessonSubTab = "compare";
+        activeDocStepIndex = nextIdx;
         sendPresenceHeartbeat();
-        renderSaleDocumentPanel(mod, prog, steps);
+        renderSaleDocumentPanel(mod, prog);
+      });
+    });
+
+    bodyContainer.querySelectorAll("[data-hp03-subtab]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        hp03LessonSubTab = btn.dataset.hp03Subtab;
+        renderSaleDocumentPanel(mod, prog);
       });
     });
 
@@ -1749,7 +1810,8 @@
       btnPrev.onclick = () => {
         if (activeDocStepIndex > 0) {
           activeDocStepIndex--;
-          renderSaleDocumentPanel(mod, prog, steps);
+          hp03LessonSubTab = "compare";
+          renderSaleDocumentPanel(mod, prog);
         }
       };
     }
@@ -1759,7 +1821,8 @@
       btnNext.onclick = () => {
         if (activeDocStepIndex < steps.length - 1) {
           activeDocStepIndex++;
-          renderSaleDocumentPanel(mod, prog, steps);
+          hp03LessonSubTab = "compare";
+          renderSaleDocumentPanel(mod, prog);
         }
       };
     }
@@ -1778,22 +1841,7 @@
       };
     }
 
-    // Bind HP04 4-age-mode, HK I/II filter, row detail toggle & search
-    bodyContainer.querySelectorAll("[data-hp04-age]").forEach(btn => {
-      btn.addEventListener("click", () => {
-        hp04AgeMode = btn.dataset.hp04Age;
-        renderSaleDocumentPanel(mod, prog);
-      });
-    });
-
-    bodyContainer.querySelectorAll("[data-hp04-row-tiet]").forEach(tr => {
-      tr.addEventListener("click", () => {
-        const t = tr.dataset.hp04RowTiet;
-        hp04ExpandedTiet = (String(hp04ExpandedTiet) === String(t)) ? "" : t;
-        renderSaleDocumentPanel(mod, prog);
-      });
-    });
-
+    // Bind HP04 term filter & search
     bodyContainer.querySelectorAll("[data-hp04-term]").forEach(btn => {
       btn.addEventListener("click", () => {
         hp04TermFilter = btn.dataset.hp04Term;
@@ -3370,19 +3418,15 @@
     });
 
     const completionPct = pubMods.length > 0 ? Math.round((passedCount * 100) / pubMods.length) : 0;
-    const avgScore = attemptedMods > 0 ? Math.round(sumBest / attemptedMods) : 0;
-    const rankLabel = (passedCount === pubMods.length && pubMods.length > 0)
-      ? (avgScore >= 90 ? "Hoàn thành Xuất sắc" : "Đạt chuẩn Toàn khóa")
-      : (attemptedMods > 0 ? "Đang tiến hành" : "Chưa bắt đầu");
 
     const scale = 2;
     const width = 920;
-    const headerH = 128;
-    const infoCardH = 108;
-    const tableHeadH = 44;
-    const rowH = 58;
-    const footerH = 74;
-    const height = headerH + 18 + infoCardH + 18 + tableHeadH + rowsData.length * rowH + footerH;
+    const headerH = 82;
+    const infoBarH = 66;
+    const tableHeadH = 42;
+    const rowH = 54;
+    const footerH = 26;
+    const height = headerH + 14 + infoBarH + 14 + tableHeadH + rowsData.length * rowH + footerH;
 
     const canvas = document.createElement("canvas");
     canvas.width = width * scale;
@@ -3394,7 +3438,7 @@
     ctx.fillStyle = "#FFFBF5";
     ctx.fillRect(0, 0, width, height);
 
-    // Top Header Banner (Bright Fresh NovaStars Orange)
+    // Concise Orange Header Banner
     const grad = ctx.createLinearGradient(0, 0, width, headerH);
     grad.addColorStop(0, "#EA580C");
     grad.addColorStop(1, "#F97316");
@@ -3402,88 +3446,67 @@
     ctx.fillRect(0, 0, width, headerH);
 
     // NS Logo Pill
-    ctx.fillStyle = "rgba(255,255,255,0.2)";
+    ctx.fillStyle = "rgba(255,255,255,0.22)";
     ctx.beginPath();
-    ctx.roundRect(28, 24, 52, 52, 12);
+    ctx.roundRect(28, 19, 44, 44, 10);
     ctx.fill();
     ctx.fillStyle = "#FFFFFF";
-    ctx.font = "800 22px 'Plus Jakarta Sans', 'Be Vietnam Pro', sans-serif";
-    ctx.fillText("NS", 38, 58);
-
-    ctx.fillStyle = "#FFEDD5";
-    ctx.font = "700 12px 'Be Vietnam Pro', sans-serif";
-    ctx.fillText("NOVASTARS EDUCATION · HỆ THỐNG ĐÀO TẠO CẨM NANG TƯ VẤN MẦM NON CHUYỂN GIAO", 94, 41);
+    ctx.font = "800 19px 'Plus Jakarta Sans', 'Be Vietnam Pro', sans-serif";
+    ctx.fillText("NS", 36, 48);
 
     ctx.fillStyle = "#FFFFFF";
-    ctx.font = "800 23px 'Plus Jakarta Sans', 'Be Vietnam Pro', sans-serif";
-    ctx.fillText("BÁO CÁO KẾT QUẢ HỌC TẬP CỦA HỌC VIÊN", 94, 72);
+    ctx.font = "800 22px 'Plus Jakarta Sans', 'Be Vietnam Pro', sans-serif";
+    ctx.fillText("BÁO CÁO KẾT QUẢ HỌC TẬP", 86, 49);
 
-    const exportedAtStr = new Date().toLocaleString("vi-VN", { hour: "2-digit", minute: "2-digit", day: "2-digit", month: "2-digit", year: "numeric" });
-    ctx.fillStyle = "#FFF7ED";
-    ctx.font = "600 12.5px 'Be Vietnam Pro', sans-serif";
-    ctx.fillText(`Ngày xuất báo cáo: ${exportedAtStr}   ·   Điểm chuẩn đạt mỗi học phần: >= ${(db.meta && db.meta.defaultPassThreshold) || 80}%`, 94, 100);
+    ctx.fillStyle = "#FFEDD5";
+    ctx.font = "600 13px 'Be Vietnam Pro', sans-serif";
+    ctx.fillText("NovaStars Education", 756, 48);
 
-    // Student Identity + 4 KPI Summary Strip
+    // Concise Identity Bar: Only Name + Overall Progress %
     const padX = 28;
-    const cardY = headerH + 16;
+    const cardY = headerH + 14;
     const cardW = width - padX * 2;
 
     ctx.fillStyle = "#FFFFFF";
     ctx.strokeStyle = "#FED7AA";
     ctx.lineWidth = 1.5;
     ctx.beginPath();
-    ctx.roundRect(padX, cardY, cardW, infoCardH, 14);
+    ctx.roundRect(padX, cardY, cardW, infoBarH, 12);
     ctx.fill();
     ctx.stroke();
 
     ctx.fillStyle = "#9A3412";
-    ctx.font = "700 11.5px 'Be Vietnam Pro', sans-serif";
-    ctx.fillText("HỌ VÀ TÊN HỌC VIÊN", padX + 20, cardY + 26);
+    ctx.font = "700 11px 'Be Vietnam Pro', sans-serif";
+    ctx.fillText("HỌC VIÊN", padX + 18, cardY + 23);
 
     ctx.fillStyle = "#0F172A";
-    ctx.font = "800 22px 'Plus Jakarta Sans', 'Be Vietnam Pro', sans-serif";
-    ctx.fillText(sale.name, padX + 20, cardY + 56);
+    ctx.font = "800 20px 'Plus Jakarta Sans', 'Be Vietnam Pro', sans-serif";
+    ctx.fillText(sale.name, padX + 18, cardY + 50);
 
-    ctx.fillStyle = "#64748B";
-    ctx.font = "600 12.5px 'Be Vietnam Pro', sans-serif";
-    ctx.fillText(`${sale.title || "Học Viên"} · Mã PIN: ${sale.pin}`, padX + 20, cardY + 84);
+    // Progress badge on right side
+    ctx.fillStyle = passedCount === pubMods.length && pubMods.length > 0 ? "#ECFDF5" : "#FFF7ED";
+    ctx.beginPath();
+    ctx.roundRect(padX + cardW - 220, cardY + 13, 202, 40, 10);
+    ctx.fill();
+    ctx.fillStyle = passedCount === pubMods.length && pubMods.length > 0 ? "#059669" : "#EA580C";
+    ctx.font = "800 15px 'Plus Jakarta Sans', 'Be Vietnam Pro', sans-serif";
+    ctx.fillText(`Tiến độ: ${passedCount}/${pubMods.length} bài (${completionPct}%)`, padX + cardW - 204, cardY + 38);
 
-    // Right 3 KPI Summary Tiles inside identity strip
-    const tiles = [
-      { label: "HOÀN THÀNH", val: `${passedCount}/${pubMods.length} bài (${completionPct}%)`, color: "#059669", bg: "#ECFDF5" },
-      { label: "ĐIỂM TB CAO NHẤT", val: attemptedMods > 0 ? `${avgScore}% (${totalAttempts} lượt)` : "Chưa thi", color: "#EA580C", bg: "#FFF7ED" },
-      { label: "ĐÁNH GIÁ", val: rankLabel, color: passedCount === pubMods.length ? "#059669" : "#D97706", bg: "#FFFBEB" }
-    ];
-    let tileX = padX + 355;
-    const tileW = 162;
-    tiles.forEach(t => {
-      ctx.fillStyle = t.bg;
-      ctx.beginPath();
-      ctx.roundRect(tileX, cardY + 16, tileW, infoCardH - 32, 10);
-      ctx.fill();
-      ctx.fillStyle = "#64748B";
-      ctx.font = "800 10.5px 'Be Vietnam Pro', sans-serif";
-      ctx.fillText(t.label, tileX + 12, cardY + 36);
-      ctx.fillStyle = t.color;
-      ctx.font = "800 14.5px 'Plus Jakarta Sans', 'Be Vietnam Pro', sans-serif";
-      ctx.fillText(t.val, tileX + 12, cardY + 64);
-      tileX += tileW + 10;
-    });
-
-    // Module Table
-    let curY = cardY + infoCardH + 18;
+    // Module Table (Mã | Tên học phần | Số lần thi | Điểm cao nhất | Ngày thi gần nhất | Trạng thái)
+    let curY = cardY + infoBarH + 14;
     ctx.fillStyle = "#9A3412";
     ctx.beginPath();
     ctx.roundRect(padX, curY, cardW, tableHeadH, [10, 10, 0, 0]);
     ctx.fill();
 
     ctx.fillStyle = "#FFFFFF";
-    ctx.font = "700 12.5px 'Be Vietnam Pro', sans-serif";
-    ctx.fillText("MÃ", padX + 16, curY + 27);
-    ctx.fillText("TÊN HỌC PHẦN ĐÀO TẠO", padX + 86, curY + 27);
-    ctx.fillText("SỐ LẦN THI", padX + 518, curY + 27);
-    ctx.fillText("ĐIỂM CAO NHẤT", padX + 616, curY + 27);
-    ctx.fillText("TRẠNG THÁI", padX + 744, curY + 27);
+    ctx.font = "700 12px 'Be Vietnam Pro', sans-serif";
+    ctx.fillText("MÃ", padX + 16, curY + 26);
+    ctx.fillText("TÊN HỌC PHẦN", padX + 78, curY + 26);
+    ctx.fillText("SỐ LẦN THI", padX + 464, curY + 26);
+    ctx.fillText("ĐIỂM CAO NHẤT", padX + 556, curY + 26);
+    ctx.fillText("NGÀY THI GẦN NHẤT", padX + 668, curY + 26);
+    ctx.fillText("TRẠNG THÁI", padX + 792, curY + 26);
 
     curY += tableHeadH;
 
@@ -3497,69 +3520,58 @@
       // Module code badge
       ctx.fillStyle = "#FFF7ED";
       ctx.beginPath();
-      ctx.roundRect(padX + 14, curY + 15, 56, 26, 6);
+      ctx.roundRect(padX + 12, curY + 14, 52, 26, 6);
       ctx.fill();
       ctx.fillStyle = "#EA580C";
-      ctx.font = "800 12.5px 'JetBrains Mono', monospace";
-      ctx.fillText(r.code, padX + 24, curY + 33);
+      ctx.font = "800 12px 'JetBrains Mono', monospace";
+      ctx.fillText(r.code, padX + 20, curY + 31);
 
       // Module Title (up to 2 lines)
       ctx.fillStyle = "#0F172A";
-      ctx.font = "700 13px 'Be Vietnam Pro', sans-serif";
-      const titleLines = wrapCanvasTextLines(ctx, r.title, 412, 2);
+      ctx.font = "700 12.8px 'Be Vietnam Pro', sans-serif";
+      const titleLines = wrapCanvasTextLines(ctx, r.title, 366, 2);
       if (titleLines.length === 1) {
-        ctx.fillText(titleLines[0], padX + 86, curY + 34);
+        ctx.fillText(titleLines[0], padX + 78, curY + 32);
       } else {
-        ctx.fillText(titleLines[0], padX + 86, curY + 24);
-        ctx.fillText(titleLines[1], padX + 86, curY + 42);
+        ctx.fillText(titleLines[0], padX + 78, curY + 23);
+        ctx.fillText(titleLines[1], padX + 78, curY + 41);
       }
 
       // Attempt count
       ctx.fillStyle = "#334155";
-      ctx.font = "700 13.5px 'Be Vietnam Pro', sans-serif";
-      ctx.fillText(r.attCnt > 0 ? `${r.attCnt} lần` : "0 lần", padX + 532, curY + 34);
+      ctx.font = "700 13px 'Be Vietnam Pro', sans-serif";
+      ctx.fillText(r.attCnt > 0 ? `${r.attCnt} lần` : "0", padX + 486, curY + 32);
 
       // Best Score
       if (r.best !== null) {
         ctx.fillStyle = r.statusTone === "done" ? "#059669" : "#D97706";
-        ctx.font = "800 16px 'JetBrains Mono', monospace";
-        ctx.fillText(`${r.best}%`, padX + 634, curY + 34);
+        ctx.font = "800 15.5px 'JetBrains Mono', monospace";
+        ctx.fillText(`${r.best}%`, padX + 584, curY + 32);
       } else {
         ctx.fillStyle = "#94A3B8";
         ctx.font = "600 13px 'Be Vietnam Pro', sans-serif";
-        ctx.fillText("Chưa thi", padX + 632, curY + 34);
+        ctx.fillText("—", padX + 596, curY + 32);
       }
 
-      // Status Pill + Date
+      // Latest Exam Date column
+      ctx.fillStyle = "#475569";
+      ctx.font = "600 12.2px 'Be Vietnam Pro', sans-serif";
+      ctx.fillText(r.dateStr === "Đã đọc TL" ? "Đang đọc" : r.dateStr, padX + 688, curY + 32);
+
+      // Compact Status Pill (NO extra timestamp line)
+      const shortStatus = r.statusTone === "done" ? "✓ Đạt" : (r.statusTone === "failed" ? "Chưa đạt" : (r.statusTone === "reading" ? "Đang đọc" : "Chưa học"));
       const pillBg = r.statusTone === "done" ? "#ECFDF5" : (r.statusTone === "failed" ? "#FEF3C7" : (r.statusTone === "reading" ? "#EFF6FF" : "#F1F5F9"));
       const pillFg = r.statusTone === "done" ? "#065F46" : (r.statusTone === "failed" ? "#92400E" : (r.statusTone === "reading" ? "#1D4ED8" : "#64748B"));
       ctx.fillStyle = pillBg;
       ctx.beginPath();
-      ctx.roundRect(padX + 742, curY + 11, 108, 24, 99);
+      ctx.roundRect(padX + 784, curY + 14, 72, 26, 99);
       ctx.fill();
       ctx.fillStyle = pillFg;
       ctx.font = "700 11.5px 'Be Vietnam Pro', sans-serif";
-      ctx.fillText(r.statusLabel, padX + 754, curY + 27);
-
-      ctx.fillStyle = "#64748B";
-      ctx.font = "500 10.5px 'Be Vietnam Pro', sans-serif";
-      ctx.fillText(`Cập nhật: ${r.dateStr}`, padX + 746, curY + 49);
+      ctx.fillText(shortStatus, padX + 796, curY + 31);
 
       curY += rowH;
     });
-
-    // Footer Note
-    const remainingMods = rowsData.filter(r => r.statusTone !== "done").map(r => r.code);
-    const footerText = remainingMods.length === 0
-      ? `✓ Chúc mừng ${sale.name} đã hoàn thành Đạt 100% tất cả ${pubMods.length} học phần đào tạo!`
-      : `Ghi chú theo dõi: Cần hoàn thành đạt chuẩn (>=80%) các học phần còn lại: ${remainingMods.join(", ")}.`;
-    ctx.fillStyle = remainingMods.length === 0 ? "#065F46" : "#9A3412";
-    ctx.font = "700 13px 'Be Vietnam Pro', sans-serif";
-    ctx.fillText(footerText, padX, curY + 34);
-
-    ctx.fillStyle = "#64748B";
-    ctx.font = "500 11.5px 'Be Vietnam Pro', sans-serif";
-    ctx.fillText("Hệ thống Đào tạo & Kiểm tra Năng lực Tư vấn Novastars — Báo cáo tổng hợp tự động.", padX, curY + 56);
 
     return { canvas, sale };
   }
