@@ -151,7 +151,7 @@
     if (impersonatedSaleUser) return impersonatedSaleUser;
     if (currentUser && currentUser.role === "sale") return currentUser;
     const firstSale = (db.users || []).find(u => u.role === "sale");
-    return firstSale || { id: "preview-sale", name: "Sale (Xem thử)", role: "sale" };
+    return firstSale || { id: "preview-sale", name: "Học Viên (Xem thử)", role: "sale" };
   }
 
   function getVisibleModulesForLearner() {
@@ -397,11 +397,11 @@
     const modCode = mod ? mod.code : "";
     if (activeWorkspaceView === "admin") {
       const tabNames = {
-        matrix: "Bảng tiến độ Sale",
+        matrix: "Bảng tiến độ Học Viên",
         modules: "Quản lý & Duyệt học phần",
         activity: "Theo dõi hoạt động & Online",
         bugs: "Xử lý Báo lỗi",
-        dossier: "Hồ sơ Sale",
+        dossier: "Hồ sơ Học Viên",
         analytics: "Thống kê câu hỏi"
       };
       return `Đang xem Admin: ${tabNames[activeAdminTab] || "Bảng điều khiển"}`;
@@ -577,7 +577,7 @@
 
     if (selSale) {
       const cur = selSale.value;
-      selSale.innerHTML = `<option value="" disabled selected>-- Chọn tên Sale --</option>`;
+      selSale.innerHTML = `<option value="" disabled selected>-- Chọn tên Học Viên --</option>`;
       (db.users || []).filter(u => u.role === "sale").forEach(u => {
         const opt = document.createElement("option");
         opt.value = u.id;
@@ -651,7 +651,7 @@
         activeWorkspaceView = "sale";
         localStorage.setItem(SESSION_KEY, JSON.stringify(currentUser));
         resetActiveQuizState();
-        logUserActivity("login", "Đăng nhập hệ thống", "Vai trò: Sale");
+        logUserActivity("login", "Đăng nhập hệ thống", "Vai trò: Học Viên");
         renderAll();
       });
     }
@@ -742,7 +742,7 @@
       btnUploader.classList.remove("hidden");
       btnSale.classList.remove("hidden");
     } else {
-      nameEl.textContent = "Sale · " + currentUser.name;
+      nameEl.textContent = "Học Viên · " + currentUser.name;
       if (dotEl) dotEl.style.background = "#4ADE80";
       switcher.classList.add("hidden");
     }
@@ -1093,8 +1093,8 @@
       if (currentUser && (currentUser.role === "admin" || currentUser.role === "uploader")) {
         impBanner.classList.remove("hidden");
         impText.innerHTML = impersonatedSaleUser
-          ? `Đang xem giao diện của Sale: <strong>${escapeHtml(impersonatedSaleUser.name)}</strong>`
-          : `Đang xem thử giao diện của <strong>Sale</strong>`;
+          ? `Đang xem giao diện của Học Viên: <strong>${escapeHtml(impersonatedSaleUser.name)}</strong>`
+          : `Đang xem thử giao diện của <strong>Học Viên</strong>`;
         btnExitImp.onclick = () => {
           impersonatedSaleUser = null;
           activeWorkspaceView = currentUser.role === "admin" ? "admin" : "uploader";
@@ -2395,7 +2395,7 @@
       return pr && (nowMs - (Date.parse(pr.lastSeenAt || "") || 0) < ONLINE_THRESHOLD_MS);
     }).length;
 
-    document.getElementById("badgeAdminMatrixCount").textContent = `${sales.length} Sale`;
+    document.getElementById("badgeAdminMatrixCount").textContent = `${sales.length} Học Viên`;
     document.getElementById("badgeAdminAnalyticsCount").textContent = `${pubMods.length} bài`;
     const badgeMods = document.getElementById("badgeAdminModulesCount");
     if (badgeMods) {
@@ -2438,8 +2438,8 @@
 
     kpiBar.innerHTML = `
       <div class="kpi-card">
-        <span class="kpi-label">Nhân sự Sale</span>
-        <span class="kpi-val">${sales.length} Sale</span>
+        <span class="kpi-label">Học Viên</span>
+        <span class="kpi-val">${sales.length} Học Viên</span>
         <span class="kpi-sub">Đang tham gia đào tạo</span>
       </div>
       <div class="kpi-card">
@@ -2500,7 +2500,7 @@
 
   function renderAdminMatrixPanel(sales, pubMods) {
     const table = document.getElementById("progressMatrixTable");
-    let thead = `<thead><tr><th>Nhân viên Sale</th><th>PIN</th><th>Tiến độ cá nhân</th>`;
+    let thead = `<thead><tr><th>Họ và tên Học Viên</th><th>PIN</th><th>Tiến độ cá nhân</th>`;
     pubMods.forEach(m => {
       thead += `<th><div>${escapeHtml(m.code)} — ${escapeHtml(m.title)}</div><span class="admin-mod-author-sub">Tác giả: ${escapeHtml(m.authorName || "Đào tạo")}</span></th>`;
     });
@@ -2589,8 +2589,8 @@
       bodyEl.innerHTML = `
         <div style="padding:20px;background:#F8FAFC;border-radius:10px;border:1px solid #E2E8F0;color:#475569;font-size:13.5px;">
           ${prog && prog.docViewed
-            ? `Nhân viên Sale <strong>${escapeHtml(sale.name)}</strong> đã mở xem tài liệu học phần này nhưng chưa nộp bài kiểm tra trắc nghiệm.`
-            : `Nhân viên Sale <strong>${escapeHtml(sale.name)}</strong> chưa bắt đầu học phần này.`}
+            ? `Học Viên <strong>${escapeHtml(sale.name)}</strong> đã mở xem tài liệu học phần này nhưng chưa nộp bài kiểm tra trắc nghiệm.`
+            : `Học Viên <strong>${escapeHtml(sale.name)}</strong> chưa bắt đầu học phần này.`}
         </div>
       `;
     } else {
@@ -2609,7 +2609,7 @@
                 ${isRight ? `✓ Đúng (${letters[q.correctIndex]})` : `✕ Chọn ${chosen !== undefined ? letters[chosen] : 'Trống'} / Đúng: ${letters[q.correctIndex]}`}
               </span>
             </div>
-            ${!isRight && chosen !== undefined && q.options[chosen] ? `<div style="color:#9F1239;font-size:12px;">• Đáp án Sale đã chọn: ${escapeHtml(q.options[chosen])}</div>` : ""}
+            ${!isRight && chosen !== undefined && q.options[chosen] ? `<div style="color:#9F1239;font-size:12px;">• Đáp án Học Viên đã chọn: ${escapeHtml(q.options[chosen])}</div>` : ""}
             <div style="color:#065F46;font-size:12px;">• Đáp án chuẩn: ${escapeHtml(q.options[q.correctIndex] || "")}</div>
           </div>
         `;
@@ -2657,7 +2657,7 @@
     }
     const sale = sales.find(s => s.id === activeDossierSaleId);
     if (!sale) {
-      panel.innerHTML = `<div class="admin-card">Chưa có nhân viên Sale nào trong danh sách.</div>`;
+      panel.innerHTML = `<div class="admin-card">Chưa có Học Viên nào trong danh sách.</div>`;
       return;
     }
 
@@ -2791,7 +2791,7 @@
           </td>
           <td style="text-align:center;">
             ${rate !== null
-              ? `<span class="sidebar-item-status ${rate >= 70 ? 'done' : 'failed'}">${rightCount}/${totalAnswered} Sale đúng (${rate}%)</span>`
+              ? `<span class="sidebar-item-status ${rate >= 70 ? 'done' : 'failed'}">${rightCount}/${totalAnswered} Học Viên đúng (${rate}%)</span>`
               : `<span class="sidebar-item-status empty">Chưa có dữ liệu thi</span>`}
           </td>
         </tr>
@@ -2815,7 +2815,7 @@
                 <th style="width:70px;text-align:center;">Câu</th>
                 <th style="width:170px;">Nhóm tiêu chí</th>
                 <th>Nội dung câu hỏi &amp; Đáp án chuẩn</th>
-                <th style="width:175px;text-align:center;">Tỷ lệ Sale làm đúng</th>
+                <th style="width:175px;text-align:center;">Tỷ lệ Học Viên làm đúng</th>
               </tr>
             </thead>
             <tbody>${qRows}</tbody>
@@ -2899,7 +2899,7 @@
             }
           });
         } else {
-          const switchLabel = roleName === "sale" ? "Chuyển sang Đào tạo" : "Chuyển sang Sale";
+          const switchLabel = roleName === "sale" ? "Chuyển sang Đào tạo" : "Chuyển sang Học Viên";
           row.innerHTML = `
             <div><strong>${escapeHtml(u.name)}</strong> — Mã PIN: <code>${escapeHtml(u.pin)}</code></div>
             <div class="manage-row-actions">
@@ -2910,7 +2910,7 @@
           `;
           row.querySelector("[data-switch-role-u]").onclick = () => {
             u.role = roleName === "sale" ? "uploader" : "sale";
-            u.title = u.role === "uploader" ? "Phụ trách Nội dung & Đào tạo" : "Chuyên viên Tư vấn (Sale)";
+            u.title = u.role === "uploader" ? "Phụ trách Nội dung & Đào tạo" : "Học Viên";
             triggerAutoSave(true, true);
             renderManageUsersModal();
             populateAuthSelects();
@@ -3011,7 +3011,7 @@
 
       ctx.fillStyle = u.role === "uploader" ? "#3730A3" : "#065F46";
       ctx.font = "600 13px 'Be Vietnam Pro', sans-serif";
-      ctx.fillText(u.role === "uploader" ? "Đào tạo" : "Sale", tableX + 330, curY + 27);
+      ctx.fillText(u.role === "uploader" ? "Đào tạo" : "Học Viên", tableX + 330, curY + 27);
 
       ctx.fillStyle = "#EA580C";
       ctx.font = "bold 15.5px 'JetBrains Mono', monospace";
@@ -3616,7 +3616,7 @@
         name,
         pin,
         role: "sale",
-        title: "Chuyên viên Tư vấn (Sale)"
+        title: "Học Viên"
       });
       nameInp.value = "";
       pinInp.value = "";
@@ -3755,7 +3755,7 @@
   function exportExcelClientFallback() {
     const sales = (db.users || []).filter(u => u.role === "sale");
     const pubMods = getVisibleModulesForLearner();
-    let ths = `<th style="background:#C2410C;color:#fff;padding:10px;">STT</th><th style="background:#C2410C;color:#fff;padding:10px;">Họ và tên Sale</th><th style="background:#C2410C;color:#fff;padding:10px;">Mã PIN</th>`;
+    let ths = `<th style="background:#C2410C;color:#fff;padding:10px;">STT</th><th style="background:#C2410C;color:#fff;padding:10px;">Họ và tên Học Viên</th><th style="background:#C2410C;color:#fff;padding:10px;">Mã PIN</th>`;
     pubMods.forEach(m => {
       ths += `<th style="background:#C2410C;color:#fff;padding:10px;">${escapeHtml(m.code)} - ${escapeHtml(m.title)}</th>`;
     });
@@ -3901,7 +3901,7 @@
       const author = m.authorName || "Đào tạo";
       const updatedStr = m.updatedAt ? new Date(m.updatedAt).toLocaleString("vi-VN") : "—";
       const fileLabel = (m.sourceFile && m.sourceFile.name) ? m.sourceFile.name : "Soạn trực tiếp";
-      let statusBadge = `<span class="sidebar-item-status done">Đã duyệt · Hiển thị cho Sale</span>`;
+      let statusBadge = `<span class="sidebar-item-status done">Đã duyệt · Hiển thị cho Học Viên</span>`;
       if (m.status === "pending") {
         statusBadge = `<span class="sidebar-item-status pending">Chờ Admin duyệt</span>`;
       } else if (m.status === "draft") {
@@ -3932,7 +3932,7 @@
                 : `<button type="button" class="btn-row-act" data-mod-unpublish="${escapeHtml(m.id)}">Tạm ẩn</button>`
               }
               <button type="button" class="btn-row-act" data-mod-edit="${escapeHtml(m.id)}">Xem / Sửa bài</button>
-              <button type="button" class="btn-row-act" data-mod-preview="${escapeHtml(m.id)}">Xem như Sale</button>
+              <button type="button" class="btn-row-act" data-mod-preview="${escapeHtml(m.id)}">Xem như Học Viên</button>
               <button type="button" class="btn-row-act danger" data-mod-delete="${escapeHtml(m.id)}">Xóa</button>
             </div>
           </td>
@@ -3946,7 +3946,7 @@
           <div>
             <h2 class="admin-title">Quản lý Học phần &amp; Phê duyệt Nội dung Đào tạo tải lên</h2>
             <p class="admin-sub">
-              Kiểm soát toàn bộ tài liệu và bộ câu hỏi trắc nghiệm do nhân sự Đào tạo biên tập. Bài ở trạng thái <strong>Chờ Admin duyệt</strong> hoặc <strong>Bản nháp</strong> sẽ chỉ hiển thị cho Sale sau khi Admin bấm <strong>Duyệt xuất bản</strong>.
+              Kiểm soát toàn bộ tài liệu và bộ câu hỏi trắc nghiệm do nhân sự Đào tạo biên tập. Bài ở trạng thái <strong>Chờ Admin duyệt</strong> hoặc <strong>Bản nháp</strong> sẽ chỉ hiển thị cho Học Viên sau khi Admin bấm <strong>Duyệt xuất bản</strong>.
             </p>
           </div>
           <div style="display:flex;gap:8px;align-items:center;">
@@ -4072,7 +4072,7 @@
       const pr = (db.presence && db.presence[u.id]) ? db.presence[u.id] : null;
       const lastMs = pr && pr.lastSeenAt ? (Date.parse(pr.lastSeenAt) || 0) : 0;
       const isOnline = lastMs > 0 && (nowMs - lastMs < ONLINE_THRESHOLD_MS);
-      const roleLabel = u.role === "admin" ? "Admin" : (u.role === "uploader" ? "Đào tạo" : "Sale");
+      const roleLabel = u.role === "admin" ? "Admin" : (u.role === "uploader" ? "Đào tạo" : "Học Viên");
       const statusText = pr && pr.statusText
         ? pr.statusText
         : "Chưa có hoạt động ghi nhận";
@@ -4104,7 +4104,7 @@
     const logsHtml = filteredLogs.length === 0
       ? `<div style="padding:20px;text-align:center;color:#64748B;">Chưa có lịch sử hoạt động ở bộ lọc này.</div>`
       : filteredLogs.map(item => {
-          const roleLabel = item.role === "admin" ? "Admin" : (item.role === "uploader" ? "Đào tạo" : "Sale");
+          const roleLabel = item.role === "admin" ? "Admin" : (item.role === "uploader" ? "Đào tạo" : "Học Viên");
           const timeStr = item.timestamp ? new Date(item.timestamp).toLocaleString("vi-VN") : "";
           return `
             <div class="activity-log-row">
@@ -4136,11 +4136,11 @@
         <div class="admin-card-head">
           <div>
             <h2 class="admin-title">Lịch sử Hoạt động Chi tiết (${filteredLogs.length} bản ghi)</h2>
-            <p class="admin-sub">Ghi lại đầy đủ thời gian đăng nhập, đọc tài liệu, bắt đầu làm bài, nộp bài thi của Sale và lịch sử tải tài liệu, tạo/sửa câu hỏi của Đào tạo.</p>
+            <p class="admin-sub">Ghi lại đầy đủ thời gian đăng nhập, đọc tài liệu, bắt đầu làm bài, nộp bài thi của Học Viên và lịch sử tải tài liệu, tạo/sửa câu hỏi của Đào tạo.</p>
           </div>
           <div class="study-filter-pills">
             <button type="button" class="study-filter-pill ${activityRoleFilter === 'ALL' ? 'active' : ''}" data-act-filter="ALL">Tất cả</button>
-            <button type="button" class="study-filter-pill ${activityRoleFilter === 'sale' ? 'active' : ''}" data-act-filter="sale">Sale</button>
+            <button type="button" class="study-filter-pill ${activityRoleFilter === 'sale' ? 'active' : ''}" data-act-filter="sale">Học Viên</button>
             <button type="button" class="study-filter-pill ${activityRoleFilter === 'uploader' ? 'active' : ''}" data-act-filter="uploader">Đào tạo</button>
             <button type="button" class="study-filter-pill ${activityRoleFilter === 'admin' ? 'active' : ''}" data-act-filter="admin">Admin</button>
           </div>
@@ -4189,7 +4189,7 @@
       : filtered.map(b => {
           const isResolved = b.status === "resolved";
           const createdStr = b.createdAt ? new Date(b.createdAt).toLocaleString("vi-VN") : "";
-          const roleLabel = b.reporterRole === "admin" ? "Admin" : (b.reporterRole === "uploader" ? "Đào tạo" : "Sale");
+          const roleLabel = b.reporterRole === "admin" ? "Admin" : (b.reporterRole === "uploader" ? "Đào tạo" : "Học Viên");
           return `
             <div class="bug-item-card ${isResolved ? "resolved" : "open"}">
               <div class="bug-item-head">
@@ -4243,7 +4243,7 @@
         <div class="admin-card-head">
           <div>
             <h2 class="admin-title">Danh sách Báo lỗi &amp; Phản hồi (${openCount} lỗi chờ xử lý / Tổng ${allBugs.length})</h2>
-            <p class="admin-sub">Xem nội dung báo lỗi và ảnh chụp màn hình do Sale hoặc Đào tạo gửi lên. Bấm <strong>Mở sửa câu hỏi / bài học này ngay</strong> để nhảy tới đúng vị trí cần chỉnh sửa.</p>
+            <p class="admin-sub">Xem nội dung báo lỗi và ảnh chụp màn hình do Học Viên hoặc Đào tạo gửi lên. Bấm <strong>Mở sửa câu hỏi / bài học này ngay</strong> để nhảy tới đúng vị trí cần chỉnh sửa.</p>
           </div>
           <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
             <div class="study-filter-pills">

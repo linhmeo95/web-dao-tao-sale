@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=15">
+  <link rel="stylesheet" href="styles.css?v=17">
 </head>
 <body>
   <!-- 1. AUTHENTICATION SCREEN (LOGIN PORTAL - 3 ROLES) -->
@@ -22,7 +22,7 @@
       <!-- 3 ROLE SELECTOR TABS -->
       <div class="auth-tabs" role="tablist" aria-label="Chọn đối tượng đăng nhập">
         <button type="button" class="auth-tab-btn active" id="authTabSale" role="tab" aria-selected="true">
-          Sale
+          Học Viên
         </button>
         <button type="button" class="auth-tab-btn" id="authTabUploader" role="tab" aria-selected="false">
           Đào tạo
@@ -35,7 +35,7 @@
       <!-- FORM 1: SALE LOGIN -->
       <form class="auth-form" id="formSaleLogin">
         <div class="auth-field">
-          <label for="authSelectSale">Họ và tên Sale:</label>
+          <label for="authSelectSale">Họ và tên Học Viên:</label>
           <select id="authSelectSale" class="auth-input" required>
             <option value="" disabled selected>-- Chọn tên của bạn --</option>
           </select>
@@ -89,7 +89,7 @@
       </form>
 
       <div class="auth-footer-hint">
-        Sale và Đào tạo sử dụng mã PIN do Admin cấp. Nếu quên mã PIN, vui lòng liên hệ Admin.
+        Học Viên và Đào tạo sử dụng mã PIN do Admin cấp. Nếu quên mã PIN, vui lòng liên hệ Admin.
       </div>
     </div>
   </section>
@@ -115,7 +115,7 @@
           Đào tạo
         </button>
         <button type="button" class="ws-mode-pill" id="btnSwitchViewSale" data-target-view="sale">
-          Sale
+          Học Viên
         </button>
       </div>
 
@@ -188,13 +188,13 @@
       <!-- ================================================================= -->
       <!-- VIEW A: SALE WORKSPACE - STREAMLINED STEP-BY-STEP DOC & 1-BY-1 QUIZ -->
       <!-- ================================================================= -->
-      <main class="single-workspace hidden" id="saleWorkspace" aria-label="Không gian học tập của Sale">
+      <main class="single-workspace hidden" id="saleWorkspace" aria-label="Không gian học tập của Học Viên">
         <div class="workspace-container">
           <!-- ADMIN/UPLOADER PREVIEW BANNER -->
           <div class="impersonation-banner hidden" id="impersonationBanner">
             <div class="imp-left">
               <span class="imp-badge">XEM THỬ</span>
-              <span id="lblImpersonationText">Đang xem giao diện của Sale.</span>
+              <span id="lblImpersonationText">Đang xem giao diện của Học Viên.</span>
             </div>
             <button type="button" class="btn-imp-back" id="btnExitImpersonation">
               Quay lại
@@ -270,7 +270,7 @@
 
             <div class="up-top-right-actions">
               <button type="button" class="btn-secondary" id="btnUploaderPreviewAsSale">
-                Xem thử như Sale
+                Xem thử như Học Viên
               </button>
               <button type="button" class="btn-q-mini danger" id="btnUploaderDeleteModule" style="padding:8px 12px;">
                 Xóa bài
@@ -293,13 +293,13 @@
                     <label for="upModTitle">Tên bài học / Tài liệu:</label>
                     <span class="up-author-tag" id="lblUploaderModuleAuthor">Tác giả: —</span>
                   </div>
-                  <input type="text" id="upModTitle" class="input-control" placeholder="Nhập tên bài học cho Sale...">
+                  <input type="text" id="upModTitle" class="input-control" placeholder="Nhập tên bài học cho Học Viên...">
                 </div>
                 <div class="form-group" style="width:210px;">
                   <label for="upModStatus">Trạng thái duyệt:</label>
                   <select id="upModStatus" class="input-control">
                     <option value="pending">Chờ Admin duyệt</option>
-                    <option value="published">Đã duyệt (Sale nhìn thấy)</option>
+                    <option value="published">Đã duyệt (Học Viên nhìn thấy)</option>
                     <option value="draft">Bản nháp (Đang ẩn)</option>
                   </select>
                 </div>
@@ -396,8 +396,8 @@
             <div class="admin-nav-label">BẢNG ĐIỀU KHIỂN ADMIN</div>
             <nav class="admin-dossier-tab-bar" id="adminNavTabBar" role="tablist">
               <button type="button" class="admin-nav-btn active" data-admin-tab="matrix">
-                <span>Tiến độ học của Sale</span>
-                <span class="admin-nav-badge" id="badgeAdminMatrixCount">Sale</span>
+                <span>Tiến độ của Học Viên</span>
+                <span class="admin-nav-badge" id="badgeAdminMatrixCount">Học Viên</span>
               </button>
               <button type="button" class="admin-nav-btn" data-admin-tab="modules">
                 <span>Quản lý Học phần</span>
@@ -412,7 +412,7 @@
                 <span class="admin-nav-badge" id="badgeAdminBugsCount">0</span>
               </button>
               <button type="button" class="admin-nav-btn" data-admin-tab="dossier">
-                <span>Hồ sơ từng Sale</span>
+                <span>Hồ sơ từng Học Viên</span>
                 <span class="admin-nav-badge" id="badgeAdminDossierCount">Chi tiết</span>
               </button>
               <button type="button" class="admin-nav-btn" data-admin-tab="analytics">
@@ -448,8 +448,8 @@
               <div class="admin-card">
                 <div class="admin-card-head">
                   <div>
-                    <h2 class="admin-title">Bảng Ma trận Tiến độ Học tập &amp; Điểm Trắc nghiệm của Sale</h2>
-                    <p class="admin-sub">Bấm vào từng ô kết quả để xem chi tiết lịch sử làm bài và các câu trả lời đúng/sai của từng Sale.</p>
+                    <h2 class="admin-title">Bảng Ma trận Tiến độ Học tập &amp; Điểm Trắc nghiệm của Học Viên</h2>
+                    <p class="admin-sub">Bấm vào từng ô kết quả để xem chi tiết lịch sử làm bài và các câu trả lời đúng/sai của từng Học Viên.</p>
                   </div>
                   <div class="matrix-legend">
                     <span class="legend-chip done">Đã đạt (&ge;80%)</span>
@@ -498,7 +498,7 @@
   <!-- ===================================================================== -->
   <!-- DIALOG 1: QUICK INSPECT SALE QUIZ ATTEMPTS (FOR MANAGER)              -->
   <!-- ===================================================================== -->
-  <dialog class="admin-quick-inspect-dialog" id="adminQuickInspectModal" closedby="any" aria-label="Chi tiết kết quả học tập của Sale">
+  <dialog class="admin-quick-inspect-dialog" id="adminQuickInspectModal" closedby="any" aria-label="Chi tiết kết quả học tập của Học Viên">
     <div class="dialog-inner inspect-dialog-inner">
       <div class="dialog-header">
         <div>
@@ -512,7 +512,7 @@
       </div>
       <div class="dialog-footer inspect-dialog-footer">
         <button type="button" class="btn-act-as-teacher-inspect" id="btnInspectActAsSale">
-          Xem giao diện học &amp; thi dưới quyền Sale này
+          Xem giao diện học &amp; thi dưới quyền Học Viên này
         </button>
         <button type="button" class="btn-primary" data-close-dialog="adminQuickInspectModal" style="padding: 8px 18px;">
           Đóng
@@ -533,7 +533,7 @@
 
       <div class="modal-tab-bar" role="tablist">
         <button type="button" class="modal-tab-btn active" id="tabBtnManageSales" role="tab" aria-selected="true">
-          Sale
+          Học Viên
         </button>
         <button type="button" class="modal-tab-btn" id="tabBtnManageUploaders" role="tab" aria-selected="false">
           Đào tạo
@@ -557,9 +557,9 @@
         <div class="teacher-list-box" id="manageSaleList"></div>
 
         <div class="add-row-form">
-          <input type="text" id="newSaleName" class="input-control" placeholder="Họ tên Sale mới (VD: Nguyễn Văn A)">
+          <input type="text" id="newSaleName" class="input-control" placeholder="Họ tên Học Viên mới (VD: Nguyễn Văn A)">
           <input type="text" id="newSalePin" class="input-control mono-input" placeholder="Mã PIN (VD: 1234)" style="max-width: 150px;">
-          <button type="button" class="btn-primary" id="btnAddSale">+ Thêm Sale</button>
+          <button type="button" class="btn-primary" id="btnAddSale">+ Thêm Học Viên</button>
         </div>
       </div>
 
@@ -704,7 +704,7 @@
   </dialog>
 
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
-  <script src="data/initial_data.js?v=16"></script>
-  <script src="app.js?v=16"></script>
+  <script src="data/initial_data.js?v=17"></script>
+  <script src="app.js?v=17"></script>
 </body>
 </html>
