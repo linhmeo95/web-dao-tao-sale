@@ -79,6 +79,13 @@
         ? JSON.parse(JSON.stringify(window.INITIAL_TRAINING_DB.users))
         : [];
     }
+    const targetRosterVersion = (window.INITIAL_TRAINING_DB && window.INITIAL_TRAINING_DB.meta && window.INITIAL_TRAINING_DB.meta.rosterVersion) || 2;
+    if (!result.meta) result.meta = {};
+    if ((result.meta.rosterVersion || 0) < targetRosterVersion && window.INITIAL_TRAINING_DB && Array.isArray(window.INITIAL_TRAINING_DB.users)) {
+      result.users = JSON.parse(JSON.stringify(window.INITIAL_TRAINING_DB.users));
+      result.meta.rosterVersion = targetRosterVersion;
+      result.meta.updatedAt = new Date().toISOString();
+    }
     if (!Array.isArray(result.modules)) {
       result.modules = (window.INITIAL_TRAINING_DB && Array.isArray(window.INITIAL_TRAINING_DB.modules))
         ? JSON.parse(JSON.stringify(window.INITIAL_TRAINING_DB.modules))
@@ -115,7 +122,12 @@
       try {
         const parsed = JSON.parse(saved);
         if (parsed && parsed.id && parsed.role) {
-          return parsed;
+          if (parsed.role === "admin") return parsed;
+          const matchedUser = (db.users || []).find(u => u.id === parsed.id && u.role === parsed.role);
+          if (matchedUser) {
+            return { id: matchedUser.id, name: matchedUser.name, role: matchedUser.role };
+          }
+          localStorage.removeItem(SESSION_KEY);
         }
       } catch (e) {}
     }
@@ -2584,13 +2596,23 @@
             }
           });
         } else {
+          const switchLabel = roleName === "sale" ? "Chuyển sang Đào tạo" : "Chuyển sang Sale";
           row.innerHTML = `
             <div><strong>${escapeHtml(u.name)}</strong> — Mã PIN: <code>${escapeHtml(u.pin)}</code></div>
             <div class="manage-row-actions">
+              <button type="button" class="btn-row-act" data-switch-role-u="${escapeHtml(u.id)}">${switchLabel}</button>
               <button type="button" class="btn-row-act" data-edit-u="${escapeHtml(u.id)}">Sửa tên / PIN</button>
               <button type="button" class="btn-row-act danger" data-del-u="${escapeHtml(u.id)}">Xóa</button>
             </div>
           `;
+          row.querySelector("[data-switch-role-u]").onclick = () => {
+            u.role = roleName === "sale" ? "uploader" : "sale";
+            u.title = u.role === "uploader" ? "Phụ trách Nội dung & Đào tạo" : "Chuyên viên Tư vấn (Sale)";
+            triggerAutoSave(true, true);
+            renderManageUsersModal();
+            populateAuthSelects();
+            renderAll();
+          };
           row.querySelector("[data-edit-u]").onclick = () => {
             editingUserId = u.id;
             renderManageUsersModal();

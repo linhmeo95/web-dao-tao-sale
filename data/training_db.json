@@ -4,57 +4,30 @@
     "adminPin": "8888",
     "defaultPassThreshold": 80,
     "version": 1,
-    "updatedAt": "2026-11-25T14:40:00.000Z"
+    "rosterVersion": 2,
+    "updatedAt": "2026-11-26T08:50:00.000Z"
   },
   "users": [
     {
-      "id": "sale-tientt",
-      "name": "Triệu Thị Tiên",
+      "id": "sale-haunt",
+      "name": "Nguyễn Thị Hậu",
       "pin": "1111",
       "role": "sale",
       "title": "Chuyên viên Tư vấn (Sale)"
     },
     {
-      "id": "sale-diempt",
-      "name": "Tô Phương Diễm",
-      "pin": "2222",
-      "role": "sale",
-      "title": "Chuyên viên Tư vấn (Sale)"
-    },
-    {
-      "id": "sale-huongdt",
+      "id": "up-huongdt",
       "name": "Đinh Thị Hương",
       "pin": "3333",
-      "role": "sale",
-      "title": "Chuyên viên Tư vấn (Sale)"
-    },
-    {
-      "id": "sale-tunm",
-      "name": "Nguyễn Minh Tú",
-      "pin": "5555",
-      "role": "sale",
-      "title": "Chuyên viên Tư vấn (Sale)"
-    },
-    {
-      "id": "sale-lananh",
-      "name": "Lê Thị Lan Anh",
-      "pin": "6666",
-      "role": "sale",
-      "title": "Chuyên viên Tư vấn (Sale)"
-    },
-    {
-      "id": "up-linhpm",
-      "name": "Phạm Mỹ Linh",
-      "pin": "4444",
       "role": "uploader",
       "title": "Phụ trách Nội dung & Đào tạo"
     },
     {
-      "id": "up-daotao",
-      "name": "Ban Đào Tạo Sản Phẩm",
+      "id": "up-hienntm",
+      "name": "Nguyễn Thị Minh Hiền",
       "pin": "7777",
       "role": "uploader",
-      "title": "Biên tập Học liệu Sale"
+      "title": "Phụ trách Nội dung & Đào tạo"
     }
   ],
   "modules": [
@@ -1499,5 +1472,18 @@
       ]
     }
   ],
-  "progress": []
+  "progress": [
+    {
+      "id": "prog__mod-01-tong-quan__sale-tientt",
+      "userId": "sale-tientt",
+      "userName": "Triệu Thị Tiên",
+      "moduleId": "mod-01-tong-quan",
+      "docViewed": true,
+      "docViewedAt": "2026-11-25T08:25:34.126Z",
+      "bestScore": 0,
+      "passed": false,
+      "attempts": [],
+      "updatedAt": "2026-11-25T08:24:58.080Z"
+    }
+  ]
 }
