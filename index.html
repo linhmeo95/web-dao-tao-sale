@@ -337,12 +337,7 @@
             <!-- SINGLE-ROW ACTION TOOLBAR -->
             <div class="up-quiz-one-line-bar">
               <div class="uq-left-group">
-                <select id="selAiQuestionCount" class="input-control" style="width:auto;padding:8px 10px;font-size:13px;font-weight:700;">
-                  <option value="5">Tạo 5 câu</option>
-                  <option value="8" selected>Tạo 8 câu</option>
-                  <option value="10">Tạo 10 câu</option>
-                  <option value="15">Tạo 15 câu</option>
-                </select>
+                <input type="number" id="selAiQuestionCount" class="input-control" min="0" placeholder="Số câu (Trống = Toàn bộ)" title="Nhập số câu muốn tạo (không giới hạn), hoặc để trống để tạo toàn bộ câu hỏi từ tài liệu" style="width:185px;padding:8px 10px;font-size:12.5px;font-weight:700;">
                 <select id="selAiMergeMode" class="hidden">
                   <option value="append" selected>append</option>
                 </select>
@@ -704,7 +699,7 @@
   </dialog>
 
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
-  <script src="data/initial_data.js?v=17"></script>
-  <script src="app.js?v=17"></script>
+  <script src="data/initial_data.js?v=18"></script>
+  <script src="app.js?v=18"></script>
 </body>
 </html>

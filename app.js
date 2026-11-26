@@ -2229,8 +2229,11 @@
 
     const generated = [];
     const targetPattern = [0, 2, 1, 3, 1, 3, 0, 2];
+    const totalToGenerate = (!desiredCount || desiredCount <= 0)
+      ? Math.max(knowledgeAtoms.length, 10)
+      : desiredCount;
 
-    for (let i = 0; i < desiredCount; i++) {
+    for (let i = 0; i < totalToGenerate; i++) {
       const atom = knowledgeAtoms[i % knowledgeAtoms.length];
       const tpl = questionTemplates[i % questionTemplates.length];
       const correctPos = targetPattern[i % targetPattern.length];
@@ -3285,7 +3288,8 @@
         if (!mod) return;
         syncUploaderDocFieldsToModule(mod);
 
-        const count = Number(document.getElementById("selAiQuestionCount").value || 8);
+        const rawCountVal = document.getElementById("selAiQuestionCount").value.trim();
+        const count = rawCountVal ? Math.max(1, Number(rawCountVal)) : 0;
         const mode = document.getElementById("selAiMergeMode").value || "append";
         const newQuestions = generateQuizFromModuleDocument(mod, count);
 
