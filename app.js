@@ -969,7 +969,7 @@
   let expandedUploaderQuestionIndex = null;
 
   // Anti-cheat Exam Mode State
-  const SECONDS_PER_QUESTION = 40;
+  const SECONDS_PER_QUESTION = 60;
   const MAX_ALLOWED_TAB_SWITCHES = 2;
   let isExamInProgress = false;
   let examSecondsRemaining = 0;
@@ -2318,7 +2318,7 @@
 
         <div style="display:flex;gap:8px;align-items:center;">
           ${!isLastQ
-            ? `<button type="button" class="btn-secondary" id="btnNextQuizQ">Câu tiếp theo ▶</button>`
+            ? `<button type="button" class="${selectedIdx !== undefined && !isSubmitted ? "btn-primary" : "btn-secondary"}" id="btnNextQuizQ">Câu tiếp theo ▶</button>`
             : ""
           }
           ${!isSubmitted && (isLastQ || answeredCount === qList.length)
@@ -2356,14 +2356,6 @@
         if (currentQuizSubmittedResult) return;
         currentQuizAnswers[q.id] = Number(btn.dataset.optIdx);
         renderSaleQuizPanel(mod, prog);
-        if (activeQuizQuestionIndex < qList.length - 1) {
-          setTimeout(() => {
-            if (!currentQuizSubmittedResult && activeSaleTab === "quiz" && isExamInProgress) {
-              activeQuizQuestionIndex++;
-              renderSaleQuizPanel(mod, prog);
-            }
-          }, 260);
-        }
       });
     });
 
