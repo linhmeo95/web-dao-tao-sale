@@ -1459,10 +1459,6 @@
                   : `Kiểm tra nhanh kiến thức &amp; phản biện Bài ${idx + 1} (${lessonCode})`
                 )
               }</strong>
-              <span>${isMiniSubmitted
-                ? "Bấm để xem lại giải thích chi tiết hoặc làm lại bộ câu hỏi của riêng bài này."
-                : `Gồm ${lessonQs.length} câu riêng cho bài vừa đọc (không trùng đề thi tổng hợp cuối học phần).`
-              }</span>
             </div>
             <button type="button" class="btn-hp03-quick-quiz" data-open-hp03-quiz="${idx}">
               ${isMiniSubmitted ? `Xem lại / Làm lại (${rightMini}/${lessonQs.length})` : `Kiểm tra nhanh bài này (${lessonQs.length} câu)`}
@@ -1851,7 +1847,7 @@
         `;
       } else {
         footerEl.innerHTML = `
-          <span style="font-size:12.5px;color:#64748B;">Đúng <strong>${rightCount}/${lessonQs.length}</strong> câu · Dữ liệu ôn bài không trùng đề thi tổng hợp cuối HP03.</span>
+          <span style="font-size:12.5px;color:#64748B;">Đúng <strong>${rightCount}/${lessonQs.length}</strong> câu</span>
           <div style="display:flex;gap:8px;flex-wrap:wrap;">
             <button type="button" class="btn-row-act" id="btnResetHp03QuickQuizModal">Làm lại ${lessonQs.length} câu (đảo đáp án)</button>
             <button type="button" class="btn-primary" id="btnCloseHp03QqModal">Đóng</button>
