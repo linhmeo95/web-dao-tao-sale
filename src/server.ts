@@ -77,6 +77,9 @@ const INIT_JS_PATH = path.join(PROJECT_ROOT, "data", "initial_data.js");
 
 const ROW_CONFIG_ID = "sale_training__config";
 const ROW_PROG_PREFIX = "sale_training__prog__";
+const ROW_PRESENCE_PREFIX = "sale_training__presence__";
+const ROW_ACTIVITY_ID = "sale_training__activity_log";
+const ROW_BUGS_ID = "sale_training__bug_reports";
 
 async function runSchemaMigrationsAndSeed(): Promise<void> {
   // Per neon-postgres skill: use direct (unpooled) DATABASE_URL_UNPOOLED for schema migrations / DDL
@@ -148,6 +151,7 @@ async function loadFullDbFromPostgres(): Promise<Record<string, unknown>> {
   );
 
   const progressList: unknown[] = [];
+  const presenceMap: Record<string, unknown> = {};
   for (const row of rows) {
     if (row.id === ROW_CONFIG_ID && row.payload) {
       if (row.payload.meta) baseDb.meta = { ...baseDb.meta, ...row.payload.meta };
@@ -157,10 +161,20 @@ async function loadFullDbFromPostgres(): Promise<Record<string, unknown>> {
       }
     } else if (typeof row.id === "string" && row.id.startsWith(ROW_PROG_PREFIX) && row.payload) {
       progressList.push(row.payload);
+    } else if (typeof row.id === "string" && row.id.startsWith(ROW_PRESENCE_PREFIX) && row.payload) {
+      const uid = row.payload.userId || row.id.slice(ROW_PRESENCE_PREFIX.length);
+      presenceMap[uid] = row.payload;
+    } else if (row.id === ROW_ACTIVITY_ID && row.payload && Array.isArray(row.payload.items)) {
+      baseDb.activityLogs = row.payload.items;
+    } else if (row.id === ROW_BUGS_ID && row.payload && Array.isArray(row.payload.items)) {
+      baseDb.bugReports = row.payload.items;
     }
   }
   if (progressList.length > 0) {
     baseDb.progress = progressList;
+  }
+  if (Object.keys(presenceMap).length > 0) {
+    baseDb.presence = presenceMap;
   }
   return baseDb;
 }
@@ -181,6 +195,24 @@ async function saveFullDbToPostgres(data: Record<string, any>): Promise<void> {
       }),
     ]
   );
+
+  if (Array.isArray(data.activityLogs)) {
+    await pool.query(
+      `INSERT INTO public.novastars_app_state (id, payload, updated_at)
+       VALUES ($1, $2::jsonb, now())
+       ON CONFLICT (id) DO UPDATE SET payload = EXCLUDED.payload, updated_at = now()`,
+      [ROW_ACTIVITY_ID, JSON.stringify({ items: data.activityLogs.slice(0, 150) })]
+    );
+  }
+
+  if (Array.isArray(data.bugReports)) {
+    await pool.query(
+      `INSERT INTO public.novastars_app_state (id, payload, updated_at)
+       VALUES ($1, $2::jsonb, now())
+       ON CONFLICT (id) DO UPDATE SET payload = EXCLUDED.payload, updated_at = now()`,
+      [ROW_BUGS_ID, JSON.stringify({ items: data.bugReports })]
+    );
+  }
 
   if (Array.isArray(data.progress)) {
     for (const prog of data.progress) {

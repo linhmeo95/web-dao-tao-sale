@@ -6,6 +6,10 @@
   const NEON_FUNCTION_URL = "https://br-proud-wildflower-bisjmocc-hello.compute.c-5.ap-southeast-1.aws.neon.tech";
   const ROW_CONFIG_ID = "sale_training__config";
   const ROW_PROG_PREFIX = "sale_training__prog__";
+  const ROW_PRESENCE_PREFIX = "sale_training__presence__";
+  const ROW_ACTIVITY_ID = "sale_training__activity_log";
+  const ROW_BUGS_ID = "sale_training__bug_reports";
+  const ONLINE_THRESHOLD_MS = 90 * 1000; // 90 seconds
 
   const QUESTION_CATEGORIES = [
     { key: "kien_thuc", label: "1. Cấu trúc chương trình" },
@@ -91,6 +95,9 @@
         : [];
     }
     if (!Array.isArray(result.progress)) result.progress = [];
+    if (!result.presence || typeof result.presence !== "object") result.presence = {};
+    if (!Array.isArray(result.activityLogs)) result.activityLogs = [];
+    if (!Array.isArray(result.bugReports)) result.bugReports = [];
 
     localStorage.setItem(STORAGE_KEY, JSON.stringify(result));
     return result;
@@ -148,7 +155,7 @@
   }
 
   function getVisibleModulesForLearner() {
-    return (db.modules || []).filter(m => m.status !== "draft");
+    return (db.modules || []).filter(m => m.status !== "draft" && m.status !== "pending");
   }
 
   function getCurrentModule() {
@@ -212,14 +219,49 @@
 
       let cloudConfig = null;
       const cloudProgress = [];
+      const cloudPresence = {};
+      let cloudActivityLogs = null;
+      let cloudBugReports = null;
 
       rows.forEach(row => {
         if (row.id === ROW_CONFIG_ID && row.payload) {
           cloudConfig = row.payload;
         } else if (row.id && row.id.startsWith(ROW_PROG_PREFIX) && row.payload) {
           cloudProgress.push(row.payload);
+        } else if (row.id && row.id.startsWith(ROW_PRESENCE_PREFIX) && row.payload) {
+          const uid = row.payload.userId || row.id.slice(ROW_PRESENCE_PREFIX.length);
+          cloudPresence[uid] = row.payload;
+        } else if (row.id === ROW_ACTIVITY_ID && row.payload && Array.isArray(row.payload.items)) {
+          cloudActivityLogs = row.payload.items;
+        } else if (row.id === ROW_BUGS_ID && row.payload && Array.isArray(row.payload.items)) {
+          cloudBugReports = row.payload.items;
         }
       });
+
+      if (Object.keys(cloudPresence).length > 0) {
+        db.presence = { ...(db.presence || {}), ...cloudPresence };
+      }
+      if (Array.isArray(cloudActivityLogs)) {
+        const logMap = new Map();
+        (db.activityLogs || []).forEach(item => { if (item && item.id) logMap.set(item.id, item); });
+        cloudActivityLogs.forEach(item => { if (item && item.id) logMap.set(item.id, item); });
+        db.activityLogs = Array.from(logMap.values())
+          .sort((a, b) => (Date.parse(b.timestamp || "") || 0) - (Date.parse(a.timestamp || "") || 0))
+          .slice(0, 150);
+      }
+      if (Array.isArray(cloudBugReports)) {
+        const bugMap = new Map();
+        (db.bugReports || []).forEach(item => { if (item && item.id) bugMap.set(item.id, item); });
+        cloudBugReports.forEach(item => {
+          if (!item || !item.id) return;
+          const localItem = bugMap.get(item.id);
+          if (!localItem || (Date.parse(item.updatedAt || item.createdAt || "") || 0) >= (Date.parse(localItem.updatedAt || localItem.createdAt || "") || 0)) {
+            bugMap.set(item.id, item);
+          }
+        });
+        db.bugReports = Array.from(bugMap.values())
+          .sort((a, b) => (Date.parse(b.createdAt || "") || 0) - (Date.parse(a.createdAt || "") || 0));
+      }
 
       if (cloudConfig) {
         const cloudTime = Date.parse((cloudConfig.meta && cloudConfig.meta.updatedAt) || "") || 0;
@@ -337,6 +379,85 @@
     }
   }
 
+  function computeCurrentPresenceStatus() {
+    if (!currentUser) return "";
+    const mod = getCurrentModule();
+    const modCode = mod ? mod.code : "";
+    if (activeWorkspaceView === "admin") {
+      const tabNames = {
+        matrix: "Bảng tiến độ Sale",
+        modules: "Quản lý & Duyệt học phần",
+        activity: "Theo dõi hoạt động & Online",
+        bugs: "Xử lý Báo lỗi",
+        dossier: "Hồ sơ Sale",
+        analytics: "Thống kê câu hỏi"
+      };
+      return `Đang xem Admin: ${tabNames[activeAdminTab] || "Bảng điều khiển"}`;
+    }
+    if (activeWorkspaceView === "uploader") {
+      if (activeUploaderTab === "quiz") return `Đang soạn câu hỏi ${modCode}`;
+      if (activeUploaderTab === "bugs") return `Đang xem & xử lý Báo lỗi`;
+      return `Đang biên tập tài liệu ${modCode}`;
+    }
+    if (activeSaleTab === "quiz") {
+      if (isExamInProgress) {
+        const qCnt = (mod && Array.isArray(mod.questions)) ? mod.questions.length : 0;
+        return `Đang thi trắc nghiệm ${modCode} (Câu ${activeQuizQuestionIndex + 1}/${qCnt})`;
+      }
+      if (currentQuizSubmittedResult) {
+        return `Vừa nộp bài thi ${modCode} (${currentQuizSubmittedResult.score}%)`;
+      }
+      return `Đang xem mục Trắc nghiệm ${modCode}`;
+    }
+    return `Đang đọc tài liệu ${modCode} (Mục ${activeDocStepIndex + 1})`;
+  }
+
+  function sendPresenceHeartbeat(customStatus = "") {
+    if (!currentUser) return;
+    if (!db.presence || typeof db.presence !== "object") db.presence = {};
+    const mod = getCurrentModule();
+    const record = {
+      userId: currentUser.id,
+      userName: currentUser.name,
+      role: currentUser.role,
+      statusText: customStatus || computeCurrentPresenceStatus(),
+      moduleId: mod ? mod.id : "",
+      moduleCode: mod ? mod.code : "",
+      lastSeenAt: new Date().toISOString()
+    };
+    db.presence[currentUser.id] = record;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
+    saveRowsToSupabase([
+      {
+        id: `${ROW_PRESENCE_PREFIX}${currentUser.id}`,
+        payload: record,
+        updated_at: record.lastSeenAt
+      }
+    ]).catch(() => {});
+  }
+
+  function logUserActivity(actionType, actionLabel, detail = "", moduleCode = "") {
+    if (!currentUser) return;
+    if (!Array.isArray(db.activityLogs)) db.activityLogs = [];
+    const entry = {
+      id: "act-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 6),
+      userId: currentUser.id,
+      userName: currentUser.name,
+      role: currentUser.role,
+      actionType,
+      actionLabel,
+      detail,
+      moduleCode,
+      timestamp: new Date().toISOString()
+    };
+    db.activityLogs.unshift(entry);
+    if (db.activityLogs.length > 150) {
+      db.activityLogs = db.activityLogs.slice(0, 150);
+    }
+    sendPresenceHeartbeat(`${actionLabel}${moduleCode ? " (" + moduleCode + ")" : ""}`);
+    triggerAutoSave(true, false);
+  }
+
   let saveTimer = null;
   function triggerAutoSave(immediate = false, saveConfig = false, specificProg = null) {
     if (!db.meta) db.meta = {};
@@ -369,6 +490,30 @@
             users: db.users,
             modules: db.modules
           },
+          updated_at: new Date().toISOString()
+        });
+      }
+
+      if (Array.isArray(db.activityLogs) && db.activityLogs.length > 0) {
+        rows.push({
+          id: ROW_ACTIVITY_ID,
+          payload: { items: db.activityLogs.slice(0, 150) },
+          updated_at: new Date().toISOString()
+        });
+      }
+
+      if (Array.isArray(db.bugReports)) {
+        rows.push({
+          id: ROW_BUGS_ID,
+          payload: { items: db.bugReports },
+          updated_at: new Date().toISOString()
+        });
+      }
+
+      if (currentUser && db.presence && db.presence[currentUser.id]) {
+        rows.push({
+          id: `${ROW_PRESENCE_PREFIX}${currentUser.id}`,
+          payload: db.presence[currentUser.id],
           updated_at: new Date().toISOString()
         });
       }
@@ -494,6 +639,7 @@
         activeWorkspaceView = "sale";
         localStorage.setItem(SESSION_KEY, JSON.stringify(currentUser));
         resetActiveQuizState();
+        logUserActivity("login", "Đăng nhập hệ thống", "Vai trò: Sale");
         renderAll();
       });
     }
@@ -515,6 +661,7 @@
         impersonatedSaleUser = null;
         activeWorkspaceView = "uploader";
         localStorage.setItem(SESSION_KEY, JSON.stringify(currentUser));
+        logUserActivity("login", "Đăng nhập hệ thống", "Vai trò: Đào tạo");
         renderAll();
       });
     }
@@ -534,6 +681,7 @@
         impersonatedSaleUser = null;
         activeWorkspaceView = "admin";
         localStorage.setItem(SESSION_KEY, JSON.stringify(currentUser));
+        logUserActivity("login", "Đăng nhập hệ thống", "Vai trò: Admin");
         renderAll();
       });
     }
@@ -604,6 +752,17 @@
 
     if (btnToggleSidebar) {
       btnToggleSidebar.classList.toggle("hidden", activeWorkspaceView === "admin");
+    }
+
+    const openBugsCount = (db.bugReports || []).filter(b => b.status !== "resolved").length;
+    const topBugBadge = document.getElementById("badgeTopBugCount");
+    if (topBugBadge) {
+      topBugBadge.textContent = String(openBugsCount);
+      topBugBadge.classList.toggle("hidden", openBugsCount === 0);
+    }
+    const upBugBadge = document.getElementById("lblUpBugCount");
+    if (upBugBadge) {
+      upBugBadge.textContent = String(openBugsCount);
     }
   }
 
@@ -690,10 +849,12 @@
         const qCount = Array.isArray(mod.questions) ? mod.questions.length : 0;
 
         if (isUploaderView) {
-          if (mod.status === "draft") {
-            statusHtml = `<span class="sidebar-item-status draft">✎ Bản nháp</span>`;
+          if (mod.status === "pending") {
+            statusHtml = `<span class="sidebar-item-status pending">Chờ Admin duyệt</span>`;
+          } else if (mod.status === "draft") {
+            statusHtml = `<span class="sidebar-item-status draft">Bản nháp</span>`;
           } else {
-            statusHtml = `<span class="sidebar-item-status done">${qCount} câu hỏi</span>`;
+            statusHtml = `<span class="sidebar-item-status done">Đã duyệt · ${qCount} câu</span>`;
           }
         } else {
           const prog = (db.progress || []).find(p => p.userId === learner.id && p.moduleId === mod.id);
@@ -816,6 +977,7 @@
     examTotalSeconds = qList.length * SECONDS_PER_QUESTION;
     examSecondsRemaining = examTotalSeconds;
     isExamInProgress = true;
+    logUserActivity("start_exam", "Bắt đầu làm bài trắc nghiệm", `${mod.code}: ${mod.title} (${qList.length} câu)`, mod.code);
 
     examTimerInterval = setInterval(() => {
       if (!isExamInProgress) return;
@@ -868,6 +1030,12 @@
 
     currentQuizSubmittedResult = attemptRecord;
     activeQuizQuestionIndex = 0;
+    logUserActivity(
+      "submit_exam",
+      `Nộp bài trắc nghiệm (${passed ? "ĐẠT" : "CHƯA ĐẠT"}: ${score}%)`,
+      `Đúng ${correctCount}/${qList.length} câu · Thời gian ${formatMMSS(timeSpentSec)} · Chuyển tab ${examTabSwitchCount} lần`,
+      mod.code
+    );
     triggerAutoSave(true, false, prog);
     renderSaleWorkspace();
     renderSidebar();
@@ -1267,7 +1435,12 @@
     bodyContainer.innerHTML = `
       <div class="doc-stepper-bar">
         <div class="doc-step-pills">${pillsHtml}</div>
-        ${downloadBtnHtml}
+        <div style="display:flex;align-items:center;gap:8px;">
+          ${downloadBtnHtml}
+          <button type="button" class="btn-inline-report-bug" id="btnReportDocStepBug">
+            Báo lỗi mục này
+          </button>
+        </div>
       </div>
 
       <div class="doc-active-step-body">
@@ -1286,9 +1459,24 @@
       </div>
     `;
 
+    const btnRepDoc = document.getElementById("btnReportDocStepBug");
+    if (btnRepDoc) {
+      btnRepDoc.onclick = () => {
+        openBugReportModal({
+          targetContext: `${mod.code} — Tài liệu (${currentStep.pillLabel}: ${currentStep.title || mod.title})`,
+          category: "Lỗi nội dung tài liệu học",
+          moduleId: mod.id,
+          moduleCode: mod.code,
+          moduleTitle: mod.title,
+          questionIndex: null
+        });
+      };
+    }
+
     bodyContainer.querySelectorAll("[data-doc-step]").forEach(btn => {
       btn.addEventListener("click", () => {
         activeDocStepIndex = Number(btn.dataset.docStep);
+        sendPresenceHeartbeat();
         renderSaleDocumentPanel(mod, prog, steps);
       });
     });
@@ -1516,8 +1704,13 @@
       </div>
 
       <div class="qq-head">
-        <span class="qq-num-badge">Câu ${activeQuizQuestionIndex + 1} / ${qList.length}</span>
-        <span class="qq-cat-badge ${escapeHtml(catKey)}">${escapeHtml(catLabel)}</span>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <span class="qq-num-badge">Câu ${activeQuizQuestionIndex + 1} / ${qList.length}</span>
+          <span class="qq-cat-badge ${escapeHtml(catKey)}">${escapeHtml(catLabel)}</span>
+        </div>
+        <button type="button" class="btn-inline-report-bug" id="btnReportCurrentQuestionBug">
+          Báo lỗi câu này
+        </button>
       </div>
 
       <div class="qq-question-text">${escapeHtml(q.question)}</div>
@@ -1541,6 +1734,21 @@
         </div>
       </div>
     `;
+
+    const btnRepQ = document.getElementById("btnReportCurrentQuestionBug");
+    if (btnRepQ) {
+      btnRepQ.onclick = () => {
+        openBugReportModal({
+          targetContext: `${mod.code} — Câu hỏi ${activeQuizQuestionIndex + 1}: ${(q.question || "").slice(0, 70)}`,
+          category: "Sai đáp án / Câu hỏi trắc nghiệm",
+          moduleId: mod.id,
+          moduleCode: mod.code,
+          moduleTitle: mod.title,
+          questionId: q.id,
+          questionIndex: activeQuizQuestionIndex
+        });
+      };
+    }
 
     stageContainer.querySelectorAll("[data-goto-q]").forEach(btn => {
       btn.addEventListener("click", () => {
@@ -1611,23 +1819,40 @@
 
     const btnTabDoc = document.getElementById("btnUpTabDoc");
     const btnTabQuiz = document.getElementById("btnUpTabQuiz");
+    const btnTabBugs = document.getElementById("btnUpTabBugs");
     const panelDoc = document.getElementById("uploaderPanelDoc");
     const panelQuiz = document.getElementById("uploaderPanelQuiz");
+    const panelBugs = document.getElementById("uploaderPanelBugs");
 
     btnTabDoc.classList.toggle("active", activeUploaderTab === "doc");
     btnTabQuiz.classList.toggle("active", activeUploaderTab === "quiz");
+    if (btnTabBugs) btnTabBugs.classList.toggle("active", activeUploaderTab === "bugs");
     panelDoc.classList.toggle("hidden", activeUploaderTab !== "doc");
     panelQuiz.classList.toggle("hidden", activeUploaderTab !== "quiz");
+    if (panelBugs) panelBugs.classList.toggle("hidden", activeUploaderTab !== "bugs");
 
     btnTabDoc.onclick = () => {
       activeUploaderTab = "doc";
+      sendPresenceHeartbeat();
       renderUploaderWorkspace();
     };
     btnTabQuiz.onclick = () => {
       syncUploaderDocFieldsToModule(mod);
       activeUploaderTab = "quiz";
+      sendPresenceHeartbeat();
       renderUploaderWorkspace();
     };
+    if (btnTabBugs) {
+      btnTabBugs.onclick = () => {
+        syncUploaderDocFieldsToModule(mod);
+        activeUploaderTab = "bugs";
+        sendPresenceHeartbeat();
+        renderUploaderWorkspace();
+      };
+    }
+    if (activeUploaderTab === "bugs") {
+      renderBugReportsPanelInto("uploaderBugsContainer");
+    }
 
     document.getElementById("upModStatus").value = mod.status || "published";
     document.getElementById("upModCode").value = mod.code || "HP";
@@ -2130,8 +2355,29 @@
     const sales = (db.users || []).filter(u => u.role === "sale");
     const pubMods = getVisibleModulesForLearner();
 
+    const allMods = db.modules || [];
+    const pendingModsCount = allMods.filter(m => m.status === "pending").length;
+    const openBugsCount = (db.bugReports || []).filter(b => b.status !== "resolved").length;
+    const nowMs = Date.now();
+    const onlineUsersCount = (db.users || []).filter(u => {
+      const pr = db.presence && db.presence[u.id];
+      return pr && (nowMs - (Date.parse(pr.lastSeenAt || "") || 0) < ONLINE_THRESHOLD_MS);
+    }).length;
+
     document.getElementById("badgeAdminMatrixCount").textContent = `${sales.length} Sale`;
     document.getElementById("badgeAdminAnalyticsCount").textContent = `${pubMods.length} bài`;
+    const badgeMods = document.getElementById("badgeAdminModulesCount");
+    if (badgeMods) {
+      badgeMods.textContent = pendingModsCount > 0 ? `${pendingModsCount} chờ duyệt` : `${allMods.length} bài`;
+    }
+    const badgeAct = document.getElementById("badgeAdminActivityCount");
+    if (badgeAct) {
+      badgeAct.textContent = `${onlineUsersCount} online`;
+    }
+    const badgeBugs = document.getElementById("badgeAdminBugsCount");
+    if (badgeBugs) {
+      badgeBugs.textContent = openBugsCount > 0 ? `${openBugsCount} chờ xử lý` : "0 lỗi";
+    }
 
     // Render KPI Strip
     const kpiBar = document.getElementById("adminKpiBar");
@@ -2195,13 +2441,25 @@
     const pMatrix = document.getElementById("adminPanelMatrix");
     const pDossier = document.getElementById("adminPanelDossier");
     const pAnalytics = document.getElementById("adminPanelAnalytics");
+    const pModules = document.getElementById("adminPanelModules");
+    const pActivity = document.getElementById("adminPanelActivity");
+    const pBugs = document.getElementById("adminPanelBugs");
 
     pMatrix.classList.toggle("hidden", activeAdminTab !== "matrix");
     pDossier.classList.toggle("hidden", activeAdminTab !== "dossier");
     pAnalytics.classList.toggle("hidden", activeAdminTab !== "analytics");
+    if (pModules) pModules.classList.toggle("hidden", activeAdminTab !== "modules");
+    if (pActivity) pActivity.classList.toggle("hidden", activeAdminTab !== "activity");
+    if (pBugs) pBugs.classList.toggle("hidden", activeAdminTab !== "bugs");
 
     if (activeAdminTab === "matrix") {
       renderAdminMatrixPanel(sales, pubMods);
+    } else if (activeAdminTab === "modules") {
+      renderAdminModulesPanel();
+    } else if (activeAdminTab === "activity") {
+      renderAdminActivityPanel();
+    } else if (activeAdminTab === "bugs") {
+      renderBugReportsPanelInto("adminPanelBugs");
     } else if (activeAdminTab === "dossier") {
       renderAdminDossierPanel(sales, pubMods);
     } else {
@@ -2915,8 +3173,8 @@
           subtitle: "Bối cảnh tư vấn Chủ trường và Hiệu trưởng trường mầm non",
           durationMinutes: 20,
           passThreshold: (db.meta && db.meta.defaultPassThreshold) || 80,
-          status: "published",
-          authorName: currentUser ? currentUser.name : "Người up nội dung",
+          status: (currentUser && currentUser.role === "admin") ? "published" : "pending",
+          authorName: currentUser ? currentUser.name : "Đào tạo",
           updatedAt: new Date().toISOString(),
           summaryPoints: [
             "Luận điểm trọng tâm 1 cần nhớ khi tư vấn Chủ trường / Hiệu trưởng.",
@@ -2930,6 +3188,7 @@
         currentModuleId = newMod.id;
         activeWorkspaceView = "uploader";
         activeUploaderTab = "doc";
+        logUserActivity("create_module", "Tạo học phần mới", `${newMod.code}: ${newMod.title}`, newMod.code);
         triggerAutoSave(true, true);
         renderAll();
       });
@@ -2970,9 +3229,15 @@
           mod.structuredType = ""; // Use uploadedTables rendering
         }
 
+        mod.authorName = currentUser ? currentUser.name : (mod.authorName || "Đào tạo");
+        if (currentUser && currentUser.role === "uploader") {
+          mod.status = "pending";
+        }
+        logUserActivity("upload_doc", "Tải file tài liệu lên học phần", `File: ${file.name} (${(extracted.text || "").length} ký tự)`, mod.code);
         statusEl.innerHTML = `✓ Đã bóc tách thành công tài liệu <strong>${escapeHtml(file.name)}</strong> (${(extracted.text || "").length.toLocaleString("vi-VN")} ký tự, ${(extracted.tables || []).length} bảng dữ liệu). Bạn có thể chuyển sang Bước 2 để tạo bộ câu hỏi trắc nghiệm ngay!`;
         triggerAutoSave(true, true);
         renderUploaderWorkspace();
+        renderSidebar();
         inpDocFile.value = "";
       });
     }
@@ -3161,14 +3426,16 @@
       const mod = getCurrentModule();
       if (!mod) return;
       syncUploaderDocFieldsToModule(mod);
+      if (currentUser) mod.authorName = currentUser.name;
       expandedUploaderQuestionIndex = null;
+      logUserActivity("save_module", "Lưu cập nhật học phần", `${mod.code}: ${mod.title} (${(mod.questions || []).length} câu hỏi)`, mod.code);
       triggerAutoSave(true, true);
       renderSidebar();
       renderUploaderWorkspace();
       const btn = document.getElementById("btnUploaderSaveModule");
       if (btn) {
         const orig = btn.textContent;
-        btn.textContent = "✓ Đã lưu bài học!";
+        btn.textContent = "✓ Đã lưu!";
         setTimeout(() => { btn.textContent = orig; }, 1800);
       }
     }
@@ -3177,6 +3444,33 @@
     const btnSaveBot = document.getElementById("btnUploaderSaveBottom");
     if (btnSaveTop) btnSaveTop.addEventListener("click", saveCurrentModuleAndNotify);
     if (btnSaveBot) btnSaveBot.addEventListener("click", saveCurrentModuleAndNotify);
+
+    const btnSubmitApprove = document.getElementById("btnUploaderSubmitForApproval");
+    if (btnSubmitApprove) {
+      btnSubmitApprove.addEventListener("click", () => {
+        const mod = getCurrentModule();
+        if (!mod) return;
+        syncUploaderDocFieldsToModule(mod);
+        if (currentUser) mod.authorName = currentUser.name;
+        mod.status = (currentUser && currentUser.role === "admin") ? "published" : "pending";
+        mod.updatedAt = new Date().toISOString();
+        expandedUploaderQuestionIndex = null;
+        logUserActivity(
+          "submit_review",
+          mod.status === "pending" ? "Gửi học phần chờ Admin duyệt" : "Duyệt & Xuất bản học phần",
+          `${mod.code}: ${mod.title} (${(mod.questions || []).length} câu hỏi)`,
+          mod.code
+        );
+        triggerAutoSave(true, true);
+        renderSidebar();
+        renderUploaderWorkspace();
+        alert(
+          mod.status === "pending"
+            ? `Đã lưu và gửi học phần "${mod.code}: ${mod.title}" sang mục Quản lý Học phần để chờ Admin duyệt xuất bản!`
+            : `Đã lưu và xuất bản học phần "${mod.code}: ${mod.title}"!`
+        );
+      });
+    }
 
     // Preview as Sale Buttons
     function previewCurrentModuleAsSale() {
@@ -3554,6 +3848,627 @@
     }
   }
 
+  // =========================================================================
+  // ADMIN PANEL 4: COURSE MODULE MANAGEMENT & APPROVAL (QUẢN LÝ HỌC PHẦN)
+  // =========================================================================
+  function renderAdminModulesPanel() {
+    const panel = document.getElementById("adminPanelModules");
+    if (!panel) return;
+    const allMods = db.modules || [];
+    const pendingCount = allMods.filter(m => m.status === "pending").length;
+
+    const rowsHtml = allMods.map(m => {
+      const qCount = Array.isArray(m.questions) ? m.questions.length : 0;
+      const author = m.authorName || "Đào tạo";
+      const updatedStr = m.updatedAt ? new Date(m.updatedAt).toLocaleString("vi-VN") : "—";
+      const fileLabel = (m.sourceFile && m.sourceFile.name) ? m.sourceFile.name : "Soạn trực tiếp";
+      let statusBadge = `<span class="sidebar-item-status done">Đã duyệt · Hiển thị cho Sale</span>`;
+      if (m.status === "pending") {
+        statusBadge = `<span class="sidebar-item-status pending">Chờ Admin duyệt</span>`;
+      } else if (m.status === "draft") {
+        statusBadge = `<span class="sidebar-item-status draft">Bản nháp · Đang ẩn</span>`;
+      }
+
+      return `
+        <tr>
+          <td>
+            <div><strong>${escapeHtml(m.code)} — ${escapeHtml(m.title)}</strong></div>
+            <div style="font-size:12px;color:#64748B;margin-top:3px;">
+              Danh mục: ${escapeHtml(m.category || "Chuyên đề Đào tạo")} · File gốc: <code>${escapeHtml(fileLabel)}</code>
+            </div>
+          </td>
+          <td>
+            <div><strong>${escapeHtml(author)}</strong></div>
+            <div style="font-size:11.5px;color:#64748B;">${escapeHtml(updatedStr)}</div>
+          </td>
+          <td style="text-align:center;">
+            <strong>${qCount} câu</strong>
+            <div style="font-size:11.5px;color:#64748B;">Chuẩn &ge;${m.passThreshold || 80}%</div>
+          </td>
+          <td>${statusBadge}</td>
+          <td>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+              ${m.status !== "published"
+                ? `<button type="button" class="btn-row-act save" data-mod-approve="${escapeHtml(m.id)}">✓ Duyệt xuất bản</button>`
+                : `<button type="button" class="btn-row-act" data-mod-unpublish="${escapeHtml(m.id)}">Tạm ẩn</button>`
+              }
+              <button type="button" class="btn-row-act" data-mod-edit="${escapeHtml(m.id)}">Xem / Sửa bài</button>
+              <button type="button" class="btn-row-act" data-mod-preview="${escapeHtml(m.id)}">Xem như Sale</button>
+              <button type="button" class="btn-row-act danger" data-mod-delete="${escapeHtml(m.id)}">Xóa</button>
+            </div>
+          </td>
+        </tr>
+      `;
+    }).join("");
+
+    panel.innerHTML = `
+      <div class="admin-card">
+        <div class="admin-card-head">
+          <div>
+            <h2 class="admin-title">Quản lý Học phần &amp; Phê duyệt Nội dung Đào tạo tải lên</h2>
+            <p class="admin-sub">
+              Kiểm soát toàn bộ tài liệu và bộ câu hỏi trắc nghiệm do nhân sự Đào tạo biên tập. Bài ở trạng thái <strong>Chờ Admin duyệt</strong> hoặc <strong>Bản nháp</strong> sẽ chỉ hiển thị cho Sale sau khi Admin bấm <strong>Duyệt xuất bản</strong>.
+            </p>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            ${pendingCount > 0
+              ? `<span class="sidebar-item-status pending" style="font-size:12.5px;padding:6px 12px;">Có ${pendingCount} học phần đang chờ duyệt</span>`
+              : `<span class="sidebar-item-status done" style="font-size:12.5px;padding:6px 12px;">Tất cả đã xử lý</span>`
+            }
+            <button type="button" class="btn-primary" id="btnAdminCreateNewModule">+ Tạo học phần mới</button>
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table class="progress-matrix-table">
+            <thead>
+              <tr>
+                <th>Mã &amp; Tên Học phần / Tài liệu</th>
+                <th style="width:165px;">Người tải lên / Cập nhật</th>
+                <th style="width:110px;text-align:center;">Số câu hỏi</th>
+                <th style="width:180px;">Trạng thái hiển thị</th>
+                <th style="width:310px;">Thao tác Quản lý</th>
+              </tr>
+            </thead>
+            <tbody>${rowsHtml}</tbody>
+          </table>
+        </div>
+      </div>
+    `;
+
+    const btnNew = document.getElementById("btnAdminCreateNewModule");
+    if (btnNew) {
+      btnNew.onclick = () => {
+        const createBtn = document.getElementById("btnSidebarCreateModule");
+        if (createBtn) createBtn.click();
+      };
+    }
+
+    panel.querySelectorAll("[data-mod-approve]").forEach(btn => {
+      btn.onclick = () => {
+        const mod = (db.modules || []).find(m => m.id === btn.dataset.modApprove);
+        if (!mod) return;
+        mod.status = "published";
+        mod.updatedAt = new Date().toISOString();
+        logUserActivity("approve_module", "Admin duyệt xuất bản học phần", `${mod.code}: ${mod.title}`, mod.code);
+        triggerAutoSave(true, true);
+        renderAdminWorkspace();
+      };
+    });
+
+    panel.querySelectorAll("[data-mod-unpublish]").forEach(btn => {
+      btn.onclick = () => {
+        const mod = (db.modules || []).find(m => m.id === btn.dataset.modUnpublish);
+        if (!mod) return;
+        mod.status = "draft";
+        mod.updatedAt = new Date().toISOString();
+        logUserActivity("unpublish_module", "Admin tạm ẩn học phần", `${mod.code}: ${mod.title}`, mod.code);
+        triggerAutoSave(true, true);
+        renderAdminWorkspace();
+      };
+    });
+
+    panel.querySelectorAll("[data-mod-edit]").forEach(btn => {
+      btn.onclick = () => {
+        currentModuleId = btn.dataset.modEdit;
+        activeWorkspaceView = "uploader";
+        activeUploaderTab = "doc";
+        renderAll();
+      };
+    });
+
+    panel.querySelectorAll("[data-mod-preview]").forEach(btn => {
+      btn.onclick = () => {
+        currentModuleId = btn.dataset.modPreview;
+        activeWorkspaceView = "sale";
+        activeSaleTab = "doc";
+        resetActiveQuizState();
+        renderAll();
+      };
+    });
+
+    panel.querySelectorAll("[data-mod-delete]").forEach(btn => {
+      btn.onclick = () => {
+        if ((db.modules || []).length <= 1) {
+          alert("Cần giữ lại ít nhất 1 học phần trong hệ thống.");
+          return;
+        }
+        const mod = (db.modules || []).find(m => m.id === btn.dataset.modDelete);
+        if (!mod) return;
+        if (confirm(`Xóa học phần "${mod.code}: ${mod.title}"?`)) {
+          db.modules = db.modules.filter(m => m.id !== mod.id);
+          currentModuleId = db.modules[0].id;
+          logUserActivity("delete_module", "Admin xóa học phần", `${mod.code}: ${mod.title}`, mod.code);
+          triggerAutoSave(true, true);
+          renderAdminWorkspace();
+        }
+      };
+    });
+  }
+
+  // =========================================================================
+  // ADMIN PANEL 5: REAL-TIME PRESENCE & ACTIVITY HISTORY
+  // =========================================================================
+  let activityRoleFilter = "ALL";
+
+  function formatRelativeTimeAgo(isoStr) {
+    if (!isoStr) return "Chưa truy cập";
+    const diffSec = Math.max(0, Math.floor((Date.now() - (Date.parse(isoStr) || 0)) / 1000));
+    if (diffSec < 45) return "Vừa xong (Đang trực tuyến)";
+    if (diffSec < 3600) return `${Math.floor(diffSec / 60)} phút trước`;
+    if (diffSec < 86400) return `${Math.floor(diffSec / 3600)} giờ trước`;
+    return new Date(isoStr).toLocaleString("vi-VN");
+  }
+
+  function renderAdminActivityPanel() {
+    const panel = document.getElementById("adminPanelActivity");
+    if (!panel) return;
+    const nowMs = Date.now();
+
+    const allTrackedUsers = [
+      ...(db.users || []),
+      { id: "admin", name: "Admin", role: "admin", title: "Quản trị hệ thống" }
+    ];
+
+    const presenceCardsHtml = allTrackedUsers.map(u => {
+      const pr = (db.presence && db.presence[u.id]) ? db.presence[u.id] : null;
+      const lastMs = pr && pr.lastSeenAt ? (Date.parse(pr.lastSeenAt) || 0) : 0;
+      const isOnline = lastMs > 0 && (nowMs - lastMs < ONLINE_THRESHOLD_MS);
+      const roleLabel = u.role === "admin" ? "Admin" : (u.role === "uploader" ? "Đào tạo" : "Sale");
+      const statusText = pr && pr.statusText
+        ? pr.statusText
+        : "Chưa có hoạt động ghi nhận";
+      const timeMeta = pr && pr.lastSeenAt
+        ? `${isOnline ? "● Đang hoạt động" : "○ Offline"} · Cập nhật: ${formatRelativeTimeAgo(pr.lastSeenAt)}`
+        : "○ Chưa đăng nhập";
+
+      return `
+        <div class="presence-card ${isOnline ? "is-online" : ""}">
+          <div class="presence-card-top">
+            <span class="presence-user-name">
+              <span class="presence-dot ${isOnline ? "online" : ""}"></span>
+              ${escapeHtml(u.name)}
+            </span>
+            <span class="presence-role-tag ${escapeHtml(u.role)}">${roleLabel}</span>
+          </div>
+          <div class="presence-activity-text">${escapeHtml(statusText)}</div>
+          <div class="presence-time-meta">${escapeHtml(timeMeta)}</div>
+        </div>
+      `;
+    }).join("");
+
+    const logs = Array.isArray(db.activityLogs) ? db.activityLogs : [];
+    const filteredLogs = logs.filter(item => {
+      if (activityRoleFilter === "ALL") return true;
+      return item.role === activityRoleFilter;
+    });
+
+    const logsHtml = filteredLogs.length === 0
+      ? `<div style="padding:20px;text-align:center;color:#64748B;">Chưa có lịch sử hoạt động ở bộ lọc này.</div>`
+      : filteredLogs.map(item => {
+          const roleLabel = item.role === "admin" ? "Admin" : (item.role === "uploader" ? "Đào tạo" : "Sale");
+          const timeStr = item.timestamp ? new Date(item.timestamp).toLocaleString("vi-VN") : "";
+          return `
+            <div class="activity-log-row">
+              <div class="activity-log-left">
+                <span class="presence-role-tag ${escapeHtml(item.role || "sale")}">${roleLabel}</span>
+                <strong>${escapeHtml(item.userName || "")}</strong>
+                <span>—</span>
+                <span style="font-weight:700;color:#C2410C;">${escapeHtml(item.actionLabel || "")}</span>
+                ${item.detail ? `<span style="color:#475569;">(${escapeHtml(item.detail)})</span>` : ""}
+              </div>
+              <span class="activity-time">${escapeHtml(timeStr)}</span>
+            </div>
+          `;
+        }).join("");
+
+    panel.innerHTML = `
+      <div class="admin-card">
+        <div class="admin-card-head">
+          <div>
+            <h2 class="admin-title">Trạng thái Đang hoạt động (Thời gian thực) của từng Nhân sự</h2>
+            <p class="admin-sub">Hiển thị nhân sự nào đang mở ứng dụng (chấm xanh) và họ đang đọc bài nào, đang làm bài thi nào hay đang soạn câu hỏi nào.</p>
+          </div>
+          <button type="button" class="btn-secondary" id="btnRefreshPresenceNow">Làm mới trạng thái</button>
+        </div>
+        <div class="presence-grid">${presenceCardsHtml}</div>
+      </div>
+
+      <div class="admin-card" style="margin-top:14px;">
+        <div class="admin-card-head">
+          <div>
+            <h2 class="admin-title">Lịch sử Hoạt động Chi tiết (${filteredLogs.length} bản ghi)</h2>
+            <p class="admin-sub">Ghi lại đầy đủ thời gian đăng nhập, đọc tài liệu, bắt đầu làm bài, nộp bài thi của Sale và lịch sử tải tài liệu, tạo/sửa câu hỏi của Đào tạo.</p>
+          </div>
+          <div class="study-filter-pills">
+            <button type="button" class="study-filter-pill ${activityRoleFilter === 'ALL' ? 'active' : ''}" data-act-filter="ALL">Tất cả</button>
+            <button type="button" class="study-filter-pill ${activityRoleFilter === 'sale' ? 'active' : ''}" data-act-filter="sale">Sale</button>
+            <button type="button" class="study-filter-pill ${activityRoleFilter === 'uploader' ? 'active' : ''}" data-act-filter="uploader">Đào tạo</button>
+            <button type="button" class="study-filter-pill ${activityRoleFilter === 'admin' ? 'active' : ''}" data-act-filter="admin">Admin</button>
+          </div>
+        </div>
+        <div class="activity-log-list">${logsHtml}</div>
+      </div>
+    `;
+
+    const btnRef = document.getElementById("btnRefreshPresenceNow");
+    if (btnRef) {
+      btnRef.onclick = async () => {
+        btnRef.textContent = "Đang cập nhật...";
+        await fetchCloudDb(true);
+      };
+    }
+
+    panel.querySelectorAll("[data-act-filter]").forEach(btn => {
+      btn.onclick = () => {
+        activityRoleFilter = btn.dataset.actFilter;
+        renderAdminActivityPanel();
+      };
+    });
+  }
+
+  // =========================================================================
+  // ADMIN PANEL 6 & ĐÀO TẠO TAB 3: BUG REPORTS WITH SCREENSHOTS
+  // =========================================================================
+  let bugStatusFilter = "ALL";
+  let pendingBugImageDataUrl = "";
+  let pendingBugContextMeta = {};
+
+  function renderBugReportsPanelInto(containerId) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    const allBugs = Array.isArray(db.bugReports) ? db.bugReports : [];
+    const openCount = allBugs.filter(b => b.status !== "resolved").length;
+    const filtered = allBugs.filter(b => {
+      if (bugStatusFilter === "OPEN") return b.status !== "resolved";
+      if (bugStatusFilter === "RESOLVED") return b.status === "resolved";
+      return true;
+    });
+
+    const cardsHtml = filtered.length === 0
+      ? `<div style="padding:28px;text-align:center;color:#64748B;">Chưa có báo lỗi hoặc phản hồi nào trong mục này.</div>`
+      : filtered.map(b => {
+          const isResolved = b.status === "resolved";
+          const createdStr = b.createdAt ? new Date(b.createdAt).toLocaleString("vi-VN") : "";
+          const roleLabel = b.reporterRole === "admin" ? "Admin" : (b.reporterRole === "uploader" ? "Đào tạo" : "Sale");
+          return `
+            <div class="bug-item-card ${isResolved ? "resolved" : "open"}">
+              <div class="bug-item-head">
+                <div class="bug-item-meta">
+                  <span class="sidebar-item-status ${isResolved ? "done" : "pending"}">
+                    ${isResolved ? "✓ Đã xử lý" : "Chờ xử lý"}
+                  </span>
+                  <strong>${escapeHtml(b.targetContext || "Báo lỗi chung")}</strong>
+                  <span class="qq-cat-badge">${escapeHtml(b.category || "Báo lỗi")}</span>
+                </div>
+                <span class="activity-time">
+                  Người gửi: <strong>${escapeHtml(b.reporterName || "")}</strong> (${roleLabel}) · ${escapeHtml(createdStr)}
+                </span>
+              </div>
+
+              <div style="font-size:13.8px;line-height:1.55;color:#0F172A;white-space:pre-line;">
+                ${escapeHtml(b.description || "")}
+              </div>
+
+              ${b.screenshotDataUrl ? `
+                <div>
+                  <img src="${escapeHtml(b.screenshotDataUrl)}" alt="Ảnh chụp màn hình báo lỗi" class="bug-thumb-img" data-zoom-bug-img="${escapeHtml(b.id)}" title="Bấm vào ảnh để phóng to">
+                </div>
+              ` : ""}
+
+              ${isResolved && b.resolvedBy ? `
+                <div style="font-size:12px;color:#065F46;background:#ECFDF5;padding:7px 10px;border-radius:7px;">
+                  ✓ Đã được xử lý bởi <strong>${escapeHtml(b.resolvedBy)}</strong> lúc ${b.resolvedAt ? escapeHtml(new Date(b.resolvedAt).toLocaleString("vi-VN")) : ""}
+                </div>
+              ` : ""}
+
+              <div style="display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;padding-top:4px;">
+                ${b.moduleId ? `
+                  <button type="button" class="btn-row-act" data-bug-goto-edit="${escapeHtml(b.id)}">
+                    Mở sửa câu hỏi / bài học này ngay
+                  </button>
+                ` : ""}
+                <button type="button" class="btn-row-act ${isResolved ? "" : "save"}" data-bug-toggle-resolve="${escapeHtml(b.id)}">
+                  ${isResolved ? "Mở lại báo lỗi" : "✓ Đánh dấu Đã xử lý"}
+                </button>
+                <button type="button" class="btn-row-act danger" data-bug-delete="${escapeHtml(b.id)}">
+                  Xóa
+                </button>
+              </div>
+            </div>
+          `;
+        }).join("");
+
+    container.innerHTML = `
+      <div class="admin-card">
+        <div class="admin-card-head">
+          <div>
+            <h2 class="admin-title">Danh sách Báo lỗi &amp; Phản hồi (${openCount} lỗi chờ xử lý / Tổng ${allBugs.length})</h2>
+            <p class="admin-sub">Xem nội dung báo lỗi và ảnh chụp màn hình do Sale hoặc Đào tạo gửi lên. Bấm <strong>Mở sửa câu hỏi / bài học này ngay</strong> để nhảy tới đúng vị trí cần chỉnh sửa.</p>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+            <div class="study-filter-pills">
+              <button type="button" class="study-filter-pill ${bugStatusFilter === 'ALL' ? 'active' : ''}" data-bug-filter="ALL">Tất cả (${allBugs.length})</button>
+              <button type="button" class="study-filter-pill ${bugStatusFilter === 'OPEN' ? 'active' : ''}" data-bug-filter="OPEN">Chờ xử lý (${openCount})</button>
+              <button type="button" class="study-filter-pill ${bugStatusFilter === 'RESOLVED' ? 'active' : ''}" data-bug-filter="RESOLVED">Đã xử lý (${allBugs.length - openCount})</button>
+            </div>
+            <button type="button" class="btn-primary" id="btnNewBugFromList">+ Tạo báo lỗi mới</button>
+          </div>
+        </div>
+        <div class="bug-card-list">${cardsHtml}</div>
+      </div>
+    `;
+
+    const btnNew = container.querySelector("#btnNewBugFromList");
+    if (btnNew) {
+      btnNew.onclick = () => openBugReportModal({});
+    }
+
+    container.querySelectorAll("[data-bug-filter]").forEach(btn => {
+      btn.onclick = () => {
+        bugStatusFilter = btn.dataset.bugFilter;
+        renderBugReportsPanelInto(containerId);
+      };
+    });
+
+    container.querySelectorAll("[data-zoom-bug-img]").forEach(img => {
+      img.onclick = () => {
+        const bug = (db.bugReports || []).find(item => item.id === img.dataset.zoomBugImg);
+        if (!bug || !bug.screenshotDataUrl) return;
+        document.getElementById("lightboxTitle").textContent = bug.targetContext || "Ảnh chụp màn hình Báo lỗi";
+        document.getElementById("lightboxImg").src = bug.screenshotDataUrl;
+        document.getElementById("lightboxDialog").showModal();
+      };
+    });
+
+    container.querySelectorAll("[data-bug-goto-edit]").forEach(btn => {
+      btn.onclick = () => {
+        const bug = (db.bugReports || []).find(item => item.id === btn.dataset.bugGotoEdit);
+        if (!bug || !bug.moduleId) return;
+        currentModuleId = bug.moduleId;
+        activeWorkspaceView = "uploader";
+        if (bug.questionIndex !== null && bug.questionIndex !== undefined) {
+          activeUploaderTab = "quiz";
+          expandedUploaderQuestionIndex = Number(bug.questionIndex);
+        } else {
+          activeUploaderTab = "doc";
+        }
+        renderAll();
+      };
+    });
+
+    container.querySelectorAll("[data-bug-toggle-resolve]").forEach(btn => {
+      btn.onclick = () => {
+        const bug = (db.bugReports || []).find(item => item.id === btn.dataset.bugToggleResolve);
+        if (!bug) return;
+        if (bug.status === "resolved") {
+          bug.status = "open";
+          bug.resolvedBy = "";
+          bug.resolvedAt = null;
+        } else {
+          bug.status = "resolved";
+          bug.resolvedBy = currentUser ? currentUser.name : "Admin";
+          bug.resolvedAt = new Date().toISOString();
+          logUserActivity("resolve_bug", "Đánh dấu đã xử lý báo lỗi", bug.targetContext || "");
+        }
+        bug.updatedAt = new Date().toISOString();
+        triggerAutoSave(true, false);
+        renderTopBar();
+        renderBugReportsPanelInto(containerId);
+        if (activeWorkspaceView === "admin") renderAdminWorkspace();
+      };
+    });
+
+    container.querySelectorAll("[data-bug-delete]").forEach(btn => {
+      btn.onclick = () => {
+        const bug = (db.bugReports || []).find(item => item.id === btn.dataset.bugDelete);
+        if (!bug) return;
+        if (confirm("Xóa báo lỗi này?")) {
+          db.bugReports = (db.bugReports || []).filter(item => item.id !== bug.id);
+          triggerAutoSave(true, false);
+          renderTopBar();
+          renderBugReportsPanelInto(containerId);
+          if (activeWorkspaceView === "admin") renderAdminWorkspace();
+        }
+      };
+    });
+  }
+
+  function compressImageBlobToDataUrl(blob) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = e => {
+        const img = new Image();
+        img.onload = () => {
+          const maxDim = 1100;
+          let w = img.width;
+          let h = img.height;
+          if (w > maxDim || h > maxDim) {
+            if (w > h) {
+              h = Math.round((h * maxDim) / w);
+              w = maxDim;
+            } else {
+              w = Math.round((w * maxDim) / h);
+              h = maxDim;
+            }
+          }
+          const canvas = document.createElement("canvas");
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, w, h);
+          resolve(canvas.toDataURL("image/jpeg", 0.78));
+        };
+        img.onerror = reject;
+        img.src = e.target.result;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  }
+
+  function setBugPreviewImage(dataUrl) {
+    pendingBugImageDataUrl = dataUrl || "";
+    const wrap = document.getElementById("bugImagePreviewWrap");
+    const img = document.getElementById("bugImagePreview");
+    const promptEl = document.getElementById("bugPastePromptText");
+    if (!wrap || !img || !promptEl) return;
+    if (pendingBugImageDataUrl) {
+      img.src = pendingBugImageDataUrl;
+      wrap.classList.remove("hidden");
+      promptEl.classList.add("hidden");
+    } else {
+      img.src = "";
+      wrap.classList.add("hidden");
+      promptEl.classList.remove("hidden");
+    }
+  }
+
+  function openBugReportModal(prefill = {}) {
+    const mod = getCurrentModule();
+    const defaultTarget = prefill.targetContext || (mod ? `${mod.code} — ${mod.title}` : "Hệ thống Cẩm nang Tư vấn");
+    pendingBugContextMeta = {
+      moduleId: prefill.moduleId !== undefined ? prefill.moduleId : (mod ? mod.id : ""),
+      moduleCode: prefill.moduleCode !== undefined ? prefill.moduleCode : (mod ? mod.code : ""),
+      moduleTitle: prefill.moduleTitle !== undefined ? prefill.moduleTitle : (mod ? mod.title : ""),
+      questionId: prefill.questionId || null,
+      questionIndex: prefill.questionIndex !== undefined ? prefill.questionIndex : null
+    };
+
+    const targetInp = document.getElementById("bugTargetContext");
+    const catSel = document.getElementById("bugCategorySelect");
+    const descInp = document.getElementById("bugDescriptionInput");
+    if (targetInp) targetInp.value = defaultTarget;
+    if (catSel && prefill.category) catSel.value = prefill.category;
+    if (descInp) descInp.value = "";
+    setBugPreviewImage("");
+
+    const dlg = document.getElementById("bugReportDialog");
+    if (dlg) {
+      dlg.showModal();
+      if (descInp) descInp.focus();
+    }
+  }
+
+  function setupBugReportDialog() {
+    const btnTopBug = document.getElementById("btnTopOpenBugReport");
+    if (btnTopBug) {
+      btnTopBug.addEventListener("click", () => {
+        const mod = getCurrentModule();
+        let targetContext = mod ? `${mod.code} — ${mod.title}` : "Báo lỗi chung";
+        let questionIndex = null;
+        if (activeWorkspaceView === "sale" && activeSaleTab === "quiz" && mod && Array.isArray(mod.questions) && mod.questions[activeQuizQuestionIndex]) {
+          targetContext = `${mod.code} — Câu hỏi ${activeQuizQuestionIndex + 1}`;
+          questionIndex = activeQuizQuestionIndex;
+        }
+        openBugReportModal({
+          targetContext,
+          moduleId: mod ? mod.id : "",
+          moduleCode: mod ? mod.code : "",
+          moduleTitle: mod ? mod.title : "",
+          questionIndex
+        });
+      });
+    }
+
+    const fileInp = document.getElementById("bugImageFileInput");
+    if (fileInp) {
+      fileInp.addEventListener("change", async e => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+        try {
+          const dataUrl = await compressImageBlobToDataUrl(file);
+          setBugPreviewImage(dataUrl);
+        } catch (err) {}
+        fileInp.value = "";
+      });
+    }
+
+    const btnRemoveImg = document.getElementById("btnRemoveBugImage");
+    if (btnRemoveImg) {
+      btnRemoveImg.addEventListener("click", e => {
+        e.stopPropagation();
+        setBugPreviewImage("");
+      });
+    }
+
+    // Global paste listener when bugReportDialog is open so pressing Ctrl+V / Cmd+V anywhere in the dialog pastes the clipboard screenshot
+    document.addEventListener("paste", async e => {
+      const dlg = document.getElementById("bugReportDialog");
+      if (!dlg || !dlg.open) return;
+      const items = (e.clipboardData && e.clipboardData.items) ? Array.from(e.clipboardData.items) : [];
+      const imgItem = items.find(it => it.type && it.type.startsWith("image/"));
+      if (!imgItem) return;
+      e.preventDefault();
+      const blob = imgItem.getAsFile();
+      if (!blob) return;
+      try {
+        const dataUrl = await compressImageBlobToDataUrl(blob);
+        setBugPreviewImage(dataUrl);
+      } catch (err) {}
+    });
+
+    const form = document.getElementById("formBugReport");
+    if (form) {
+      form.addEventListener("submit", e => {
+        e.preventDefault();
+        const targetContext = document.getElementById("bugTargetContext").value.trim() || "Báo lỗi chung";
+        const category = document.getElementById("bugCategorySelect").value;
+        const description = document.getElementById("bugDescriptionInput").value.trim();
+        if (!description) return;
+
+        if (!Array.isArray(db.bugReports)) db.bugReports = [];
+        const newBug = {
+          id: "bug-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 6),
+          reporterId: currentUser ? currentUser.id : "guest",
+          reporterName: currentUser ? currentUser.name : "Ẩn danh",
+          reporterRole: currentUser ? currentUser.role : "sale",
+          targetContext,
+          category,
+          description,
+          screenshotDataUrl: pendingBugImageDataUrl || "",
+          moduleId: pendingBugContextMeta.moduleId || "",
+          moduleCode: pendingBugContextMeta.moduleCode || "",
+          moduleTitle: pendingBugContextMeta.moduleTitle || "",
+          questionId: pendingBugContextMeta.questionId || null,
+          questionIndex: pendingBugContextMeta.questionIndex,
+          status: "open",
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          resolvedBy: "",
+          resolvedAt: null
+        };
+
+        db.bugReports.unshift(newBug);
+        logUserActivity("report_bug", "Gửi báo lỗi / phản hồi", `${targetContext}: ${description.slice(0, 60)}`, newBug.moduleCode);
+        triggerAutoSave(true, false);
+        document.getElementById("bugReportDialog").close();
+        renderAll();
+        alert("✓ Đã gửi Báo lỗi cho Admin và bộ phận Đào tạo! Cảm ơn phản hồi của bạn.");
+      });
+    }
+  }
+
   function renderAll() {
     const authPortal = document.getElementById("authPortal");
     const mainTopBar = document.getElementById("mainTopBar");
@@ -3583,6 +4498,7 @@
     }
 
     renderTopBar();
+    sendPresenceHeartbeat();
 
     if (activeWorkspaceView === "admin") {
       sidebar.classList.add("hidden");
@@ -3612,12 +4528,22 @@
   setupAuthPortal();
   setupSidebarAndDialogs();
   setupUploaderAndAdminEvents();
+  setupBugReportDialog();
   renderAll();
   fetchServerDb();
+
+  // Periodic real-time presence heartbeat & cloud sync every 15s when tab is visible
+  setInterval(() => {
+    if (document.visibilityState === "visible" && currentUser) {
+      sendPresenceHeartbeat();
+      fetchCloudDb(false);
+    }
+  }, 15000);
 
   // Auto-refresh cloud state when tab becomes visible
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible") {
+      sendPresenceHeartbeat();
       fetchCloudDb(false);
     }
   });

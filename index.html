@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=12">
+  <link rel="stylesheet" href="styles.css?v=14">
 </head>
 <body>
   <!-- 1. AUTHENTICATION SCREEN (LOGIN PORTAL - 3 ROLES) -->
@@ -118,6 +118,11 @@
           Sale
         </button>
       </div>
+
+      <button type="button" class="btn-top-save" id="btnTopOpenBugReport" title="Báo lỗi câu hỏi, tài liệu hoặc hệ thống (hỗ trợ dán ảnh Ctrl+V)">
+        <span>Báo lỗi</span>
+        <span class="top-bug-badge hidden" id="badgeTopBugCount">0</span>
+      </button>
 
       <button type="button" class="btn-top-save" id="btnTopSave" title="Bấm để đồng bộ dữ liệu ngay lập tức">
         <span class="save-badge" id="saveText">Tự động lưu</span>
@@ -258,6 +263,9 @@
               <button type="button" class="up-pill-tab" id="btnUpTabQuiz" role="tab" aria-selected="false">
                 2. Câu hỏi trắc nghiệm (<span id="lblUpQuestionCount">10</span>)
               </button>
+              <button type="button" class="up-pill-tab" id="btnUpTabBugs" role="tab" aria-selected="false">
+                3. Báo lỗi (<span id="lblUpBugCount">0</span>)
+              </button>
             </div>
 
             <div class="up-top-right-actions">
@@ -267,8 +275,11 @@
               <button type="button" class="btn-q-mini danger" id="btnUploaderDeleteModule" style="padding:8px 12px;">
                 Xóa bài
               </button>
-              <button type="button" class="btn-primary" id="btnUploaderSaveModule">
-                Lưu bài học
+              <button type="button" class="btn-secondary" id="btnUploaderSaveModule">
+                Lưu nháp
+              </button>
+              <button type="button" class="btn-primary" id="btnUploaderSubmitForApproval">
+                Lưu &amp; Gửi Admin duyệt
               </button>
             </div>
           </div>
@@ -281,11 +292,12 @@
                   <label for="upModTitle">Tên bài học / Tài liệu:</label>
                   <input type="text" id="upModTitle" class="input-control" placeholder="Nhập tên bài học cho Sale...">
                 </div>
-                <div class="form-group" style="width:170px;">
-                  <label for="upModStatus">Trạng thái:</label>
+                <div class="form-group" style="width:210px;">
+                  <label for="upModStatus">Trạng thái duyệt:</label>
                   <select id="upModStatus" class="input-control">
-                    <option value="published">Đã xuất bản</option>
-                    <option value="draft">Bản nháp (Ẩn)</option>
+                    <option value="pending">Chờ Admin duyệt</option>
+                    <option value="published">Đã duyệt (Sale nhìn thấy)</option>
+                    <option value="draft">Bản nháp (Đang ẩn)</option>
                   </select>
                 </div>
               </div>
@@ -361,6 +373,13 @@
               <!-- Rendered by JS: Compact 1-line rows, click to expand editor -->
             </div>
           </div>
+
+          <!-- ĐÀO TẠO TAB 3: BUG REPORTS & FEEDBACK FROM SALE -->
+          <div class="uploader-panel hidden" id="uploaderPanelBugs">
+            <div class="up-card" id="uploaderBugsContainer">
+              <!-- Rendered by JS -->
+            </div>
+          </div>
         </div>
       </section>
 
@@ -375,14 +394,26 @@
             <nav class="admin-dossier-tab-bar" id="adminNavTabBar" role="tablist">
               <button type="button" class="admin-nav-btn active" data-admin-tab="matrix">
                 <span>Tiến độ học của Sale</span>
-                <span class="admin-nav-badge" id="badgeAdminMatrixCount">5 Sale</span>
+                <span class="admin-nav-badge" id="badgeAdminMatrixCount">Sale</span>
+              </button>
+              <button type="button" class="admin-nav-btn" data-admin-tab="modules">
+                <span>Quản lý Học phần</span>
+                <span class="admin-nav-badge" id="badgeAdminModulesCount">4 bài</span>
+              </button>
+              <button type="button" class="admin-nav-btn" data-admin-tab="activity">
+                <span>Hoạt động &amp; Online</span>
+                <span class="admin-nav-badge" id="badgeAdminActivityCount">Live</span>
+              </button>
+              <button type="button" class="admin-nav-btn" data-admin-tab="bugs">
+                <span>Báo lỗi &amp; Phản hồi</span>
+                <span class="admin-nav-badge" id="badgeAdminBugsCount">0</span>
               </button>
               <button type="button" class="admin-nav-btn" data-admin-tab="dossier">
                 <span>Hồ sơ từng Sale</span>
                 <span class="admin-nav-badge" id="badgeAdminDossierCount">Chi tiết</span>
               </button>
               <button type="button" class="admin-nav-btn" data-admin-tab="analytics">
-                <span>Thống kê theo Bài học</span>
+                <span>Thống kê Câu hỏi</span>
                 <span class="admin-nav-badge" id="badgeAdminAnalyticsCount">4 bài</span>
               </button>
             </nav>
@@ -437,6 +468,21 @@
 
             <!-- ADMIN PANEL 3: MODULE & QUESTION ANALYTICS -->
             <div class="admin-view-panel hidden" id="adminPanelAnalytics">
+              <!-- Rendered by JS -->
+            </div>
+
+            <!-- ADMIN PANEL 4: COURSE MODULE MANAGEMENT & APPROVAL -->
+            <div class="admin-view-panel hidden" id="adminPanelModules">
+              <!-- Rendered by JS -->
+            </div>
+
+            <!-- ADMIN PANEL 5: REAL-TIME ONLINE STATUS & ACTIVITY HISTORY -->
+            <div class="admin-view-panel hidden" id="adminPanelActivity">
+              <!-- Rendered by JS -->
+            </div>
+
+            <!-- ADMIN PANEL 6: BUG REPORTS & FEEDBACK MANAGEMENT -->
+            <div class="admin-view-panel hidden" id="adminPanelBugs">
               <!-- Rendered by JS -->
             </div>
           </div>
@@ -586,22 +632,76 @@
   </dialog>
 
   <!-- ===================================================================== -->
-  <!-- DIALOG 4: IMAGE LIGHTBOX FOR PIN CARD FALLBACK                        -->
+  <!-- DIALOG 4: IMAGE LIGHTBOX FOR PIN CARD FALLBACK & BUG SCREENSHOTS      -->
   <!-- ===================================================================== -->
   <dialog id="lightboxDialog" closedby="any" aria-labelledby="lightboxTitle">
     <div class="dialog-inner dialog-lightbox">
       <div class="dialog-header">
-        <h2 id="lightboxTitle">Bảng Tên &amp; Mã PIN</h2>
+        <h2 id="lightboxTitle">Xem Hình Ảnh</h2>
         <button type="button" class="btn-close-dialog" data-close-dialog="lightboxDialog" aria-label="Đóng">✕</button>
       </div>
       <div class="lightbox-body">
-        <img id="lightboxImg" src="" alt="Bảng Tên và Mã PIN" style="max-width:100%;border-radius:10px;">
+        <img id="lightboxImg" src="" alt="Hình ảnh phóng to" style="max-width:100%;border-radius:10px;">
       </div>
     </div>
   </dialog>
 
+  <!-- ===================================================================== -->
+  <!-- DIALOG 5: REPORT BUG / FEEDBACK WITH CLIPBOARD IMAGE PASTE (Ctrl+V)   -->
+  <!-- ===================================================================== -->
+  <dialog id="bugReportDialog" closedby="any" aria-labelledby="bugReportDialogTitle">
+    <div class="dialog-inner dialog-manage">
+      <div class="dialog-header">
+        <h2 id="bugReportDialogTitle">Báo lỗi Câu hỏi / Tài liệu / Hệ thống</h2>
+        <button type="button" class="btn-close-dialog" data-close-dialog="bugReportDialog" aria-label="Đóng">✕</button>
+      </div>
+
+      <form id="formBugReport" style="display:flex;flex-direction:column;gap:12px;">
+        <div class="up-form-grid">
+          <div class="form-group">
+            <label for="bugTargetContext">Vị trí / Nội dung báo lỗi:</label>
+            <input type="text" id="bugTargetContext" class="input-control" placeholder="VD: HP01 - Câu hỏi số 3">
+          </div>
+          <div class="form-group">
+            <label for="bugCategorySelect">Phân loại lỗi:</label>
+            <select id="bugCategorySelect" class="input-control">
+              <option value="Sai đáp án / Câu hỏi trắc nghiệm">Sai đáp án / Câu hỏi trắc nghiệm</option>
+              <option value="Lỗi nội dung tài liệu học">Lỗi nội dung tài liệu học</option>
+              <option value="Lỗi kỹ thuật / Giao diện">Lỗi kỹ thuật / Giao diện</option>
+              <option value="Góp ý bổ sung nội dung">Góp ý bổ sung nội dung</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="bugDescriptionInput">Mô tả chi tiết lỗi hoặc đề xuất chỉnh sửa:</label>
+          <textarea id="bugDescriptionInput" class="input-control" rows="3" placeholder="Nhập mô tả lỗi (VD: Câu 3 đáp án đúng theo tài liệu phải là B thay vì A)..." required></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Ảnh chụp màn hình minh họa (Nhấn Ctrl+V / Cmd+V để dán ảnh trực tiếp hoặc chọn file):</label>
+          <div class="bug-paste-zone" id="bugPasteZone" tabindex="0">
+            <div id="bugPastePromptText" class="bug-paste-prompt">
+              <strong>Bấm vào khung này rồi nhấn Ctrl+V (hoặc Cmd+V) để dán ảnh chụp màn hình</strong>
+              <span>Hoặc <label class="bug-browse-link">chọn file ảnh từ máy<input type="file" id="bugImageFileInput" accept="image/*" hidden></label></span>
+            </div>
+            <div id="bugImagePreviewWrap" class="bug-img-preview-wrap hidden">
+              <img id="bugImagePreview" src="" alt="Ảnh đính kèm báo lỗi">
+              <button type="button" class="btn-q-mini danger" id="btnRemoveBugImage">Xóa ảnh</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="dialog-footer" style="margin-top:4px;">
+          <button type="button" class="btn-secondary" data-close-dialog="bugReportDialog">Hủy</button>
+          <button type="submit" class="btn-primary" id="btnSubmitBugReport">Gửi Báo lỗi cho Admin &amp; Đào tạo</button>
+        </div>
+      </form>
+    </div>
+  </dialog>
+
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
-  <script src="data/initial_data.js?v=13"></script>
-  <script src="app.js?v=13"></script>
+  <script src="data/initial_data.js?v=14"></script>
+  <script src="app.js?v=14"></script>
 </body>
 </html>
