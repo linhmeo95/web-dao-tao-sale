@@ -1480,7 +1480,7 @@
       });
     }
 
-    // 4. HP04: 4 Clean Age Tabs ([Tổng quan 3 khối] + [Khối Bé] + [Khối Nhỡ] + [Khối Lớn])
+    // 4. HP04: 5 Clean Tabs ([Điểm nhấn tư vấn Hiệu trưởng] + [Tổng quan 3 khối] + [Khối Bé] + [Khối Nhỡ] + [Khối Lớn])
     if (mod.structuredType === "roadmap_72_lessons" && mod.structuredData) {
       const ages = mod.structuredData.ageSummaries || [];
       const list72 = mod.structuredData.curriculum72 || [];
@@ -1501,7 +1501,41 @@
         `;
       }
 
-      // Tab 1: Tổng quan 3 khối (Tóm tắt 3 độ tuổi + Đối chiếu tên bài 72 tiết, KHÔNG hiển thị nội dung chi tiết)
+      // Tab 1: Điểm nhấn tư vấn Hiệu trưởng (tách riêng theo 3 độ tuổi)
+      const principalHighlightCardsHtml = ages.map((a, idx) => {
+        const ageLabel = (a.do_tuoi || "").replace(/\n+/g, " · ");
+        const hasComparison = Boolean((a.noi_dung_bo || "").trim() || (a.noi_dung_novastars || "").trim());
+        return `
+          <article class="study-topic-card">
+            <div class="stc-head">
+              <div class="stc-head-left">
+                <span class="stc-num">Khối ${idx + 1}/${ages.length}</span>
+                <h4 class="stc-title">${escapeHtml(ageLabel)}</h4>
+              </div>
+            </div>
+            <div class="stc-tier-stack">
+              <div class="stc-pitch-spotlight">
+                <div class="stc-box-label">Điểm nhấn tư vấn Hiệu trưởng</div>
+                <div class="stc-box-content"><strong>"${escapeHtml(a.diem_nhan_sale || "")}"</strong></div>
+              </div>
+              ${hasComparison ? `
+                <div class="stc-balanced-pair">
+                  <div class="stc-box traditional">
+                    <div class="stc-box-label">Chương trình khung Bộ GD&amp;ĐT</div>
+                    <div class="stc-box-content">${formatStudyRichTextHtml(a.noi_dung_bo || "")}</div>
+                  </div>
+                  <div class="stc-box novastars">
+                    <div class="stc-box-label">Trọng tâm triển khai Novastars</div>
+                    <div class="stc-box-content">${formatStudyRichTextHtml(a.noi_dung_novastars || "")}</div>
+                  </div>
+                </div>
+              ` : ""}
+            </div>
+          </article>
+        `;
+      }).join("");
+
+      // Tab 2: Tổng quan 3 khối (Đối chiếu tên bài 72 tiết giữa 3 khối)
       const filteredOverview = list72.filter(row => {
         if (hp04TermFilter !== "ALL" && row.hoc_ki !== hp04TermFilter) return false;
         if (!q) return true;
@@ -1512,13 +1546,6 @@
           (row.mg_lon || "").toLowerCase().includes(q)
         );
       });
-
-      const ageMiniCardsHtml = ages.map(a => `
-        <div class="hp04-summary-mini-card">
-          <h5>${escapeHtml((a.do_tuoi || "").replace(/\n/g, " · "))}</h5>
-          <p>${escapeHtml(a.diem_nhan_sale || "")}</p>
-        </div>
-      `).join("");
 
       const overviewRowsHtml = filteredOverview.map(r => `
         <tr>
@@ -1532,12 +1559,20 @@
 
       const steps = [
         {
+          pillLabel: "Điểm nhấn tư vấn Hiệu trưởng",
+          title: "Điểm nhấn tư vấn Hiệu trưởng theo 3 độ tuổi",
+          html: `
+            <div style="display:flex;flex-direction:column;gap:14px;">
+              ${principalHighlightCardsHtml || `<p style="color:#64748B;font-size:13.5px;">Chưa có dữ liệu điểm nhấn tư vấn Hiệu trưởng.</p>`}
+            </div>
+          `
+        },
+        {
           pillLabel: "Tổng quan 3 khối",
           title: "Tổng quan 3 khối & Đối chiếu 72 tiết",
           html: `
-            <div class="hp04-age-summary-grid">${ageMiniCardsHtml}</div>
             ${buildHp04ToolbarHtml("Tìm tên bài đối chiếu 3 khối...")}
-            <div class="table-responsive" style="max-height:430px;overflow-y:auto;">
+            <div class="table-responsive" style="max-height:480px;overflow-y:auto;">
               <table class="progress-matrix-table">
                 <thead>
                   <tr>
@@ -1555,11 +1590,11 @@
         }
       ];
 
-      // Tabs 2, 3, 4: Khối Bé, Khối Nhỡ, Khối Lớn (Hiển thị LUÔN cột Nội dung bài học chi tiết)
+      // Tabs 3, 4, 5: Khối Bé, Khối Nhỡ, Khối Lớn (Tra cứu chi tiết 72 tiết theo từng khối)
       const ageConfigs = [
-        { pillLabel: "Khối Bé (3–4t)", titleKey: "mg_be", ndKey: "mg_be_nd", summary: ages[0], fullName: "Khối Mẫu giáo Bé (3–4 tuổi)" },
-        { pillLabel: "Khối Nhỡ (4–5t)", titleKey: "mg_nho", ndKey: "mg_nho_nd", summary: ages[1], fullName: "Khối Mẫu giáo Nhỡ (4–5 tuổi)" },
-        { pillLabel: "Khối Lớn (5–6t)", titleKey: "mg_lon", ndKey: "mg_lon_nd", summary: ages[2], fullName: "Khối Mẫu giáo Lớn (5–6 tuổi)" }
+        { pillLabel: "Khối Bé (3–4t)", titleKey: "mg_be", ndKey: "mg_be_nd", fullName: "Khối Mẫu giáo Bé (3–4 tuổi)" },
+        { pillLabel: "Khối Nhỡ (4–5t)", titleKey: "mg_nho", ndKey: "mg_nho_nd", fullName: "Khối Mẫu giáo Nhỡ (4–5 tuổi)" },
+        { pillLabel: "Khối Lớn (5–6t)", titleKey: "mg_lon", ndKey: "mg_lon_nd", fullName: "Khối Mẫu giáo Lớn (5–6 tuổi)" }
       ];
 
       ageConfigs.forEach(cfg => {
@@ -1582,17 +1617,12 @@
           </tr>
         `).join("");
 
-        const sumObj = cfg.summary || {};
         steps.push({
           pillLabel: cfg.pillLabel,
           title: `${cfg.fullName} — 72 tiết chi tiết`,
           html: `
-            <div class="stc-pitch-spotlight" style="margin-bottom:10px;">
-              <div class="stc-box-label">${escapeHtml(cfg.fullName)} · Điểm nhấn tư vấn Hiệu trưởng</div>
-              <div class="stc-box-content"><strong>"${escapeHtml(sumObj.diem_nhan_sale || "")}"</strong></div>
-            </div>
             ${buildHp04ToolbarHtml(`Tìm tên bài hoặc nội dung ${cfg.pillLabel}...`)}
-            <div class="table-responsive" style="max-height:460px;overflow-y:auto;">
+            <div class="table-responsive" style="max-height:500px;overflow-y:auto;">
               <table class="progress-matrix-table">
                 <thead>
                   <tr>
