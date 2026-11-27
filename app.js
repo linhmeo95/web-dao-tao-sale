@@ -37,6 +37,7 @@
   let activeAnalyticsModuleId = null;
   let sidebarSearchQuery = "";
   let isSidebarCollapsed = localStorage.getItem("novastars_sale_sidebar_collapsed") === "true";
+  let isSidebarBranchesCollapsed = false;
 
   // Study document interactive filters (for HP03 sample lessons & HP04 72 lessons)
   let hp03GradeFilter = "ALL";
@@ -899,9 +900,15 @@
 
     listEl.innerHTML = "";
     filtered.forEach(mod => {
+      const nodeWrap = document.createElement("div");
+      nodeWrap.className = "sidebar-module-node";
+
+      const isCurrentMod = mod.id === currentModuleId;
+      const isExpandedTree = isCurrentMod && !isUploaderView && !isSidebarBranchesCollapsed;
+
       const btn = document.createElement("button");
       btn.type = "button";
-      btn.className = "sidebar-lesson-item" + (mod.id === currentModuleId ? " active" : "");
+      btn.className = "sidebar-lesson-item" + (isCurrentMod ? " active" : "");
 
       let statusHtml = "";
       const qCount = Array.isArray(mod.questions) ? mod.questions.length : 0;
@@ -936,10 +943,17 @@
         ? `<div class="sidebar-author-line"><span>Tác giả: <strong>${escapeHtml(mod.authorName || "Đào tạo")}</strong></span>${authorPermTag}</div>`
         : "";
 
+      const chevronHtml = !isUploaderView
+        ? `<span class="sidebar-tree-chevron" aria-hidden="true">${isExpandedTree ? "▾" : "▸"}</span>`
+        : "";
+
       btn.innerHTML = `
         <div class="sidebar-item-top">
           <span class="sidebar-item-code">${escapeHtml(mod.code)}</span>
-          ${statusHtml}
+          <div style="display:flex;align-items:center;gap:6px;">
+            ${statusHtml}
+            ${chevronHtml}
+          </div>
         </div>
         <div class="sidebar-item-title">${escapeHtml(mod.title)}</div>
         ${authorLineHtml}
@@ -947,10 +961,15 @@
 
       btn.addEventListener("click", () => {
         if (mod.id === currentModuleId) {
-          const sb = document.getElementById("moduleSidebar");
-          const bd = document.getElementById("sidebarBackdrop");
-          if (sb) sb.classList.remove("open");
-          if (bd) bd.classList.add("hidden");
+          if (!isUploaderView) {
+            isSidebarBranchesCollapsed = !isSidebarBranchesCollapsed;
+            renderSidebar();
+          } else {
+            const sb = document.getElementById("moduleSidebar");
+            const bd = document.getElementById("sidebarBackdrop");
+            if (sb) sb.classList.remove("open");
+            if (bd) bd.classList.add("hidden");
+          }
           return;
         }
         if (isExamInProgress) {
@@ -958,6 +977,9 @@
           if (!ok) return;
         }
         currentModuleId = mod.id;
+        activeDocStepIndex = 0;
+        hp03LessonSubTab = "compare";
+        isSidebarBranchesCollapsed = false;
         resetActiveQuizState();
         renderAll();
         const sb = document.getElementById("moduleSidebar");
@@ -966,7 +988,80 @@
         if (bd) bd.classList.add("hidden");
       });
 
-      listEl.appendChild(btn);
+      nodeWrap.appendChild(btn);
+
+      // 2-Level Mind-Map Tree Branches under the active module (Learner view)
+      if (isExpandedTree) {
+        const docSteps = buildDocumentSteps(mod);
+        if (docSteps.length > 0) {
+          const treeEl = document.createElement("div");
+          treeEl.className = "sidebar-mindmap-tree";
+          treeEl.setAttribute("role", "navigation");
+          treeEl.setAttribute("aria-label", `Sơ đồ nhánh nội dung ${mod.code}`);
+
+          let lastGroup = "";
+          docSteps.forEach((st, idx) => {
+            if (st.groupLabel && st.groupLabel !== lastGroup) {
+              lastGroup = st.groupLabel;
+              const grpEl = document.createElement("div");
+              grpEl.className = "mindmap-group-label";
+              grpEl.textContent = st.groupLabel;
+              treeEl.appendChild(grpEl);
+            }
+
+            const lessonQs = getLessonInlineQuestions(mod, idx);
+            const isBranchDone = lessonQs.length > 0
+              && (mod.structuredType !== "sample_10_lessons" || Boolean(inlineMiniQuizSubmitted[idx]))
+              && lessonQs.every(q => inlineMiniQuizAnswers[q.id] === Number(q.correctIndex));
+            const isBranchActive = activeSaleTab === "doc" && idx === activeDocStepIndex;
+
+            const branchCode = st.treeCode || st.pillCode || st.pillLabel || `Mục ${idx + 1}`;
+            let branchTitle = st.treeTitle || st.pillTitle || st.title || "";
+            if (branchTitle === branchCode) branchTitle = "";
+            if (!st.treeTitle && !st.pillTitle && branchTitle && branchCode) {
+              branchTitle = branchTitle.replace(new RegExp("^" + branchCode.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\s*[:.\\-–]?\\s*", "i"), "");
+            }
+
+            const bBtn = document.createElement("button");
+            bBtn.type = "button";
+            bBtn.className = "mindmap-branch-btn"
+              + (isBranchActive ? " active" : "")
+              + (isBranchDone ? " mini-done" : "")
+              + (isExamInProgress ? " locked" : "");
+            bBtn.innerHTML = `
+              <span class="mm-branch-code">${escapeHtml(branchCode)}</span>
+              ${branchTitle ? `<span class="mm-branch-title">${escapeHtml(branchTitle)}</span>` : ""}
+              ${isBranchDone ? `<span class="mm-branch-check" title="Đã hoàn thành kiểm tra nhanh">✓</span>` : ""}
+            `;
+
+            bBtn.addEventListener("click", () => {
+              if (isExamInProgress) {
+                const confirmCancel = confirm(
+                  "Tài liệu đang bị khóa trong thời gian làm bài trắc nghiệm.\n\nNếu bạn quay lại xem tài liệu lúc này, bài làm hiện tại sẽ bị HỦY và phải làm lại từ đầu. Bạn có chắc muốn hủy bài đang làm không?"
+                );
+                if (!confirmCancel) return;
+                resetActiveQuizState();
+              }
+              if (idx !== activeDocStepIndex) hp03LessonSubTab = "compare";
+              activeDocStepIndex = idx;
+              activeSaleTab = "doc";
+              sendPresenceHeartbeat();
+              renderSaleWorkspace();
+              renderSidebar();
+              const sb = document.getElementById("moduleSidebar");
+              const bd = document.getElementById("sidebarBackdrop");
+              if (sb) sb.classList.remove("open");
+              if (bd) bd.classList.add("hidden");
+            });
+
+            treeEl.appendChild(bBtn);
+          });
+
+          nodeWrap.appendChild(treeEl);
+        }
+      }
+
+      listEl.appendChild(nodeWrap);
     });
   }
 
@@ -1259,6 +1354,7 @@
         try { examBroadcastChannel.postMessage({ type: "DOC_OPENED_IN_OTHER_TAB" }); } catch (e) {}
       }
       renderSaleWorkspace();
+      renderSidebar();
     };
     btnTabQuiz.onclick = () => {
       if (!prog.docViewed) {
@@ -1346,6 +1442,8 @@
     if (mod.structuredType === "comparison_6_criteria" && Array.isArray(mod.structuredData)) {
       return mod.structuredData.map((item, idx) => ({
         pillLabel: `Mục ${idx + 1}`,
+        treeCode: `Mục ${item.stt}`,
+        treeTitle: item.title,
         title: `${item.stt}. ${item.title}`,
         html: `
           <article class="study-topic-card">
@@ -1384,6 +1482,8 @@
     if (mod.structuredType === "pedagogy_6_reasons" && Array.isArray(mod.structuredData)) {
       return mod.structuredData.map((item, idx) => ({
         pillLabel: `Lý do ${idx + 1}`,
+        treeCode: `Lý do ${item.stt}`,
+        treeTitle: item.title,
         title: `Lý do ${item.stt}: ${item.title}`,
         html: `
           <article class="study-topic-card">
@@ -1474,6 +1574,9 @@
         ` : "";
 
         return {
+          groupLabel: item.khoi,
+          treeCode: lessonCode,
+          treeTitle: lessonTitle,
           pillCode: lessonCode,
           pillTitle: lessonTitle,
           pillLabel: `${lessonCode} · ${lessonTitle}`,
@@ -1587,6 +1690,8 @@
       const steps = [
         {
           pillLabel: "Điểm nhấn tư vấn Hiệu trưởng",
+          treeCode: "Điểm nhấn",
+          treeTitle: "Tư vấn Hiệu trưởng theo 3 độ tuổi",
           title: "Điểm nhấn tư vấn Hiệu trưởng theo 3 độ tuổi",
           html: `
             <div style="display:flex;flex-direction:column;gap:14px;">
@@ -1596,6 +1701,8 @@
         },
         {
           pillLabel: "Tổng quan 3 khối",
+          treeCode: "Tổng quan",
+          treeTitle: "Đối chiếu 72 tiết × 3 khối",
           title: "Tổng quan 3 khối & Đối chiếu 72 tiết",
           html: `
             ${buildHp04ToolbarHtml("Tìm tên bài đối chiếu 3 khối...")}
@@ -1646,6 +1753,8 @@
 
         steps.push({
           pillLabel: cfg.pillLabel,
+          treeCode: cfg.pillLabel,
+          treeTitle: "Tra cứu 72 tiết chi tiết",
           title: `${cfg.fullName} — 72 tiết chi tiết`,
           html: `
             ${buildHp04ToolbarHtml(`Tìm tên bài hoặc nội dung ${cfg.pillLabel}...`)}
@@ -1878,6 +1987,7 @@
           inlineMiniQuizSubmitted[stepIdx] = true;
           renderModalContent();
           renderSaleDocumentPanel(mod, prog);
+          renderSidebar();
         };
       }
 
@@ -1891,6 +2001,7 @@
           });
           renderModalContent();
           renderSaleDocumentPanel(mod, prog);
+          renderSidebar();
         };
       }
 
@@ -1912,31 +2023,6 @@
     const currentStep = steps[activeDocStepIndex];
     const bodyContainer = document.getElementById("saleDocBodyContainer");
     const letters = ["A", "B", "C", "D"];
-
-    const useGrid5 = steps.length >= 8 && steps.some(st => st.pillCode && st.pillTitle);
-
-    const pillsHtml = steps.map((st, idx) => {
-      const lessonQs = getLessonInlineQuestions(mod, idx);
-      const isLessonMiniDone = lessonQs.length > 0
-        && (mod.structuredType !== "sample_10_lessons" || Boolean(inlineMiniQuizSubmitted[idx]))
-        && lessonQs.every(q => inlineMiniQuizAnswers[q.id] === Number(q.correctIndex));
-      if (st.pillCode && st.pillTitle) {
-        return `
-          <button type="button" class="doc-step-pill is-grid-card ${idx === activeDocStepIndex ? 'active' : ''} ${isLessonMiniDone ? 'mini-done' : ''}" data-doc-step="${idx}" title="${escapeHtml(st.pillLabel)}">
-            <span class="dsp-code-row">
-              <span class="dsp-code">${escapeHtml(st.pillCode)}</span>
-              ${isLessonMiniDone ? '<span class="dsp-done-badge">✓ Đạt</span>' : ''}
-            </span>
-            <span class="dsp-name">${escapeHtml(st.pillTitle)}</span>
-          </button>
-        `;
-      }
-      return `
-        <button type="button" class="doc-step-pill ${idx === activeDocStepIndex ? 'active' : ''} ${isLessonMiniDone ? 'mini-done' : ''}" data-doc-step="${idx}">
-          ${isLessonMiniDone ? "✓ " : ""}${escapeHtml(st.pillLabel)}
-        </button>
-      `;
-    }).join("");
 
     const downloadBtnHtml = (mod.sourceFile && mod.sourceFile.url)
       ? `<a href="${escapeHtml(mod.sourceFile.url)}" download="${escapeHtml(mod.sourceFile.name || 'Tai_lieu.xlsx')}" class="btn-download-source">Tải file gốc</a>`
@@ -1998,18 +2084,21 @@
 
     const isLastStep = activeDocStepIndex === steps.length - 1;
 
+    const activeTagText = currentStep.pillCode || currentStep.treeCode || `Mục ${activeDocStepIndex + 1}/${steps.length}`;
+    const activeTitleText = currentStep.pillTitle || currentStep.title || currentStep.pillLabel || mod.title;
+
     bodyContainer.innerHTML = `
-      <div class="doc-stepper-bar">
-        <div class="doc-stepper-utils-row">
-          <span class="doc-stepper-meta-label">${mod.structuredType === "sample_10_lessons" ? `Chọn bài mẫu (${steps.length} bài)` : `Chọn mục tài liệu (${steps.length} mục)`}</span>
-          <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
-            ${downloadBtnHtml}
-            <button type="button" class="btn-inline-report-bug" id="btnReportDocStepBug">
-              Báo lỗi mục này
-            </button>
-          </div>
+      <div class="doc-active-header-bar">
+        <div class="doc-active-crumb">
+          <span class="doc-active-step-tag">${escapeHtml(activeTagText)}</span>
+          <span class="doc-active-step-name">${escapeHtml(activeTitleText)}</span>
         </div>
-        <div class="doc-step-pills ${useGrid5 ? "is-grid-5" : ""}">${pillsHtml}</div>
+        <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
+          ${downloadBtnHtml}
+          <button type="button" class="btn-inline-report-bug" id="btnReportDocStepBug">
+            Báo lỗi mục này
+          </button>
+        </div>
       </div>
 
       <div class="doc-active-step-body">
@@ -2088,6 +2177,7 @@
           activeDocStepIndex--;
           hp03LessonSubTab = "compare";
           renderSaleDocumentPanel(mod, prog);
+          renderSidebar();
         }
       };
     }
@@ -2099,6 +2189,7 @@
           activeDocStepIndex++;
           hp03LessonSubTab = "compare";
           renderSaleDocumentPanel(mod, prog);
+          renderSidebar();
         }
       };
     }
