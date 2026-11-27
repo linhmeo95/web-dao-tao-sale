@@ -200,6 +200,7 @@
     }
     upgradeCoreModulesIfNeeded(result);
     migrateUploaderPermissionsIfNeeded(result);
+    migrateSeededRosterIfNeeded(result);
     if (!Array.isArray(result.progress)) result.progress = [];
     if (!result.presence || typeof result.presence !== "object") result.presence = {};
     if (!Array.isArray(result.activityLogs)) result.activityLogs = [];
@@ -277,6 +278,26 @@
       });
     }
     targetDb.meta.uploaderPermVersion = 1;
+    targetDb.meta.updatedAt = new Date().toISOString();
+    return true;
+  }
+
+  function migrateSeededRosterIfNeeded(targetDb) {
+    if (!targetDb || typeof targetDb !== "object") return false;
+    if (!targetDb.meta) targetDb.meta = {};
+    const targetSeedVer = (window.INITIAL_TRAINING_DB && window.INITIAL_TRAINING_DB.meta && window.INITIAL_TRAINING_DB.meta.rosterSeedVersion) || 4;
+    if ((targetDb.meta.rosterSeedVersion || 0) >= targetSeedVer) return false;
+    const seedUsers = (window.INITIAL_TRAINING_DB && Array.isArray(window.INITIAL_TRAINING_DB.users)) ? window.INITIAL_TRAINING_DB.users : [];
+    if (!Array.isArray(targetDb.users)) targetDb.users = [];
+    seedUsers.forEach(su => {
+      if (!su || !su.id) return;
+      const suName = String(su.name || "").trim().toLowerCase();
+      const exists = targetDb.users.some(u => u && (u.id === su.id || (suName && String(u.name || "").trim().toLowerCase() === suName && u.role === su.role)));
+      if (!exists) {
+        targetDb.users.push(JSON.parse(JSON.stringify(su)));
+      }
+    });
+    targetDb.meta.rosterSeedVersion = targetSeedVer;
     targetDb.meta.updatedAt = new Date().toISOString();
     return true;
   }
@@ -458,7 +479,8 @@
         }
       }
 
-      if (upgradeCoreModulesIfNeeded(db) || migrateUploaderPermissionsIfNeeded(db)) {
+      if (upgradeCoreModulesIfNeeded(db) || migrateUploaderPermissionsIfNeeded(db) || migrateSeededRosterIfNeeded(db)) {
+        didCloudUpdateConfig = true;
         triggerAutoSave(true, true);
       }
 
