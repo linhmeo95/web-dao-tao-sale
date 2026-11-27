@@ -37,7 +37,7 @@
   let activeAnalyticsModuleId = null;
   let sidebarSearchQuery = "";
   let isSidebarCollapsed = localStorage.getItem("novastars_sale_sidebar_collapsed") === "true";
-  let isSidebarBranchesCollapsed = false;
+  let isBranchDrawerOpen = false;
 
   // Study document interactive filters (for HP03 sample lessons & HP04 72 lessons)
   let hp03GradeFilter = "ALL";
@@ -900,11 +900,8 @@
 
     listEl.innerHTML = "";
     filtered.forEach(mod => {
-      const nodeWrap = document.createElement("div");
-      nodeWrap.className = "sidebar-module-node";
-
       const isCurrentMod = mod.id === currentModuleId;
-      const isExpandedTree = isCurrentMod && !isUploaderView && !isSidebarBranchesCollapsed;
+      const isBranchOpenForThis = isCurrentMod && !isUploaderView && isBranchDrawerOpen && activeSaleTab === "doc" && !isExamInProgress;
 
       const btn = document.createElement("button");
       btn.type = "button";
@@ -943,8 +940,8 @@
         ? `<div class="sidebar-author-line"><span>Tác giả: <strong>${escapeHtml(mod.authorName || "Đào tạo")}</strong></span>${authorPermTag}</div>`
         : "";
 
-      const chevronHtml = !isUploaderView
-        ? `<span class="sidebar-tree-chevron" aria-hidden="true">${isExpandedTree ? "▾" : "▸"}</span>`
+      const branchArrowHtml = !isUploaderView
+        ? `<span class="sidebar-tree-chevron" aria-hidden="true">${isBranchOpenForThis ? "‹" : "▸"}</span>`
         : "";
 
       btn.innerHTML = `
@@ -952,7 +949,7 @@
           <span class="sidebar-item-code">${escapeHtml(mod.code)}</span>
           <div style="display:flex;align-items:center;gap:6px;">
             ${statusHtml}
-            ${chevronHtml}
+            ${branchArrowHtml}
           </div>
         </div>
         <div class="sidebar-item-title">${escapeHtml(mod.title)}</div>
@@ -962,8 +959,26 @@
       btn.addEventListener("click", () => {
         if (mod.id === currentModuleId) {
           if (!isUploaderView) {
-            isSidebarBranchesCollapsed = !isSidebarBranchesCollapsed;
+            if (isExamInProgress) {
+              const confirmCancel = confirm(
+                "Tài liệu đang bị khóa trong thời gian làm bài trắc nghiệm.\n\nNếu bạn quay lại mở nhánh tài liệu lúc này, bài làm hiện tại sẽ bị HỦY và phải làm lại từ đầu. Bạn có chắc muốn hủy bài đang làm không?"
+              );
+              if (!confirmCancel) return;
+              resetActiveQuizState();
+            }
+            if (activeSaleTab !== "doc") {
+              activeSaleTab = "doc";
+              isBranchDrawerOpen = buildDocumentSteps(mod).length > 1;
+            } else {
+              isBranchDrawerOpen = !isBranchDrawerOpen;
+            }
+            renderSaleWorkspace();
             renderSidebar();
+            renderBranchMindmapDrawer();
+            const sb = document.getElementById("moduleSidebar");
+            const bd = document.getElementById("sidebarBackdrop");
+            if (sb) sb.classList.remove("open");
+            if (bd && !isBranchDrawerOpen) bd.classList.add("hidden");
           } else {
             const sb = document.getElementById("moduleSidebar");
             const bd = document.getElementById("sidebarBackdrop");
@@ -979,90 +994,103 @@
         currentModuleId = mod.id;
         activeDocStepIndex = 0;
         hp03LessonSubTab = "compare";
-        isSidebarBranchesCollapsed = false;
+        activeSaleTab = "doc";
         resetActiveQuizState();
+        isBranchDrawerOpen = !isUploaderView && buildDocumentSteps(mod).length > 1;
         renderAll();
         const sb = document.getElementById("moduleSidebar");
         const bd = document.getElementById("sidebarBackdrop");
         if (sb) sb.classList.remove("open");
+        if (bd && !isBranchDrawerOpen) bd.classList.add("hidden");
+      });
+
+      listEl.appendChild(btn);
+    });
+  }
+
+  function renderBranchMindmapDrawer() {
+    const drawer = document.getElementById("branchMindmapDrawer");
+    const listEl = document.getElementById("bmdBranchesList");
+    const codeEl = document.getElementById("bmdOriginCode");
+    const titleEl = document.getElementById("bmdHeaderTitle");
+    if (!drawer || !listEl) return;
+
+    if (!currentUser || activeWorkspaceView !== "sale") {
+      drawer.classList.add("hidden", "collapsed");
+      return;
+    }
+
+    drawer.classList.remove("hidden");
+    const mod = getCurrentModule();
+    const docSteps = mod ? buildDocumentSteps(mod) : [];
+
+    if (!mod || docSteps.length <= 1 || !isBranchDrawerOpen || isExamInProgress || activeSaleTab !== "doc") {
+      drawer.classList.add("collapsed");
+      return;
+    }
+
+    drawer.classList.remove("collapsed");
+    if (codeEl) codeEl.textContent = mod.code || "HP";
+    if (titleEl) titleEl.textContent = mod.title || "Chọn nhánh nội dung";
+
+    const trunkEl = document.createElement("div");
+    trunkEl.className = "bmd-tree-trunk";
+    trunkEl.setAttribute("role", "navigation");
+    trunkEl.setAttribute("aria-label", `Sơ đồ nhánh nội dung ${mod.code}`);
+
+    let lastGroup = "";
+    docSteps.forEach((st, idx) => {
+      if (st.groupLabel && st.groupLabel !== lastGroup) {
+        lastGroup = st.groupLabel;
+        const grpEl = document.createElement("div");
+        grpEl.className = "mindmap-group-label";
+        grpEl.textContent = st.groupLabel;
+        trunkEl.appendChild(grpEl);
+      }
+
+      const lessonQs = getLessonInlineQuestions(mod, idx);
+      const isBranchDone = lessonQs.length > 0
+        && (mod.structuredType !== "sample_10_lessons" || Boolean(inlineMiniQuizSubmitted[idx]))
+        && lessonQs.every(q => inlineMiniQuizAnswers[q.id] === Number(q.correctIndex));
+      const isBranchActive = activeSaleTab === "doc" && idx === activeDocStepIndex;
+
+      const branchCode = st.treeCode || st.pillCode || st.pillLabel || `Mục ${idx + 1}`;
+      let branchTitle = st.treeTitle || st.pillTitle || st.title || "";
+      if (branchTitle === branchCode) branchTitle = "";
+      if (!st.treeTitle && !st.pillTitle && branchTitle && branchCode) {
+        branchTitle = branchTitle.replace(new RegExp("^" + branchCode.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\s*[:.\\-–]?\\s*", "i"), "");
+      }
+
+      const bBtn = document.createElement("button");
+      bBtn.type = "button";
+      bBtn.className = "mindmap-branch-btn"
+        + (isBranchActive ? " active" : "")
+        + (isBranchDone ? " mini-done" : "");
+      bBtn.innerHTML = `
+        <span class="mm-branch-code">${escapeHtml(branchCode)}</span>
+        ${branchTitle ? `<span class="mm-branch-title">${escapeHtml(branchTitle)}</span>` : ""}
+        ${isBranchDone ? `<span class="mm-branch-check" title="Đã hoàn thành kiểm tra nhanh">✓</span>` : ""}
+      `;
+
+      bBtn.addEventListener("click", () => {
+        if (idx !== activeDocStepIndex) hp03LessonSubTab = "compare";
+        activeDocStepIndex = idx;
+        activeSaleTab = "doc";
+        // Auto-hide Column 2 immediately after picking a branch to maximize reading space
+        isBranchDrawerOpen = false;
+        sendPresenceHeartbeat();
+        renderSaleWorkspace();
+        renderSidebar();
+        renderBranchMindmapDrawer();
+        const bd = document.getElementById("sidebarBackdrop");
         if (bd) bd.classList.add("hidden");
       });
 
-      nodeWrap.appendChild(btn);
-
-      // 2-Level Mind-Map Tree Branches under the active module (Learner view)
-      if (isExpandedTree) {
-        const docSteps = buildDocumentSteps(mod);
-        if (docSteps.length > 0) {
-          const treeEl = document.createElement("div");
-          treeEl.className = "sidebar-mindmap-tree";
-          treeEl.setAttribute("role", "navigation");
-          treeEl.setAttribute("aria-label", `Sơ đồ nhánh nội dung ${mod.code}`);
-
-          let lastGroup = "";
-          docSteps.forEach((st, idx) => {
-            if (st.groupLabel && st.groupLabel !== lastGroup) {
-              lastGroup = st.groupLabel;
-              const grpEl = document.createElement("div");
-              grpEl.className = "mindmap-group-label";
-              grpEl.textContent = st.groupLabel;
-              treeEl.appendChild(grpEl);
-            }
-
-            const lessonQs = getLessonInlineQuestions(mod, idx);
-            const isBranchDone = lessonQs.length > 0
-              && (mod.structuredType !== "sample_10_lessons" || Boolean(inlineMiniQuizSubmitted[idx]))
-              && lessonQs.every(q => inlineMiniQuizAnswers[q.id] === Number(q.correctIndex));
-            const isBranchActive = activeSaleTab === "doc" && idx === activeDocStepIndex;
-
-            const branchCode = st.treeCode || st.pillCode || st.pillLabel || `Mục ${idx + 1}`;
-            let branchTitle = st.treeTitle || st.pillTitle || st.title || "";
-            if (branchTitle === branchCode) branchTitle = "";
-            if (!st.treeTitle && !st.pillTitle && branchTitle && branchCode) {
-              branchTitle = branchTitle.replace(new RegExp("^" + branchCode.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\s*[:.\\-–]?\\s*", "i"), "");
-            }
-
-            const bBtn = document.createElement("button");
-            bBtn.type = "button";
-            bBtn.className = "mindmap-branch-btn"
-              + (isBranchActive ? " active" : "")
-              + (isBranchDone ? " mini-done" : "")
-              + (isExamInProgress ? " locked" : "");
-            bBtn.innerHTML = `
-              <span class="mm-branch-code">${escapeHtml(branchCode)}</span>
-              ${branchTitle ? `<span class="mm-branch-title">${escapeHtml(branchTitle)}</span>` : ""}
-              ${isBranchDone ? `<span class="mm-branch-check" title="Đã hoàn thành kiểm tra nhanh">✓</span>` : ""}
-            `;
-
-            bBtn.addEventListener("click", () => {
-              if (isExamInProgress) {
-                const confirmCancel = confirm(
-                  "Tài liệu đang bị khóa trong thời gian làm bài trắc nghiệm.\n\nNếu bạn quay lại xem tài liệu lúc này, bài làm hiện tại sẽ bị HỦY và phải làm lại từ đầu. Bạn có chắc muốn hủy bài đang làm không?"
-                );
-                if (!confirmCancel) return;
-                resetActiveQuizState();
-              }
-              if (idx !== activeDocStepIndex) hp03LessonSubTab = "compare";
-              activeDocStepIndex = idx;
-              activeSaleTab = "doc";
-              sendPresenceHeartbeat();
-              renderSaleWorkspace();
-              renderSidebar();
-              const sb = document.getElementById("moduleSidebar");
-              const bd = document.getElementById("sidebarBackdrop");
-              if (sb) sb.classList.remove("open");
-              if (bd) bd.classList.add("hidden");
-            });
-
-            treeEl.appendChild(bBtn);
-          });
-
-          nodeWrap.appendChild(treeEl);
-        }
-      }
-
-      listEl.appendChild(nodeWrap);
+      trunkEl.appendChild(bBtn);
     });
+
+    listEl.innerHTML = "";
+    listEl.appendChild(trunkEl);
   }
 
   let activeDocStepIndex = 0;
@@ -1355,6 +1383,7 @@
       }
       renderSaleWorkspace();
       renderSidebar();
+      renderBranchMindmapDrawer();
     };
     btnTabQuiz.onclick = () => {
       if (!prog.docViewed) {
@@ -1363,8 +1392,10 @@
         triggerAutoSave(true, false, prog);
       }
       activeSaleTab = "quiz";
+      isBranchDrawerOpen = false;
       renderSaleWorkspace();
       renderSidebar();
+      renderBranchMindmapDrawer();
     };
 
     if (activeSaleTab === "doc") {
@@ -1988,6 +2019,7 @@
           renderModalContent();
           renderSaleDocumentPanel(mod, prog);
           renderSidebar();
+          renderBranchMindmapDrawer();
         };
       }
 
@@ -2002,6 +2034,7 @@
           renderModalContent();
           renderSaleDocumentPanel(mod, prog);
           renderSidebar();
+          renderBranchMindmapDrawer();
         };
       }
 
@@ -2086,10 +2119,14 @@
 
     const activeTagText = currentStep.pillCode || currentStep.treeCode || `Mục ${activeDocStepIndex + 1}/${steps.length}`;
     const activeTitleText = currentStep.pillTitle || currentStep.title || currentStep.pillLabel || mod.title;
+    const toggleBranchBtnHtml = steps.length > 1
+      ? `<button type="button" class="btn-toggle-branch-drawer" id="btnToggleBranchDrawer">${isBranchDrawerOpen ? "‹ Ẩn nhánh" : `Mở nhánh ${escapeHtml(mod.code)} (${steps.length}) ▸`}</button>`
+      : "";
 
     bodyContainer.innerHTML = `
       <div class="doc-active-header-bar">
         <div class="doc-active-crumb">
+          ${toggleBranchBtnHtml}
           <span class="doc-active-step-tag">${escapeHtml(activeTagText)}</span>
           <span class="doc-active-step-name">${escapeHtml(activeTitleText)}</span>
         </div>
@@ -2117,6 +2154,16 @@
         }
       </div>
     `;
+
+    const btnToggleBranch = document.getElementById("btnToggleBranchDrawer");
+    if (btnToggleBranch) {
+      btnToggleBranch.onclick = () => {
+        isBranchDrawerOpen = !isBranchDrawerOpen;
+        renderBranchMindmapDrawer();
+        renderSidebar();
+        renderSaleDocumentPanel(mod, prog, steps);
+      };
+    }
 
     const btnRepDoc = document.getElementById("btnReportDocStepBug");
     if (btnRepDoc) {
@@ -2178,6 +2225,7 @@
           hp03LessonSubTab = "compare";
           renderSaleDocumentPanel(mod, prog);
           renderSidebar();
+          renderBranchMindmapDrawer();
         }
       };
     }
@@ -2190,6 +2238,7 @@
           hp03LessonSubTab = "compare";
           renderSaleDocumentPanel(mod, prog);
           renderSidebar();
+          renderBranchMindmapDrawer();
         }
       };
     }
@@ -2202,9 +2251,11 @@
         prog.updatedAt = new Date().toISOString();
         triggerAutoSave(true, false, prog);
         activeSaleTab = "quiz";
+        isBranchDrawerOpen = false;
         activeQuizQuestionIndex = 0;
         renderSaleWorkspace();
         renderSidebar();
+        renderBranchMindmapDrawer();
       };
     }
 
@@ -5465,9 +5516,22 @@
     if (btnToggle) btnToggle.onclick = () => toggleSidebar();
     if (btnCollapse) btnCollapse.onclick = () => toggleSidebar(false);
     if (btnInlineOpen) btnInlineOpen.onclick = () => toggleSidebar(true);
+    const btnCloseBranchDrawer = document.getElementById("btnCloseBranchDrawer");
+    if (btnCloseBranchDrawer) {
+      btnCloseBranchDrawer.onclick = () => {
+        isBranchDrawerOpen = false;
+        renderBranchMindmapDrawer();
+        renderSidebar();
+        renderSaleWorkspace();
+        if (backdrop) backdrop.classList.add("hidden");
+      };
+    }
     if (backdrop) {
       backdrop.onclick = () => {
         sidebar.classList.remove("open");
+        isBranchDrawerOpen = false;
+        renderBranchMindmapDrawer();
+        renderSidebar();
         backdrop.classList.add("hidden");
       };
     }
@@ -6609,6 +6673,8 @@
       authPortal.classList.remove("hidden");
       mainTopBar.classList.add("hidden");
       appShell.classList.add("hidden");
+      isBranchDrawerOpen = false;
+      renderBranchMindmapDrawer();
       populateAuthSelects();
       return;
     }
@@ -6632,12 +6698,14 @@
       saleWs.classList.add("hidden");
       upWs.classList.add("hidden");
       adminWs.classList.remove("hidden");
+      renderBranchMindmapDrawer();
       renderAdminWorkspace();
     } else if (activeWorkspaceView === "uploader") {
       sidebar.classList.remove("hidden");
       saleWs.classList.add("hidden");
       adminWs.classList.add("hidden");
       upWs.classList.remove("hidden");
+      renderBranchMindmapDrawer();
       renderSidebar();
       renderUploaderWorkspace();
     } else {
@@ -6646,6 +6714,7 @@
       adminWs.classList.add("hidden");
       saleWs.classList.remove("hidden");
       renderSidebar();
+      renderBranchMindmapDrawer();
       renderSaleWorkspace();
     }
   }

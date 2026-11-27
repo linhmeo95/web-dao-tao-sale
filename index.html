@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=34">
+  <link rel="stylesheet" href="styles.css?v=35">
 </head>
 <body>
   <!-- 1. AUTHENTICATION SCREEN (LOGIN PORTAL - 3 ROLES) -->
@@ -177,6 +177,20 @@
       <div class="sidebar-lessons-scroll" id="sidebarModulesList">
         <!-- Rendered by JS -->
       </div>
+    </aside>
+
+    <!-- COLUMN 2: AUTO-HIDE MIND-MAP BRANCH DRAWER -->
+    <aside class="branch-mindmap-drawer collapsed hidden" id="branchMindmapDrawer" aria-label="Sơ đồ nhánh nội dung học phần">
+      <div class="bmd-header">
+        <div class="bmd-header-title">
+          <span class="bmd-origin-badge" id="bmdOriginCode">HP01</span>
+          <span class="bmd-header-label" id="bmdHeaderTitle">Chọn nhánh nội dung</span>
+        </div>
+        <button type="button" class="btn-collapse-sidebar" id="btnCloseBranchDrawer" title="Thu gọn cột nhánh">
+          ‹ Thu gọn
+        </button>
+      </div>
+      <div class="bmd-scroll" id="bmdBranchesList"></div>
     </aside>
 
     <!-- MOBILE BACKDROP -->
@@ -771,7 +785,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <script src="data/initial_data.js?v=34"></script>
-  <script src="app.js?v=34"></script>
+  <script src="data/initial_data.js?v=35"></script>
+  <script src="app.js?v=35"></script>
 </body>
 </html>

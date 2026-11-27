@@ -701,7 +701,115 @@ body {
   gap: 8px;
 }
 
-/* 2-Level Mind-Map Tree inside Sidebar */
+/* COLUMN 2: AUTO-HIDE MIND-MAP BRANCH DRAWER */
+.branch-mindmap-drawer {
+  width: 288px;
+  background: #FFFBF7;
+  border-right: 1px solid var(--border-strong);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  transition: width 0.2s ease, opacity 0.16s ease, transform 0.2s ease;
+  position: relative;
+}
+
+.branch-mindmap-drawer.collapsed {
+  width: 0;
+  border-right: none;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.bmd-header {
+  padding: 11px 12px;
+  border-bottom: 1px solid #FFEDD5;
+  background: linear-gradient(135deg, #FFF7ED, #FFFBF5);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  position: relative;
+}
+
+.bmd-header::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 6px;
+  height: 3px;
+  background: #F97316;
+  border-radius: 0 3px 3px 0;
+  transform: translateY(-50%);
+}
+
+.bmd-header-title {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  flex: 1;
+}
+
+.bmd-origin-badge {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 800;
+  background: linear-gradient(135deg, #F97316, #EA580C);
+  color: #FFFFFF;
+  padding: 2px 7px;
+  border-radius: 5px;
+  flex-shrink: 0;
+}
+
+.bmd-header-label {
+  font-family: var(--font-display);
+  font-size: 12.5px;
+  font-weight: 800;
+  color: #9A3412;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bmd-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px 10px 16px 10px;
+}
+
+.bmd-tree-trunk {
+  position: relative;
+  margin-left: 6px;
+  padding-left: 14px;
+  border-left: 2px solid #FDBA74;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.btn-toggle-branch-drawer {
+  padding: 4px 10px;
+  border-radius: 7px;
+  border: 1px solid #FDBA74;
+  background: #FFF7ED;
+  color: #C2410C;
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.14s ease;
+}
+
+.btn-toggle-branch-drawer:hover {
+  background: #FFEDD5;
+  border-color: #F97316;
+  color: #9A3412;
+}
+
+/* 2-Level Mind-Map Tree inside Sidebar (shared branch styles) */
 .sidebar-module-node {
   display: flex;
   flex-direction: column;
@@ -3456,6 +3564,22 @@ dialog::backdrop {
   .lesson-sidebar.open {
     transform: translateX(0);
   }
+  .branch-mindmap-drawer {
+    position: fixed;
+    top: 58px;
+    bottom: 0;
+    left: 0;
+    z-index: 210;
+    width: 292px;
+    max-width: 88vw;
+    box-shadow: 8px 0 28px rgba(15, 23, 42, 0.18);
+  }
+  .branch-mindmap-drawer.collapsed {
+    width: 292px;
+    transform: translateX(-105%);
+    opacity: 0;
+    pointer-events: none;
+  }
   .sidebar-backdrop {
     position: fixed;
     inset: 58px 0 0 0;
@@ -4357,7 +4481,7 @@ dialog::backdrop {
 /* 13. COMPACT LEFT SIDEBAR & AUTHOR TAGS FOR ADMIN / ĐÀO TẠO                */
 /* ========================================================================= */
 .lesson-sidebar {
-  width: 272px;
+  width: 262px;
 }
 
 .sidebar-header {
