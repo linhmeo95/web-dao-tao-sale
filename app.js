@@ -3,6 +3,9 @@
 
   const STORAGE_KEY = "NOVASTARS_SALE_TRAINING_DB_V1";
   const SESSION_KEY = "NOVASTARS_SALE_CURRENT_USER_V1";
+  const READING_STATE_KEY = "novastars_sale_reading_state_v1";
+  const FONT_MODE_KEY = "novastars_sale_font_mode_v1";
+  const LEARNER_RESET_APPLIED_KEY = "novastars_learner_reset_marks_v1";
   const NEON_FUNCTION_URL = "https://br-proud-wildflower-bisjmocc-hello.compute.c-5.ap-southeast-1.aws.neon.tech";
   const ROW_CONFIG_ID = "sale_training__config";
   const ROW_PROG_PREFIX = "sale_training__prog__";
@@ -50,8 +53,6 @@
   let sidebarSearchQuery = "";
   let isSidebarCollapsed = localStorage.getItem("novastars_sale_sidebar_collapsed") === "true";
   let isBranchDrawerOpen = false;
-  const READING_STATE_KEY = "novastars_sale_reading_state_v1";
-  const FONT_MODE_KEY = "novastars_sale_font_mode_v1";
   let learnerFontMode = localStorage.getItem(FONT_MODE_KEY) === "large" ? "large" : "normal";
   let didRestoreInitialStep = false;
 
@@ -205,6 +206,7 @@
     if (!result.presence || typeof result.presence !== "object") result.presence = {};
     if (!Array.isArray(result.activityLogs)) result.activityLogs = [];
     if (!Array.isArray(result.bugReports)) result.bugReports = [];
+    ensureLearnerResetApplied(result);
 
     localStorage.setItem(STORAGE_KEY, JSON.stringify(result));
     return result;
@@ -216,17 +218,18 @@
     const pinParam = params.get("pin");
     const adminPin = (db.meta && db.meta.adminPin) ? String(db.meta.adminPin).trim() : "Nvs123456";
 
-    if (userParam === "admin" && pinParam === adminPin) {
+    if (userParam === "admin" && pinParam && pinParam.trim() === adminPin) {
       const adminObj = { id: "admin", name: "Admin", role: "admin" };
       localStorage.setItem(SESSION_KEY, JSON.stringify(adminObj));
       return adminObj;
     }
 
-    if (userParam) {
+    if (userParam && pinParam) {
       const found = (db.users || []).find(u => u.id === userParam);
-      if (found && (!pinParam || String(found.pin).trim() === String(pinParam).trim())) {
-        localStorage.setItem(SESSION_KEY, JSON.stringify(found));
-        return found;
+      if (found && String(found.pin).trim() === String(pinParam).trim()) {
+        const safeSession = { id: found.id, name: found.name, role: found.role };
+        localStorage.setItem(SESSION_KEY, JSON.stringify(safeSession));
+        return safeSession;
       }
     }
 
@@ -300,6 +303,90 @@
     targetDb.meta.rosterSeedVersion = targetSeedVer;
     targetDb.meta.updatedAt = new Date().toISOString();
     return true;
+  }
+
+  function getLearnerResetMap(targetDb) {
+    const seedMap = (window.INITIAL_TRAINING_DB && window.INITIAL_TRAINING_DB.meta && window.INITIAL_TRAINING_DB.meta.learnerResetUsers) || {};
+    const dbMap = (targetDb && targetDb.meta && targetDb.meta.learnerResetUsers) || {};
+    const merged = { ...seedMap };
+    Object.keys(dbMap).forEach(uid => {
+      const dbMs = Date.parse(dbMap[uid] || "") || 0;
+      const seedMs = Date.parse(merged[uid] || "") || 0;
+      if (dbMs > seedMs) merged[uid] = dbMap[uid];
+    });
+    return merged;
+  }
+
+  function ensureLearnerResetApplied(targetDb) {
+    if (!targetDb || typeof targetDb !== "object") return false;
+    const resetMap = getLearnerResetMap(targetDb);
+    const uids = Object.keys(resetMap);
+    if (uids.length === 0) return false;
+
+    let applied = {};
+    try {
+      applied = JSON.parse(localStorage.getItem(LEARNER_RESET_APPLIED_KEY) || "{}") || {};
+    } catch (e) {
+      applied = {};
+    }
+
+    let didReset = false;
+    let readingState = loadLearnerReadingState();
+    let readingChanged = false;
+
+    uids.forEach(uid => {
+      const targetIso = resetMap[uid];
+      const targetMs = Date.parse(targetIso || "") || 0;
+      const appliedMs = Date.parse(applied[uid] || "") || 0;
+      if (targetMs <= appliedMs) return;
+
+      didReset = true;
+      if (Array.isArray(targetDb.progress)) {
+        targetDb.progress = targetDb.progress.filter(p => {
+          if (!p || p.userId !== uid) return true;
+          const pMs = Date.parse(p.updatedAt || "") || 0;
+          return pMs > targetMs;
+        });
+      }
+      if (targetDb.presence && targetDb.presence[uid]) {
+        const prMs = Date.parse(targetDb.presence[uid].lastSeenAt || "") || 0;
+        if (prMs <= targetMs) delete targetDb.presence[uid];
+      }
+      if (Array.isArray(targetDb.activityLogs)) {
+        targetDb.activityLogs = targetDb.activityLogs.filter(a => {
+          if (!a || a.userId !== uid) return true;
+          const aMs = Date.parse(a.timestamp || "") || 0;
+          return aMs > targetMs;
+        });
+      }
+      if (readingState && readingState[uid]) {
+        delete readingState[uid];
+        readingChanged = true;
+      }
+      applied[uid] = targetIso;
+    });
+
+    if (readingChanged) {
+      try {
+        localStorage.setItem(READING_STATE_KEY, JSON.stringify(readingState));
+      } catch (e) {}
+    }
+    if (didReset) {
+      if (!targetDb.meta) targetDb.meta = {};
+      targetDb.meta.learnerResetUsers = resetMap;
+      try {
+        localStorage.setItem(LEARNER_RESET_APPLIED_KEY, JSON.stringify(applied));
+      } catch (e) {}
+    }
+    return didReset;
+  }
+
+  function isCurrentUserAdmin() {
+    return Boolean(currentUser && currentUser.role === "admin");
+  }
+
+  function isCurrentUserUploaderOrAdmin() {
+    return Boolean(currentUser && (currentUser.role === "admin" || currentUser.role === "uploader"));
   }
 
   function canUserSelfApprove(userObj = currentUser) {
@@ -479,17 +566,23 @@
         }
       }
 
-      if (upgradeCoreModulesIfNeeded(db) || migrateUploaderPermissionsIfNeeded(db) || migrateSeededRosterIfNeeded(db)) {
+      if (upgradeCoreModulesIfNeeded(db) || migrateUploaderPermissionsIfNeeded(db) || migrateSeededRosterIfNeeded(db) || ensureLearnerResetApplied(db)) {
         didCloudUpdateConfig = true;
         triggerAutoSave(true, true);
       }
 
       if (cloudProgress.length > 0) {
+        const resetMap = getLearnerResetMap(db);
         const pMap = new Map();
         (db.progress || []).forEach(p => {
           pMap.set(`${p.moduleId}__${p.userId}`, p);
         });
         cloudProgress.forEach(cp => {
+          const resetMs = resetMap[cp.userId] ? (Date.parse(resetMap[cp.userId]) || 0) : 0;
+          const cpMs = Date.parse(cp.updatedAt || "") || 0;
+          if (resetMs > 0 && cpMs <= resetMs) {
+            return;
+          }
           const key = `${cp.moduleId}__${cp.userId}`;
           const existing = pMap.get(key);
           if (!existing) {
@@ -939,12 +1032,22 @@
       if (btn) {
         btn.classList.toggle("active", activeWorkspaceView === viewName);
         btn.onclick = () => {
+          if (viewName === "admin" && !isCurrentUserAdmin()) return;
+          if (viewName === "uploader" && !isCurrentUserUploaderOrAdmin()) return;
           if (viewName !== "sale") impersonatedSaleUser = null;
           activeWorkspaceView = viewName;
           renderAll();
         };
       }
     });
+
+    if (currentUser.role === "sale") {
+      if (switcher) switcher.setAttribute("aria-hidden", "true");
+      if (btnAdmin) btnAdmin.classList.add("hidden");
+      if (btnUploader) btnUploader.classList.add("hidden");
+    } else {
+      if (switcher) switcher.removeAttribute("aria-hidden");
+    }
 
     if (btnToggleSidebar) {
       btnToggleSidebar.classList.toggle("hidden", activeWorkspaceView === "admin");
@@ -1518,6 +1621,12 @@
           ? `Đang xem giao diện của Học Viên: <strong>${escapeHtml(impersonatedSaleUser.name)}</strong>`
           : `Đang xem thử giao diện của <strong>Học Viên</strong>`;
         btnExitImp.onclick = () => {
+          if (!isCurrentUserUploaderOrAdmin()) {
+            impersonatedSaleUser = null;
+            activeWorkspaceView = "sale";
+            renderAll();
+            return;
+          }
           impersonatedSaleUser = null;
           activeWorkspaceView = currentUser.role === "admin" ? "admin" : "uploader";
           renderAll();
@@ -3062,6 +3171,7 @@
   }
 
   function renderUploaderWorkspace() {
+    if (!isCurrentUserUploaderOrAdmin()) return;
     const mod = getCurrentModule();
     if (!mod) return;
     currentModuleId = mod.id;
@@ -4289,6 +4399,7 @@
   let adminActivitySearchQuery = "";
 
   function renderAdminWorkspace() {
+    if (!isCurrentUserAdmin()) return;
     const allUsers = db.users || [];
     const sales = allUsers.filter(u => u.role === "sale");
     const uploaders = allUsers.filter(u => u.role === "uploader");
@@ -5610,6 +5721,7 @@
   }
 
   function createNewModuleForCurrentUser(customTitle = "") {
+    if (!isCurrentUserUploaderOrAdmin()) return null;
     const code = computeNextModuleCode();
     const newMod = {
       id: `mod-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 5)}`,
@@ -7225,6 +7337,7 @@
 
     container.querySelectorAll("[data-bug-goto-edit]").forEach(btn => {
       btn.onclick = () => {
+        if (!isCurrentUserUploaderOrAdmin()) return;
         const bug = (db.bugReports || []).find(item => item.id === btn.dataset.bugGotoEdit);
         if (!bug || !bug.moduleId) return;
         const dlg = document.getElementById("bugReportDialog");
@@ -7543,6 +7656,10 @@
       authPortal.classList.remove("hidden");
       mainTopBar.classList.add("hidden");
       appShell.classList.add("hidden");
+      upWs.classList.add("hidden");
+      adminWs.classList.add("hidden");
+      upWs.setAttribute("inert", "");
+      adminWs.setAttribute("inert", "");
       isBranchDrawerOpen = false;
       renderBranchMindmapDrawer();
       populateAuthSelects();
@@ -7556,6 +7673,7 @@
     // Role guardrails
     if (currentUser.role === "sale") {
       activeWorkspaceView = "sale";
+      impersonatedSaleUser = null;
     } else if (currentUser.role === "uploader" && activeWorkspaceView === "admin") {
       activeWorkspaceView = "uploader";
     }
@@ -7563,25 +7681,32 @@
     renderTopBar();
     sendPresenceHeartbeat();
 
-    if (activeWorkspaceView === "admin") {
+    if (activeWorkspaceView === "admin" && isCurrentUserAdmin()) {
       sidebar.classList.add("hidden");
       saleWs.classList.add("hidden");
       upWs.classList.add("hidden");
+      upWs.setAttribute("inert", "");
       adminWs.classList.remove("hidden");
+      adminWs.removeAttribute("inert");
       renderBranchMindmapDrawer();
       renderAdminWorkspace();
-    } else if (activeWorkspaceView === "uploader") {
+    } else if (activeWorkspaceView === "uploader" && isCurrentUserUploaderOrAdmin()) {
       sidebar.classList.remove("hidden");
       saleWs.classList.add("hidden");
       adminWs.classList.add("hidden");
+      adminWs.setAttribute("inert", "");
       upWs.classList.remove("hidden");
+      upWs.removeAttribute("inert");
       renderBranchMindmapDrawer();
       renderSidebar();
       renderUploaderWorkspace();
     } else {
+      activeWorkspaceView = "sale";
       sidebar.classList.remove("hidden");
       upWs.classList.add("hidden");
       adminWs.classList.add("hidden");
+      upWs.setAttribute("inert", "");
+      adminWs.setAttribute("inert", "");
       saleWs.classList.remove("hidden");
       renderSidebar();
       renderBranchMindmapDrawer();

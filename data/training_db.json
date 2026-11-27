@@ -4,19 +4,29 @@
     "adminPin": "Nvs123456",
     "defaultPassThreshold": 80,
     "version": 1,
-    "updatedAt": "2026-11-27T06:28:47.394Z",
+    "updatedAt": "2026-11-27T06:35:58.747Z",
     "rosterVersion": 3,
     "coreModulesVersion": 3,
     "localModified": true,
     "bugsModified": true,
     "uploaderPermVersion": 1,
-    "rosterSeedVersion": 4
+    "rosterSeedVersion": 4,
+    "learnerResetUsers": {
+      "sale-haunt": "2026-11-27T06:33:18.105Z"
+    }
   },
   "users": [
     {
       "id": "sale-haunt",
       "pin": "1111",
       "name": "Nguyễn Thị Hậu",
+      "role": "sale",
+      "title": "Chuyên viên Tư vấn (Sale)"
+    },
+    {
+      "id": "sale-thuylt",
+      "pin": "2222",
+      "name": "Lê Thu Thuỷ",
       "role": "sale",
       "title": "Chuyên viên Tư vấn (Sale)"
     },
@@ -35,13 +45,6 @@
       "role": "uploader",
       "title": "Phụ trách Nội dung & Đào tạo",
       "canSelfApprove": true
-    },
-    {
-      "id": "sale-thuylt",
-      "pin": "2222",
-      "name": "Lê Thu Thuỷ",
-      "role": "sale",
-      "title": "Chuyên viên Tư vấn (Sale)"
     }
   ],
   "modules": [
@@ -2717,115 +2720,6 @@
       "durationMinutes": 20
     },
     {
-      "id": "mod-mwx7lopj",
-      "code": "HP06",
-      "title": "Phân tích bài bé 38,39: Bé nhận diện nguy hiểm bằng các giác quan và kĩ năng bảo vệ bản thân khi xảy ra hỏa hoạn",
-      "status": "pending",
-      "authorId": "up-huongdt",
-      "category": "Chuyên đề Đào tạo mới",
-      "subtitle": "Bối cảnh tư vấn Chủ trường và Hiệu trưởng trường mầm non",
-      "questions": [],
-      "updatedAt": "2026-11-26T07:16:52.774Z",
-      "authorName": "Đinh Thị Hương",
-      "sourceFile": {
-        "name": "sale-ptbai3839-KB.xlsx",
-        "type": "xlsx"
-      },
-      "contentText": "=== SHEET: Kĩ năng phòng tránh ngạt khói ===\nBÀI 1: KĨ NĂNG PHÒNG TRÁNH VÀ BẢO VỆ BẢN THÂN KHI XẢY RA HOẢ HOẠN (TIẾT 38 & 39)\nKhung chương trình 72 tiết - Khối Mẫu giáo Bé (3 - 4 tuổi) | Kĩ năng an toàn, bảo vệ bản thân & Thoát hiểm khẩn cấp\nPHẦN I: HỒ SƠ CHUYÊN MÔN CHI TIẾT (CỘT: STT | HẠNG MỤC | NỘI DUNG TRIỂN KHAI | PHÂN TÍCH CHUYÊN MÔN & MỤC ĐÍCH KĨ NĂNG)\nSTT | Hạng mục chuyên môn | Nội dung triển khai thực tế | Phân tích chuyên môn (Kẹp Mục đích phát triển kĩ năng cho trẻ)\n1 | Thông tin chung | • Tên bài học liên hoàn: Kĩ năng nhận diện nguy hiểm bằng các giác quan & Phòng tránh ngạt khói khi có hoả hoạn\n• Mã tiết chuẩn khung 72 tiết: Tiết 38 (Lý thuyết nhận diện & Kêu cứu) và Tiết 39 (Thực hành chống ngạt khói & Thoát hiểm an toàn)\n• Khối lớp: Mẫu giáo Bé (3 - 4 tuổi)\n• Nhóm kĩ năng: Kĩ năng an toàn, bảo vệ bản thân & Thoát hiểm sinh tồn khẩn cấp\n• Thời lượng chuẩn: 2 tiết (30 - 35 phút/tiết) | 1. Phân tích sư phạm chuyên sâu:\n• Thiết kế cặp bài liên hoàn kế thừa và bổ trợ hoàn hảo: Tiết 38 đặt nền tảng nhận thức giác quan (nhìn, nghe, ngửi), hiểu rõ nguyên nhân - hậu quả và rèn phản xạ ngôn ngữ báo động (hô cứu); Tiết 39 nâng cấp lên hành động sinh tồn thực tế (chống ngạt khói bằng đồ vải ướt và di chuyển thoát hiểm cúi thấp sát sàn).\n• Chia nhỏ tiến trình thành 2 tiết độc lập giúp trẻ 3 tuổi không bị quá tải tâm lý, biến kiến thức an toàn cháy nổ thành chuỗi phản xạ tự nhiên ăn sâu vào tiềm thức.\n\n2. Mục đích phát triển kĩ năng cho trẻ:\n• Trang bị Kĩ năng sinh tồn cơ bản nhất (Survival Skills), giúp trẻ 3 tuổi không hoảng loạn khóc lóc, biết cách báo động cho người lớn và tự che chắn đường hô hấp khi có sự cố cháy nổ.\n2 | Kiến thức kĩ năng cốt lõi | 1. Kiến thức trọng tâm:\n• Hậu quả nghiêm trọng của hỏa hoạn: Cháy rụi nhà cửa, hư hỏng đồ đạc, tạo ra khói độc cay mắt khó thở và gây nguy hiểm trực tiếp đến tính mạng con người.\n• 4 Nguyên nhân phổ biến gây cháy: Bạn nhỏ nghịch bật lửa, người lớn đốt vàng mã, cắm quá nhiều thiết bị vào một ổ điện, vứt tàn thuốc lá vào bãi cỏ khô.\n• 4 Dấu hiệu nhận biết cháy bằng giác quan: Ngửi thấy mùi khét nồng (Khứu giác); Nhìn thấy khói đen bốc lên và ngọn lửa đỏ (Thị giác); Nghe thấy tiếng chuông/còi báo cháy reo inh ỏi (Thính giác).\n• Số điện thoại khẩn cấp: Nhớ số cứu hỏa 114.\n• Kĩ năng kêu cứu chuẩn: Giơ 2 tay lên miệng làm loa và hô thật to, rõ ràng: 'CHÁY! CHÁY! CỨU!'.\n• Bản chất nguy hiểm của khói độc: Trong đám cháy, KHÓI ĐỘC NGUY HIỂM HƠN LỬA đối với tính mạng (gây ngạt thở, ngất xỉu); khói bốc lên cao, tầng khí sạch dễ thở nằm ở SÁT MẶT SÀN NHÀ.\n• Nguyên tắc ngăn khói tại chỗ: Tìm nhanh đồ dùng bằng vải (khăn, quần áo, mũ vải, giẻ lau...), làm ướt bằng nguồn nước gần nhất (bình nước, chai nước, hộp sữa tươi, vòi nước) và gấp che kín cả MŨI lẫn MIỆNG.\n• Nguyên tắc thoát hiểm an toàn: Cúi gập người / bò sát sàn men theo chân tường ra cửa Exit; tuyệt đối KHÔNG dùng thang máy, KHÔNG trốn vào gầm giường/tủ quần áo/nhà vệ sinh, KHÔNG quay lại lấy đồ chơi.\n\n2. Kĩ năng đạt chuẩn:\n• 90% trẻ nhắc lại được 4 dấu hiệu nhận biết cháy qua các giác quan và số 114.\n•trẻ thực hiện đúng động tác loa tay và hô to dõng dạc câu: 'Cháy! Cháy! Cứu!'.\n• trẻ biết tìm đồ vải, làm ướt và gấp che kín hoàn toàn cả mũi và miệng.\n• trẻ thực hành đúng tư thế cúi thấp người / bò men theo chân tường thoát ra ngoài. | 1. Phân tích sư phạm chuyên sâu:\n• Bài học đi thẳng vào bản chất khoa học của sự cố: Triệt tiêu thói quen nghịch lửa nguy hiểm ở lứa tuổi mầm non và phá vỡ bản năng sai lầm (sợ hãi chui rúc vào góc tối). Thay vào đó, trẻ được trao quyền năng hành động: biết dùng giác quan để phát hiện sớm, biết mở miệng hô cứu và biết hạ thấp trọng tâm để tự bảo vệ lá phổi.\n\n2. Mục đích phát triển kĩ năng cho trẻ:\n• Kĩ năng quan sát & nhận thức giác quan: Nhạy bén phát hiện các biến đổi bất thường của môi trường (mùi lạ, âm thanh còi, cột khói).\n• Kĩ năng ngôn ngữ & phát tín hiệu khẩn cấp: Hô khẩu lệnh ngắn, to, dứt khoát trong hoàn cảnh hoảng loạn.\n• Kĩ năng tự bảo vệ & thích ứng sinh tồn: Bảo toàn oxy, che chắn đường hô hấp và định hướng không gian.\n3 | Khái quát nội dung bài | Bài học liên hoàn (Tiết 38 & 39): Kĩ năng nhận diện nguy hiểm bằng các giác quan & Phòng tránh ngạt khói khi có hoả hoạn (Khối Bé 3–4 tuổi, 2 tiết, 30–35 phút/tiết) là nội dung đào tạo sinh tồn khẩn cấp tối quan trọng giúp trẻ hình thành kĩ năng tự bảo vệ bản thân và ứng phó sự cố cháy nổ. Trọng tâm bài học giải quyết triệt để rào cản tâm lý hoảng loạn và bản năng trốn tránh nguy hiểm của trẻ mầm non bằng cách kích hoạt đa giác quan nhận diện sớm dấu hiệu cháy (ngửi mùi khét, thấy khói lửa, nghe chuông báo), ghi nhớ số khẩn cấp 114 và rèn phản xạ ngôn ngữ làm loa tay hô to: “CHÁY! CHÁY! CỨU!”. Từ đó, trẻ nắm vững nguyên lý khoa học sống còn: “Khói độc nguy hiểm hơn lửa và tầng khí sạch nằm sát sàn nhà”, nhanh chóng tìm đồ vải làm ướt che kín cả mũi lẫn miệng và thực hiện đúng tư thế cúi thấp người/bò men theo chân tường hướng ra cửa thoát hiểm Exit.\n\nĐặc biệt, thấu hiểu tâm sinh lý trẻ 3 tuổi rất dễ hoảng sợ trước lửa khói nhưng lại nhanh quên nếu chỉ học lý thuyết suông, Novastars đã tách biệt thành chuỗi bài liên hoàn 2 tiết kế thừa khoa học: Tiết 38 đặt nền tảng nhận thức và phản xạ báo động qua phóng sự thực tế, thảo luận và game số tương tác “Rồng phun lửa”; Tiết 39 nâng cấp lên hành động thực chiến thông qua thử thách tìm đồ vải, làm ướt khăn bịt kín mũi miệng và diễn tập thoát hiểm trong không gian thực tế. Sự luân chuyển trạng thái liên tục này giúp trẻ tiếp thu bài học tự nhiên, không bị áp lực tâm lý và biến kĩ năng sinh tồn thành chuỗi phản xạ có điều kiện ăn sâu vào tiềm thức. | 1. Phân tích sư phạm chuyên sâu:\n• Thiết kế chuỗi bài liên hoàn 2 bậc thang 'Nhận thức giác quan ➔ Hành động sinh tồn': Giúp trẻ 3-4 tuổi không bị quá tải tâm lý; chuyển hóa kiến thức an toàn cháy nổ thành phản xạ tự nhiên.\n\n2. Mục đích phát triển kĩ năng cho trẻ:\n• Kĩ năng sinh tồn khẩn cấp (Survival Skills): Biết tự bảo vệ đường hô hấp bằng đồ vải ướt và di chuyển an toàn men chân tường ra cửa Exit.\n• Kĩ năng giao tiếp & Cầu cứu: Hô to dõng dạc câu báo động, chủ động tìm sự trợ giúp của người lớn khi gặp nguy hiểm.\n4 | Hoạt động cụ thể 1 (Tiết 38):\nPhóng sự hỏa hoạn (Hậu quả & Nguyên nhân) | • Tên hoạt động: Khởi động – Xem phóng sự hỏa hoạn cùng Su và Kem\n• Hình thức tổ chức: Tương tác qua video phóng sự kết hợp đàm thoại phản biện\n• Tiến trình chi tiết:\n  - Giáo viên ổn định lớp, chào hỏi, nhắc tên môn học Kĩ năng sống Novastars.\n  - Cho trẻ xem đoạn video phóng sự thời sự: Su và Kem đang theo dõi bản tin về một vụ cháy lớn.\n  - Đàm thoại về HẬU QUẢ CỦA ĐÁM CHÁY: Giáo viên hỏi: 'Khi có hỏa hoạn, chuyện gì có thể xảy ra?' -> Trẻ trả lời theo quan sát và kinh nghiệm (nhà bị cháy sập, khói cay mắt, đồ dùng bị thiêu rụi, người bị nạn...); cô ghi nhận và giải thích sự nguy hiểm.\n  - Đàm thoại về 4 NGUYÊN NHÂN GÂY CHÁY: Giáo viên hỏi: 'Có những nguyên nhân nào dẫn tới hỏa hoạn?' -> Cùng trẻ mổ xẻ 4 tình huống thực tế: (1) Bạn nhỏ nghịch bật lửa; (2) Người lớn đốt vàng mã không trông coi; (3) Cắm quá nhiều thiết bị vào một ổ cắm điện gây chập điện; (4) Vứt tàn thuốc lá đang cháy vào bãi cỏ khô.\n  - Giáo viên mở video tổng kết bài học về nguyên nhân và hậu quả. | 1. Phân tích sư phạm chuyên sâu:\n• Hoạt động ở đầu sử dụng chất liệu phóng sự thực tế mang tính thời sự giúp thu hút sự chú ý tối đa của trẻ 3 tuổi. Bằng cách chỉ ra 4 nguyên nhân đời thường (đặc biệt là hành vi nghịch bật lửa của trẻ nhỏ), bài học đánh thức ý thức cảnh giác phòng ngừa tai nạn từ sớm.\n\n2. Mục đích phát triển kĩ năng cho trẻ:\n• Kĩ năng tư duy nguyên nhân - kết quả: Nhận thức rõ hành vi nghịch lửa/điện sẽ dẫn tới hậu quả khôn lường là đám cháy phá hủy tài sản và đe dọa mạng sống.\n• Kĩ năng tập trung chú ý & phân tích thông tin: Lắng nghe, quan sát video phóng sự và diễn đạt suy nghĩ bằng lời nói.\n5 | Hoạt động cụ thể 2 (Tiết 38):\nThảo luận dấu hiệu cảnh báo bằng giác quan | • Tên hoạt động: Hoạt động 2 – Thảo luận: Dấu hiệu cảnh báo khi có cháy & Số cứu hỏa 114\n• Hình thức tổ chức: Xem video tương tác kết hợp thảo luận giác quan\n• Tiến trình chi tiết:\n  - Giáo viên cho trẻ xem video các tình huống cháy và đặt câu hỏi kích thích tư duy giác quan: 'Khi có cháy, chúng mình sẽ ngửi thấy gì, nghe thấy gì và nhìn thấy gì?'.\n  - Hướng dẫn trẻ liên kết từng giác quan với dấu hiệu cảnh báo:\n  * Khứu giác (Mũi ngửi): Ngửi thấy mùi khét lẹt, cay nồng.\n  * Thị giác (Mắt nhìn): Nhìn thấy khói đen cuồn cuộn bốc lên, nhìn thấy ngọn lửa đỏ rực.\n  * Thính giác (Tai nghe): Nghe thấy tiếng chuông/còi báo cháy reo vang inh ỏi khắp tòa nhà.\n  - Giới thiệu số điện thoại khẩn cấp của Đội Cứu hỏa: Số 114.\n  - Cho trẻ xem video hoạt hình tổng kết 4 dấu hiệu và nhắc lại đồng thanh. | 1. Phân tích sư phạm chuyên sâu:\n• Thay vì định nghĩa trừu tượng, bài học gắn liền dấu hiệu nguy hiểm với các bộ phận cơ thể quen thuộc của trẻ (mũi ngửi mùi khét, mắt nhìn khói lửa, tai nghe còi). Đây là phương pháp dạy học giác quan trực quan kinh điển, giúp trẻ 3 tuổi ghi nhớ sâu sắc và phản xạ ngay lập tức khi xuất hiện mùi khét hay tiếng còi.\n\n2. Mục đích phát triển kĩ năng cho trẻ:\n• Kĩ năng nhận biết thế giới qua các giác quan: Tăng cường độ nhạy bén của khứu giác, thính giác và thị giác trong việc phát hiện nguy cơ mất an toàn.\n• Kĩ năng ghi nhớ thông tin khẩn cấp: Ghi nhớ số điện thoại 114 để nhờ người lớn bấm gọi cứu trợ.\n6 | Hoạt động cụ thể 3 (Tiết 38):\nGiới thiệu & Luyện tập kĩ năng loa tay kêu cứu | • Tên hoạt động: Hoạt động 3 – Huấn luyện phản xạ kêu cứu 'Cháy! Cháy! Cứu!'\n• Hình thức tổ chức: Thực hành kĩ năng cá nhân và nhóm nhỏ kết hợp khích lệ bằng Sao thưởng\n• Tiến trình chi tiết:\n  - Giáo viên mở video hướng dẫn thao tác kêu cứu khi phát hiện cháy: Đặt câu hỏi: 'Khi thấy đám cháy, việc đầu tiên chúng mình cần làm là gì?' -> Nhanh chóng báo hiệu cho người lớn xung quanh.\n  - Hướng dẫn kĩ thuật phát âm thanh khẩn cấp: Giơ 2 bàn tay cong khum áp sát vào khóe miệng để tạo thành chiếc LOA PHÓNG THANH, giúp âm thanh vang xa và rõ nhất.\n  - Dạy khẩu lệnh kêu cứu ngắn gọn, dứt khoát: 'CHÁY! CHÁY! CỨU!' (hoặc 'Cháy! Cháy! Cứu với!').\n  - Tổ chức luyện tập đa cấp độ:\n  * Cấp độ 1: Cả lớp cùng đứng dậy, làm động tác loa tay và hô đồng thanh nhiều hướng.\n  * Cấp độ 2: Giáo viên mời từng nhóm 02 – 03 trẻ/lượt lên trước lớp thực hành hô to dõng dạc.\n  - Khen ngợi và trao tặng Sao thưởng Novastars dũng cảm cho các bé thực hành đúng.\n  - Xem video tổng kết kĩ năng kêu cứu và củng cố toàn bộ Tiết 38. | 1. Phân tích sư phạm chuyên sâu:\n•  Hiệu lệnh thông báo khi xảy ra đám cháy được rút gọn chỉ gồm 3 từ đanh thép 'Cháy! Cháy! Cứu!' giúp trẻ không bị ngọng hay hụt hơi trong trạng thái hoảng loạn, đảm bảo tín hiệu kêu cứu đến tai người lớn nhanh nhất.\n\n2. Mục đích phát triển kĩ năng cho trẻ:\n• Kĩ năng vận động thô & phối hợp tay - miệng: Đưa tay lên tạo vòm loa chuẩn xác và lấy hơi từ bụng để phát âm lượng lớn.\n• Kĩ năng cảm xúc xã hội (SEL) & Bản lĩnh cá nhân: Vượt qua sự rụt rè nhút nhát, tự tin đứng trước đám đông hô to khẩu lệnh khẩn cấp.\n7 | Hoạt động cụ thể 4 (Tiết 39):\nGame 'Rồng phun lửa' & Thảo luận nguy cơ khói độc | • Tên hoạt động: Hoạt động 1 (Tiết 39) – Game tương tác 'Rồng phun lửa' & Cú sốc nhận thức về khói độc\n• Hình thức tổ chức: Game tương tác số trên phần mềm Novastars kết hợp đàm thoại phản biện\n• Tiến trình chi tiết:\n  - Giáo viên giới thiệu căn phòng mô phỏng và thử thách số 1 của Biệt đội cứu hỏa nhí: Trò chơi 'Rồng phun lửa'.\n  - Nhiệm vụ: Điều khiển nhân vật né tránh các ngọn lửa do rồng phun ra. Cả lớp cùng đứng dậy nghiêng người sang phải, nghiêng sang trái theo chuyển động trên màn hình.\n  - Đàm thoại tạo cú sốc nhận thức sau game: 'Chúng mình đã giúp nhân vật né tránh được hết lửa rồi, tại sao bạn ấy vẫn gặp nguy hiểm và ngất xỉu trong đám cháy?'.\n  - Cho trẻ xem video khoa học 'Sự nguy hiểm của khói trong đám cháy': Phân tích chuyện gì xảy ra nếu hít phải quá nhiều khói độc (khói làm cay xè mắt không nhìn thấy đường, khói độc tràn vào phổi gây ho sặc sụa, ngạt thở và ngất xỉu).\n  - Đúc kết thông điệp sinh tử: Trong đám cháy, chúng ta không chỉ cần tránh lửa mà BẮT BUỘC PHẢI TRÁNH CẢ KHÓI ĐỘC. | 1. Phân tích sư phạm chuyên sâu:\n•  Tình huống 'né hết lửa mà vẫn bị nạn' là một cú sốc nhận thức (Cognitive Dissonance) sư phạm đắt giá, đánh đổ quan niệm ngây thơ của trẻ con rằng 'cháy chỉ nguy hiểm vì lửa'. Qua đó trẻ tự giác nhận ra: Khói độc mới chính là kẻ thù số 1 cần phòng chống hàng đầu.\n\n2. Mục đích phát triển kĩ năng cho trẻ:\n• Kĩ năng tư duy phản biện & Bản chất vấn đề: Nhận thức rõ ràng khói độc nguy hiểm hơn ngọn lửa đối với đường hô hấp.\n• Kĩ năng vận động thô phản xạ: Luyện khả năng nghiêng thân mình né tránh chướng ngại vật theo nhịp độ hình ảnh.\n8 | Hoạt động cụ thể 5 (Tiết 39):\nGame tương tác 'Truy tìm đồ dùng vải trong phòng' | • Tên hoạt động: Hoạt động 2 (Tiết 39) – Thử thách 'Truy tìm đồ dùng vải để ngăn khói'\n• Hình thức tổ chức: Game tương tác chạm/chọn trên màn hình cảm ứng kết hợp nhận diện vật thật\n• Tiến trình chi tiết:\n  - Giáo viên mở video thử thách số 2: Tìm kiếm các đồ vật bằng vải có trong căn phòng mô phỏng để làm 'mặt nạ lọc khói'.\n  - Mời từng trẻ lên chạm/chọn các đồ vật bằng vải xuất hiện trong phòng: Khăn mặt, khăn tay, quần áo, mũ vải, rèm cửa, giẻ lau...\n  - Đàm thoại củng cố: Kể tên các đồ vải xung quanh mình có thể dùng để che mũi miệng khi có cháy.\n  - Chốt nguyên tắc sinh tồn: Khi có hỏa hoạn, phải thật nhanh chóng tìm bất kỳ đồ vật nào bằng vải ở gần mình nhất, kể cả vạt áo hay tay áo đang mặc trên người đều dùng để ngăn khói độc được. | 1. Phân tích sư phạm chuyên sâu:\n• Ứng dụng trò chơi hóa vào rèn luyện kĩ năng phân loại chất liệu. Giáo trình mở rộng tư duy của trẻ vượt ra ngoài khuôn khổ sách vở: Không cứng nhắc đi tìm chiếc 'khăn mặt', mà linh hoạt biến mọi vật liệu vải có sẵn xung quanh (quần áo đang mặc, mũ, giẻ lau) thành 'lá chắn lọc khí cứu sinh'.\n\n2. Mục đích phát triển kĩ năng cho trẻ:\n• Kĩ năng quan sát & phân loại chất liệu: Nhận biết đặc tính thấm hút và lọc khí của chất liệu vải so với các đồ vật nhựa, gỗ, kim loại.\n• Kĩ năng giải quyết vấn đề linh hoạt (Resourcefulness): Biết tận dụng tài nguyên có sẵn trên người trong tình huống cấp bách.\n9 | Hoạt động cụ thể 6 (Tiết 39):\nTrò chơi 'Nguồn nước ở đâu?' & Thực hành làm ướt khăn | • Tên hoạt động: Hoạt động 3 & 4 (Tiết 39) – Tìm nguồn nước & Thực hành làm ướt đồ vải che kín mũi miệng\n• Hình thức tổ chức: Trò chơi vận động tìm thẻ tranh trong lớp kết hợp thao tác trực tiếp với vật thật\n• Tiến trình chi tiết:\n  - Xem video thử thách số 3: Đi tìm nguồn nước để làm ướt đồ vải khi không có vòi nước bồn rửa.\n  - Trẻ vận động tìm các thẻ tranh nguồn nước giấu quanh lớp học (bình nước lọc, chai nước khoáng, hộp sữa giấy, vòi nước) gắn lên bảng kết quả.\n  - Thực hành làm ướt vật thật: Giáo viên mời học sinh lên thao tác trực tiếp làm ướt khăn bằng nước trong bình, nước đóng chai và nước từ hộp sữa tươi.\n  - Hướng dẫn kĩ thuật che mũi miệng: Vắt nhẹ khăn, gấp lại và áp chặt che kín hoàn toàn cả MŨI và MIỆNG, thở chậm rãi qua lớp vải ướt.\n  - Trải nghiệm mở rộng: Cho trẻ quan sát chiếc mặt nạ chống khói chuyên dụng để nhận biết trang bị cứu hộ hiện đại. | 1. Phân tích sư phạm chuyên sâu:\n• Đưa tình huống thực tế 'khan hiếm tài nguyên' vào giảng dạy. Việc cho trẻ trực tiếp rót nước từ bình, chai và hộp sữa thật vào khăn giúp hình thành kinh nghiệm cảm giác chân thực (Hands-on Experience). Trẻ hiểu rằng trong tình huống sinh tử, bất kỳ chất lỏng an toàn nào (kể cả sữa tươi) đều là cứu tinh để làm ướt khăn ngăn khói độc xâm nhập vào phổi.\n\n2. Mục đích phát triển kĩ năng cho trẻ:\n• Kĩ năng vận động tinh & thao tác phối hợp: Thao tác rót nước, nhúng khăn, vắt khăn vừa phải và áp chặt kín khít sống mũi và khóe miệng.\n• Kĩ năng ứng biến hoàn cảnh khẩn cấp: Tự tin xử lý tình huống khi không có vòi nước máy bên cạnh.\n10 | Hoạt động cụ thể 7 (Tiết 39):\nLuyện tập di chuyển cúi thấp người men chân tường & Diễn tập còi báo cháy | • Tên hoạt động: Hoạt động 5 & Tổng kết (Tiết 39) – Huấn luyện di chuyển thoát hiểm cúi thấp men chân tường & Diễn tập còi báo cháy thực tế\n• Hình thức tổ chức: Luyện tập vận động thực địa kết hợp kích hoạt phản xạ còi báo cháy thật\n• Tiến trình chi tiết:\n  - Huấn luyện tư thế thoát hiểm chuẩn xác: Giáo viên làm mẫu và chỉnh sửa tư thế cho học sinh: Một tay giữ chặt khăn ướt áp kín mũi miệng; Toàn bộ cơ thể cúi gập thật thấp (hoặc bò bằng đầu gối và một bàn tay sát mặt sàn) để hít thở tầng không khí sạch.\n  - Kĩ thuật dò đường men chân tường: Một bàn tay còn lại luôn đặt chạm men theo mép tường để định hướng phương hướng di chuyển trong làn khói dày, dẫn thẳng ra cửa có biển báo Exit màu xanh lá cây.\n  - Cả lớp xếp thành hàng nối đuôi nhau thực hành di chuyển cúi thấp men tường quanh phòng học ra cửa thoát hiểm.\n  - Tình huống thực chiến bất ngờ: Giáo viên bật âm thanh còi báo cháy thật của trường mầm non. Trẻ lập tức phối hợp chuỗi kĩ năng hoàn chỉnh: Giữ khăn ướt che kín mũi miệng -> Hạ thấp người bò men tường -> Nhanh chóng theo cô giáo di chuyển an toàn ra sân trường.\n  - Giáo viên tổng kết, khen ngợi và trao huy hiệu lính cứu hỏa nhí dũng cảm cho cả lớp. | 1. Phân tích sư phạm chuyên sâu:\n• Luyện tập phản xạ hành vi & Thử nghiệm tích cực: Việc loại bỏ đạo cụ ống chui cồng kềnh giúp tiết học tập trung hoàn toàn vào kĩ năng cốt lõi thực tế: Cúi thấp người hạ thấp trọng tâm và sờ tay men theo chân tường để không bị lạc lối trong bóng tối. Âm thanh còi báo cháy thật chuyển hóa kiến thức trên lớp thành bản năng sinh tồn trọn đời.\n\n2. Mục đích phát triển kĩ năng cho trẻ:\n• Kĩ năng vận động thô thích ứng không gian: Duy trì tư thế bò, trườn hoặc đi khom lưng giữ thăng bằng trong khi một tay luôn phải giữ chặt khăn che mặt.\n• Kĩ năng định hướng không gian: Rèn thói quen dùng xúc giác sờ men theo bờ tường để tìm lối thoát hiểm Exit.\n• Kĩ năng quản lý cảm xúc (SEL): Giữ được sự bình tĩnh, không khóc lóc giẫm đạp lên nhau, tuân thủ kỷ luật thoát hiểm an toàn.",
-      "passThreshold": 80,
-      "summaryPoints": [
-        "BÀI 1: KĨ NĂNG PHÒNG TRÁNH VÀ BẢO VỆ BẢN THÂN KHI XẢY RA HOẢ HOẠN (TIẾT 38 & 39)",
-        "Khung chương trình 72 tiết - Khối Mẫu giáo Bé (3 - 4 tuổi) | Kĩ năng an toàn, bảo vệ bản thân & Thoát hiểm khẩn cấp",
-        "PHẦN I: HỒ SƠ CHUYÊN MÔN CHI TIẾT (CỘT: STT | HẠNG MỤC | NỘI DUNG TRIỂN KHAI | PHÂN TÍCH CHUYÊN MÔN & MỤC ĐÍCH KĨ NĂNG)",
-        "STT | Hạng mục chuyên môn | Nội dung triển khai thực tế | Phân tích chuyên môn (Kẹp Mục đích phát triển kĩ năng cho trẻ)",
-        "1 | Thông tin chung | • Tên bài học liên hoàn: Kĩ năng nhận diện nguy hiểm bằng các giác quan & Phòng tránh ngạt khói khi có hoả hoạn"
-      ],
-      "structuredType": "",
-      "uploadedTables": [
-        {
-          "rows": [
-            [
-              "BÀI 1: KĨ NĂNG PHÒNG TRÁNH VÀ BẢO VỆ BẢN THÂN KHI XẢY RA HOẢ HOẠN (TIẾT 38 & 39)"
-            ],
-            [
-              "Khung chương trình 72 tiết - Khối Mẫu giáo Bé (3 - 4 tuổi) | Kĩ năng an toàn, bảo vệ bản thân & Thoát hiểm khẩn cấp"
-            ],
-            [
-              "PHẦN I: HỒ SƠ CHUYÊN MÔN CHI TIẾT (CỘT: STT | HẠNG MỤC | NỘI DUNG TRIỂN KHAI | PHÂN TÍCH CHUYÊN MÔN & MỤC ĐÍCH KĨ NĂNG)"
-            ],
-            [
-              "STT",
-              "Hạng mục chuyên môn",
-              "Nội dung triển khai thực tế",
-              "Phân tích chuyên môn (Kẹp Mục đích phát triển kĩ năng cho trẻ)"
-            ],
-            [
-              "1",
-              "Thông tin chung",
-              "• Tên bài học liên hoàn: Kĩ năng nhận diện nguy hiểm bằng các giác quan & Phòng tránh ngạt khói khi có hoả hoạn\n• Mã tiết chuẩn khung 72 tiết: Tiết 38 (Lý thuyết nhận diện & Kêu cứu) và Tiết 39 (Thực hành chống ngạt khói & Thoát hiểm an toàn)\n• Khối lớp: Mẫu giáo Bé (3 - 4 tuổi)\n• Nhóm kĩ năng: Kĩ năng an toàn, bảo vệ bản thân & Thoát hiểm sinh tồn khẩn cấp\n• Thời lượng chuẩn: 2 tiết (30 - 35 phút/tiết)",
-              "1. Phân tích sư phạm chuyên sâu:\n• Thiết kế cặp bài liên hoàn kế thừa và bổ trợ hoàn hảo: Tiết 38 đặt nền tảng nhận thức giác quan (nhìn, nghe, ngửi), hiểu rõ nguyên nhân - hậu quả và rèn phản xạ ngôn ngữ báo động (hô cứu); Tiết 39 nâng cấp lên hành động sinh tồn thực tế (chống ngạt khói bằng đồ vải ướt và di chuyển thoát hiểm cúi thấp sát sàn).\n• Chia nhỏ tiến trình thành 2 tiết độc lập giúp trẻ 3 tuổi không bị quá tải tâm lý, biến kiến thức an toàn cháy nổ thành chuỗi phản xạ tự nhiên ăn sâu vào tiềm thức.\n\n2. Mục đích phát triển kĩ năng cho trẻ:\n• Trang bị Kĩ năng sinh tồn cơ bản nhất (Survival Skills), giúp trẻ 3 tuổi không hoảng loạn khóc lóc, biết cách báo động cho người lớn và tự che chắn đường hô hấp khi có sự cố cháy nổ."
-            ],
-            [
-              "2",
-              "Kiến thức kĩ năng cốt lõi",
-              "1. Kiến thức trọng tâm:\n• Hậu quả nghiêm trọng của hỏa hoạn: Cháy rụi nhà cửa, hư hỏng đồ đạc, tạo ra khói độc cay mắt khó thở và gây nguy hiểm trực tiếp đến tính mạng con người.\n• 4 Nguyên nhân phổ biến gây cháy: Bạn nhỏ nghịch bật lửa, người lớn đốt vàng mã, cắm quá nhiều thiết bị vào một ổ điện, vứt tàn thuốc lá vào bãi cỏ khô.\n• 4 Dấu hiệu nhận biết cháy bằng giác quan: Ngửi thấy mùi khét nồng (Khứu giác); Nhìn thấy khói đen bốc lên và ngọn lửa đỏ (Thị giác); Nghe thấy tiếng chuông/còi báo cháy reo inh ỏi (Thính giác).\n• Số điện thoại khẩn cấp: Nhớ số cứu hỏa 114.\n• Kĩ năng kêu cứu chuẩn: Giơ 2 tay lên miệng làm loa và hô thật to, rõ ràng: 'CHÁY! CHÁY! CỨU!'.\n• Bản chất nguy hiểm của khói độc: Trong đám cháy, KHÓI ĐỘC NGUY HIỂM HƠN LỬA đối với tính mạng (gây ngạt thở, ngất xỉu); khói bốc lên cao, tầng khí sạch dễ thở nằm ở SÁT MẶT SÀN NHÀ.\n• Nguyên tắc ngăn khói tại chỗ: Tìm nhanh đồ dùng bằng vải (khăn, quần áo, mũ vải, giẻ lau...), làm ướt bằng nguồn nước gần nhất (bình nước, chai nước, hộp sữa tươi, vòi nước) và gấp che kín cả MŨI lẫn MIỆNG.\n• Nguyên tắc thoát hiểm an toàn: Cúi gập người / bò sát sàn men theo chân tường ra cửa Exit; tuyệt đối KHÔNG dùng thang máy, KHÔNG trốn vào gầm giường/tủ quần áo/nhà vệ sinh, KHÔNG quay lại lấy đồ chơi.\n\n2. Kĩ năng đạt chuẩn:\n• 90% trẻ nhắc lại được 4 dấu hiệu nhận biết cháy qua các giác quan và số 114.\n• 85% trẻ thực hiện đúng động tác loa tay và hô to dõng dạc câu: 'Cháy! Cháy! Cứu!'.\n• 85% trẻ biết tìm đồ vải, làm ướt và gấp che kín hoàn toàn cả mũi và miệng.\n• 80% trẻ thực hành đúng tư thế cúi thấp người / bò men theo chân tường thoát ra ngoài.",
-              "1. Phân tích sư phạm chuyên sâu:\n• Bài học đi thẳng vào bản chất khoa học của sự cố: Triệt tiêu thói quen nghịch lửa nguy hiểm ở lứa tuổi mầm non và phá vỡ bản năng sai lầm (sợ hãi chui rúc vào góc tối). Thay vào đó, trẻ được trao quyền năng hành động: biết dùng giác quan để phát hiện sớm, biết mở miệng hô cứu và biết hạ thấp trọng tâm để tự bảo vệ lá phổi.\n\n2. Mục đích phát triển kĩ năng cho trẻ:\n• Kĩ năng quan sát & nhận thức giác quan: Nhạy bén phát hiện các biến đổi bất thường của môi trường (mùi lạ, âm thanh còi, cột khói).\n• Kĩ năng ngôn ngữ & phát tín hiệu khẩn cấp: Hô khẩu lệnh ngắn, to, dứt khoát trong hoàn cảnh hoảng loạn.\n• Kĩ năng tự bảo vệ & thích ứng sinh tồn: Bảo toàn oxy, che chắn đường hô hấp và định hướng không gian."
-            ],
-            [
-              "3",
-              "Khái quát nội dung bài",
-              "Bài học liên hoàn (Tiết 38 & 39): Kĩ năng nhận diện nguy hiểm bằng các giác quan & Phòng tránh ngạt khói khi có hoả hoạn (Khối Bé 3–4 tuổi, 2 tiết, 30–35 phút/tiết) là nội dung đào tạo sinh tồn khẩn cấp tối quan trọng giúp trẻ hình thành kĩ năng tự bảo vệ bản thân và ứng phó sự cố cháy nổ. Trọng tâm bài học giải quyết triệt để rào cản tâm lý hoảng loạn và bản năng trốn tránh nguy hiểm của trẻ mầm non bằng cách kích hoạt đa giác quan nhận diện sớm dấu hiệu cháy (ngửi mùi khét, thấy khói lửa, nghe chuông báo), ghi nhớ số khẩn cấp 114 và rèn phản xạ ngôn ngữ làm loa tay hô to: “CHÁY! CHÁY! CỨU!”. Từ đó, trẻ nắm vững nguyên lý khoa học sống còn: “Khói độc nguy hiểm hơn lửa và tầng khí sạch nằm sát sàn nhà”, nhanh chóng tìm đồ vải làm ướt che kín cả mũi lẫn miệng và thực hiện đúng tư thế cúi thấp người/bò men theo chân tường hướng ra cửa thoát hiểm Exit.\n\nĐặc biệt, thấu hiểu tâm sinh lý trẻ 3 tuổi rất dễ hoảng sợ trước lửa khói nhưng lại nhanh quên nếu chỉ học lý thuyết suông, Novastars đã tách biệt thành chuỗi bài liên hoàn 2 tiết kế thừa khoa học: Tiết 38 đặt nền tảng nhận thức và phản xạ báo động qua phóng sự thực tế, thảo luận và game số tương tác “Rồng phun lửa”; Tiết 39 nâng cấp lên hành động thực chiến thông qua thử thách tìm đồ vải, làm ướt khăn bịt kín mũi miệng và diễn tập thoát hiểm trong không gian thực tế. Sự luân chuyển trạng thái liên tục này giúp trẻ tiếp thu bài học tự nhiên, không bị áp lực tâm lý và biến kĩ năng sinh tồn thành chuỗi phản xạ có điều kiện ăn sâu vào tiềm thức.",
-              "1. Phân tích sư phạm chuyên sâu:\n• Thiết kế chuỗi bài liên hoàn 2 bậc thang 'Nhận thức giác quan ➔ Hành động sinh tồn': Giúp trẻ 3-4 tuổi không bị quá tải tâm lý; chuyển hóa kiến thức an toàn cháy nổ thành phản xạ tự nhiên.\n\n2. Mục đích phát triển kĩ năng cho trẻ:\n• Kĩ năng sinh tồn khẩn cấp (Survival Skills): Biết tự bảo vệ đường hô hấp bằng đồ vải ướt và di chuyển an toàn men chân tường ra cửa Exit.\n• Kĩ năng giao tiếp & Cầu cứu: Hô to dõng dạc câu báo động, chủ động tìm sự trợ giúp của người lớn khi gặp nguy hiểm."
-            ],
-            [
-              "4",
-              "Hoạt động cụ thể 1 (Tiết 38):\nPhóng sự hỏa hoạn (Hậu quả & Nguyên nhân)",
-              "• Tên hoạt động: Khởi động – Xem phóng sự hỏa hoạn cùng Su và Kem\n• Hình thức tổ chức: Tương tác qua video phóng sự kết hợp đàm thoại phản biện\n• Tiến trình chi tiết:\n  - Giáo viên ổn định lớp, chào hỏi, nhắc tên môn học Kĩ năng sống Novastars.\n  - Cho trẻ xem đoạn video phóng sự thời sự: Su và Kem đang theo dõi bản tin về một vụ cháy lớn.\n  - Đàm thoại về HẬU QUẢ CỦA ĐÁM CHÁY: Giáo viên hỏi: 'Khi có hỏa hoạn, chuyện gì có thể xảy ra?' -> Trẻ trả lời theo quan sát và kinh nghiệm (nhà bị cháy sập, khói cay mắt, đồ dùng bị thiêu rụi, người bị nạn...); cô ghi nhận và giải thích sự nguy hiểm.\n  - Đàm thoại về 4 NGUYÊN NHÂN GÂY CHÁY: Giáo viên hỏi: 'Có những nguyên nhân nào dẫn tới hỏa hoạn?' -> Cùng trẻ mổ xẻ 4 tình huống thực tế: (1) Bạn nhỏ nghịch bật lửa; (2) Người lớn đốt vàng mã không trông coi; (3) Cắm quá nhiều thiết bị vào một ổ cắm điện gây chập điện; (4) Vứt tàn thuốc lá đang cháy vào bãi cỏ khô.\n  - Giáo viên mở video tổng kết bài học về nguyên nhân và hậu quả.",
-              "1. Phân tích sư phạm chuyên sâu:\n• Hoạt động ở đầu sử dụng chất liệu phóng sự thực tế mang tính thời sự giúp thu hút sự chú ý tối đa của trẻ 3 tuổi. Bằng cách chỉ ra 4 nguyên nhân đời thường (đặc biệt là hành vi nghịch bật lửa của trẻ nhỏ), bài học đánh thức ý thức cảnh giác phòng ngừa tai nạn từ sớm.\n\n2. Mục đích phát triển kĩ năng cho trẻ:\n• Kĩ năng tư duy nguyên nhân - kết quả: Nhận thức rõ hành vi nghịch lửa/điện sẽ dẫn tới hậu quả khôn lường là đám cháy phá hủy tài sản và đe dọa mạng sống.\n• Kĩ năng tập trung chú ý & phân tích thông tin: Lắng nghe, quan sát video phóng sự và diễn đạt suy nghĩ bằng lời nói."
-            ],
-            [
-              "5",
-              "Hoạt động cụ thể 2 (Tiết 38):\nThảo luận dấu hiệu cảnh báo bằng giác quan",
-              "• Tên hoạt động: Hoạt động 2 – Thảo luận: Dấu hiệu cảnh báo khi có cháy & Số cứu hỏa 114\n• Hình thức tổ chức: Xem video tương tác kết hợp thảo luận giác quan\n• Tiến trình chi tiết:\n  - Giáo viên cho trẻ xem video các tình huống cháy và đặt câu hỏi kích thích tư duy giác quan: 'Khi có cháy, chúng mình sẽ ngửi thấy gì, nghe thấy gì và nhìn thấy gì?'.\n  - Hướng dẫn trẻ liên kết từng giác quan với dấu hiệu cảnh báo:\n  * Khứu giác (Mũi ngửi): Ngửi thấy mùi khét lẹt, cay nồng.\n  * Thị giác (Mắt nhìn): Nhìn thấy khói đen cuồn cuộn bốc lên, nhìn thấy ngọn lửa đỏ rực.\n  * Thính giác (Tai nghe): Nghe thấy tiếng chuông/còi báo cháy reo vang inh ỏi khắp tòa nhà.\n  - Giới thiệu số điện thoại khẩn cấp của Đội Cứu hỏa: Số 114.\n  - Cho trẻ xem video hoạt hình tổng kết 4 dấu hiệu và nhắc lại đồng thanh.",
-              "1. Phân tích sư phạm chuyên sâu:\n• Thay vì định nghĩa trừu tượng, bài học gắn liền dấu hiệu nguy hiểm với các bộ phận cơ thể quen thuộc của trẻ (mũi ngửi mùi khét, mắt nhìn khói lửa, tai nghe còi). Đây là phương pháp dạy học giác quan trực quan kinh điển, giúp trẻ 3 tuổi ghi nhớ sâu sắc và phản xạ ngay lập tức khi xuất hiện mùi khét hay tiếng còi.\n\n2. Mục đích phát triển kĩ năng cho trẻ:\n• Kĩ năng nhận biết thế giới qua các giác quan: Tăng cường độ nhạy bén của khứu giác, thính giác và thị giác trong việc phát hiện nguy cơ mất an toàn.\n• Kĩ năng ghi nhớ thông tin khẩn cấp: Ghi nhớ số điện thoại 114 để nhờ người lớn bấm gọi cứu trợ."
-            ],
-            [
-              "6",
-              "Hoạt động cụ thể 3 (Tiết 38):\nGiới thiệu & Luyện tập kĩ năng loa tay kêu cứu",
-              "• Tên hoạt động: Hoạt động 3 – Huấn luyện phản xạ kêu cứu 'Cháy! Cháy! Cứu!'\n• Hình thức tổ chức: Thực hành kĩ năng cá nhân và nhóm nhỏ kết hợp khích lệ bằng Sao thưởng\n• Tiến trình chi tiết:\n  - Giáo viên mở video hướng dẫn thao tác kêu cứu khi phát hiện cháy: Đặt câu hỏi: 'Khi thấy đám cháy, việc đầu tiên chúng mình cần làm là gì?' -> Nhanh chóng báo hiệu cho người lớn xung quanh.\n  - Hướng dẫn kĩ thuật phát âm thanh khẩn cấp: Giơ 2 bàn tay cong khum áp sát vào khóe miệng để tạo thành chiếc LOA PHÓNG THANH, giúp âm thanh vang xa và rõ nhất.\n  - Dạy khẩu lệnh kêu cứu ngắn gọn, dứt khoát: 'CHÁY! CHÁY! CỨU!' (hoặc 'Cháy! Cháy! Cứu với!').\n  - Tổ chức luyện tập đa cấp độ:\n  * Cấp độ 1: Cả lớp cùng đứng dậy, làm động tác loa tay và hô đồng thanh nhiều hướng.\n  * Cấp độ 2: Giáo viên mời từng nhóm 02 – 03 trẻ/lượt lên trước lớp thực hành hô to dõng dạc.\n  - Khen ngợi và trao tặng Sao thưởng Novastars dũng cảm cho các bé thực hành đúng.\n  - Xem video tổng kết kĩ năng kêu cứu và củng cố toàn bộ Tiết 38.",
-              "1. Phân tích sư phạm chuyên sâu:\n•  Hiệu lệnh thông báo khi xảy ra đám cháy được rút gọn chỉ gồm 3 từ đanh thép 'Cháy! Cháy! Cứu!' giúp trẻ không bị ngọng hay hụt hơi trong trạng thái hoảng loạn, đảm bảo tín hiệu kêu cứu đến tai người lớn nhanh nhất.\n\n2. Mục đích phát triển kĩ năng cho trẻ:\n• Kĩ năng vận động thô & phối hợp tay - miệng: Đưa tay lên tạo vòm loa chuẩn xác và lấy hơi từ bụng để phát âm lượng lớn.\n• Kĩ năng cảm xúc xã hội (SEL) & Bản lĩnh cá nhân: Vượt qua sự rụt rè nhút nhát, tự tin đứng trước đám đông hô to khẩu lệnh khẩn cấp."
-            ],
-            [
-              "7",
-              "Hoạt động cụ thể 4 (Tiết 39):\nGame 'Rồng phun lửa' & Thảo luận nguy cơ khói độc",
-              "• Tên hoạt động: Hoạt động 1 (Tiết 39) – Game tương tác 'Rồng phun lửa' & Cú sốc nhận thức về khói độc\n• Hình thức tổ chức: Game tương tác số trên phần mềm Novastars kết hợp đàm thoại phản biện\n• Tiến trình chi tiết:\n  - Giáo viên giới thiệu căn phòng mô phỏng và thử thách số 1 của Biệt đội cứu hỏa nhí: Trò chơi 'Rồng phun lửa'.\n  - Nhiệm vụ: Điều khiển nhân vật né tránh các ngọn lửa do rồng phun ra. Cả lớp cùng đứng dậy nghiêng người sang phải, nghiêng sang trái theo chuyển động trên màn hình.\n  - Đàm thoại tạo cú sốc nhận thức sau game: 'Chúng mình đã giúp nhân vật né tránh được hết lửa rồi, tại sao bạn ấy vẫn gặp nguy hiểm và ngất xỉu trong đám cháy?'.\n  - Cho trẻ xem video khoa học 'Sự nguy hiểm của khói trong đám cháy': Phân tích chuyện gì xảy ra nếu hít phải quá nhiều khói độc (khói làm cay xè mắt không nhìn thấy đường, khói độc tràn vào phổi gây ho sặc sụa, ngạt thở và ngất xỉu).\n  - Đúc kết thông điệp sinh tử: Trong đám cháy, chúng ta không chỉ cần tránh lửa mà BẮT BUỘC PHẢI TRÁNH CẢ KHÓI ĐỘC.",
-              "1. Phân tích sư phạm chuyên sâu:\n•  Tình huống 'né hết lửa mà vẫn bị nạn' là một cú sốc nhận thức (Cognitive Dissonance) sư phạm đắt giá, đánh đổ quan niệm ngây thơ của trẻ con rằng 'cháy chỉ nguy hiểm vì lửa'. Qua đó trẻ tự giác nhận ra: Khói độc mới chính là kẻ thù số 1 cần phòng chống hàng đầu.\n\n2. Mục đích phát triển kĩ năng cho trẻ:\n• Kĩ năng tư duy phản biện & Bản chất vấn đề: Nhận thức rõ ràng khói độc nguy hiểm hơn ngọn lửa đối với đường hô hấp.\n• Kĩ năng vận động thô phản xạ: Luyện khả năng nghiêng thân mình né tránh chướng ngại vật theo nhịp độ hình ảnh."
-            ],
-            [
-              "8",
-              "Hoạt động cụ thể 5 (Tiết 39):\nGame tương tác 'Truy tìm đồ dùng vải trong phòng'",
-              "• Tên hoạt động: Hoạt động 2 (Tiết 39) – Thử thách 'Truy tìm đồ dùng vải để ngăn khói'\n• Hình thức tổ chức: Game tương tác chạm/chọn trên màn hình cảm ứng kết hợp nhận diện vật thật\n• Tiến trình chi tiết:\n  - Giáo viên mở video thử thách số 2: Tìm kiếm các đồ vật bằng vải có trong căn phòng mô phỏng để làm 'mặt nạ lọc khói'.\n  - Mời từng trẻ lên chạm/chọn các đồ vật bằng vải xuất hiện trong phòng: Khăn mặt, khăn tay, quần áo, mũ vải, rèm cửa, giẻ lau...\n  - Đàm thoại củng cố: Kể tên các đồ vải xung quanh mình có thể dùng để che mũi miệng khi có cháy.\n  - Chốt nguyên tắc sinh tồn: Khi có hỏa hoạn, phải thật nhanh chóng tìm bất kỳ đồ vật nào bằng vải ở gần mình nhất, kể cả vạt áo hay tay áo đang mặc trên người đều dùng để ngăn khói độc được.",
-              "1. Phân tích sư phạm chuyên sâu:\n• Ứng dụng trò chơi hóa vào rèn luyện kĩ năng phân loại chất liệu. Giáo trình mở rộng tư duy của trẻ vượt ra ngoài khuôn khổ sách vở: Không cứng nhắc đi tìm chiếc 'khăn mặt', mà linh hoạt biến mọi vật liệu vải có sẵn xung quanh (quần áo đang mặc, mũ, giẻ lau) thành 'lá chắn lọc khí cứu sinh'.\n\n2. Mục đích phát triển kĩ năng cho trẻ:\n• Kĩ năng quan sát & phân loại chất liệu: Nhận biết đặc tính thấm hút và lọc khí của chất liệu vải so với các đồ vật nhựa, gỗ, kim loại.\n• Kĩ năng giải quyết vấn đề linh hoạt (Resourcefulness): Biết tận dụng tài nguyên có sẵn trên người trong tình huống cấp bách."
-            ],
-            [
-              "9",
-              "Hoạt động cụ thể 6 (Tiết 39):\nTrò chơi 'Nguồn nước ở đâu?' & Thực hành làm ướt khăn",
-              "• Tên hoạt động: Hoạt động 3 & 4 (Tiết 39) – Tìm nguồn nước & Thực hành làm ướt đồ vải che kín mũi miệng\n• Hình thức tổ chức: Trò chơi vận động tìm thẻ tranh trong lớp kết hợp thao tác trực tiếp với vật thật\n• Tiến trình chi tiết:\n  - Xem video thử thách số 3: Đi tìm nguồn nước để làm ướt đồ vải khi không có vòi nước bồn rửa.\n  - Trẻ vận động tìm các thẻ tranh nguồn nước giấu quanh lớp học (bình nước lọc, chai nước khoáng, hộp sữa giấy, vòi nước) gắn lên bảng kết quả.\n  - Thực hành làm ướt vật thật: Giáo viên mời học sinh lên thao tác trực tiếp làm ướt khăn bằng nước trong bình, nước đóng chai và nước từ hộp sữa tươi.\n  - Hướng dẫn kĩ thuật che mũi miệng: Vắt nhẹ khăn, gấp lại và áp chặt che kín hoàn toàn cả MŨI và MIỆNG, thở chậm rãi qua lớp vải ướt.\n  - Trải nghiệm mở rộng: Cho trẻ quan sát chiếc mặt nạ chống khói chuyên dụng để nhận biết trang bị cứu hộ hiện đại.",
-              "1. Phân tích sư phạm chuyên sâu:\n• Đưa tình huống thực tế 'khan hiếm tài nguyên' vào giảng dạy. Việc cho trẻ trực tiếp rót nước từ bình, chai và hộp sữa thật vào khăn giúp hình thành kinh nghiệm cảm giác chân thực (Hands-on Experience). Trẻ hiểu rằng trong tình huống sinh tử, bất kỳ chất lỏng an toàn nào (kể cả sữa tươi) đều là cứu tinh để làm ướt khăn ngăn khói độc xâm nhập vào phổi.\n\n2. Mục đích phát triển kĩ năng cho trẻ:\n• Kĩ năng vận động tinh & thao tác phối hợp: Thao tác rót nước, nhúng khăn, vắt khăn vừa phải và áp chặt kín khít sống mũi và khóe miệng.\n• Kĩ năng ứng biến hoàn cảnh khẩn cấp: Tự tin xử lý tình huống khi không có vòi nước máy bên cạnh."
-            ],
-            [
-              "10",
-              "Hoạt động cụ thể 7 (Tiết 39):\nLuyện tập di chuyển cúi thấp người men chân tường & Diễn tập còi báo cháy",
-              "• Tên hoạt động: Hoạt động 5 & Tổng kết (Tiết 39) – Huấn luyện di chuyển thoát hiểm cúi thấp men chân tường & Diễn tập còi báo cháy thực tế\n• Hình thức tổ chức: Luyện tập vận động thực địa kết hợp kích hoạt phản xạ còi báo cháy thật\n• Tiến trình chi tiết:\n  - Huấn luyện tư thế thoát hiểm chuẩn xác: Giáo viên làm mẫu và chỉnh sửa tư thế cho học sinh: Một tay giữ chặt khăn ướt áp kín mũi miệng; Toàn bộ cơ thể cúi gập thật thấp (hoặc bò bằng đầu gối và một bàn tay sát mặt sàn) để hít thở tầng không khí sạch.\n  - Kĩ thuật dò đường men chân tường: Một bàn tay còn lại luôn đặt chạm men theo mép tường để định hướng phương hướng di chuyển trong làn khói dày, dẫn thẳng ra cửa có biển báo Exit màu xanh lá cây.\n  - Cả lớp xếp thành hàng nối đuôi nhau thực hành di chuyển cúi thấp men tường quanh phòng học ra cửa thoát hiểm.\n  - Tình huống thực chiến bất ngờ: Giáo viên bật âm thanh còi báo cháy thật của trường mầm non. Trẻ lập tức phối hợp chuỗi kĩ năng hoàn chỉnh: Giữ khăn ướt che kín mũi miệng -> Hạ thấp người bò men tường -> Nhanh chóng theo cô giáo di chuyển an toàn ra sân trường.\n  - Giáo viên tổng kết, khen ngợi và trao huy hiệu lính cứu hỏa nhí dũng cảm cho cả lớp.",
-              "1. Phân tích sư phạm chuyên sâu:\n• Luyện tập phản xạ hành vi & Thử nghiệm tích cực: Việc loại bỏ đạo cụ ống chui cồng kềnh giúp tiết học tập trung hoàn toàn vào kĩ năng cốt lõi thực tế: Cúi thấp người hạ thấp trọng tâm và sờ tay men theo chân tường để không bị lạc lối trong bóng tối. Âm thanh còi báo cháy thật chuyển hóa kiến thức trên lớp thành bản năng sinh tồn trọn đời.\n\n2. Mục đích phát triển kĩ năng cho trẻ:\n• Kĩ năng vận động thô thích ứng không gian: Duy trì tư thế bò, trườn hoặc đi khom lưng giữ thăng bằng trong khi một tay luôn phải giữ chặt khăn che mặt.\n• Kĩ năng định hướng không gian: Rèn thói quen dùng xúc giác sờ men theo bờ tường để tìm lối thoát hiểm Exit.\n• Kĩ năng quản lý cảm xúc (SEL): Giữ được sự bình tĩnh, không khóc lóc giẫm đạp lên nhau, tuân thủ kỷ luật thoát hiểm an toàn."
-            ]
-          ],
-          "sheet": "Kĩ năng phòng tránh ngạt khói"
-        }
-      ],
-      "durationMinutes": 20
-    },
-    {
       "id": "mod-mwx7zi64",
       "code": "HP07",
       "title": "Phân tích bài nhỡ 4,5: Bé tìm hiểu về mục tiêu và Bé luyện tập đặt mục tiêu&thực hiện mục tiêu",
@@ -3035,29 +2929,111 @@
       "id": "mod-mwx92vfb",
       "code": "HP09",
       "title": "Phân tích bài lớn 12: Bé học về ứng dụng của hình học trong cuộc sống tiết 1",
-      "status": "pending",
+      "status": "published",
       "authorId": "up-huongdt",
       "category": "Chuyên đề Đào tạo mới",
       "subtitle": "Bối cảnh tư vấn Chủ trường và Hiệu trưởng trường mầm non",
       "questions": [],
-      "updatedAt": "2026-11-26T07:48:39.261Z",
+      "updatedAt": "2026-11-27T06:31:06.254Z",
+      "approvedAt": "2026-11-27T06:31:06.254Z",
+      "approvedBy": "Đinh Thị Hương",
       "authorName": "Đinh Thị Hương",
-      "contentText": "",
+      "sourceFile": {
+        "name": "sale phan tich bai 12 lon moi.xlsx",
+        "type": "xlsx"
+      },
+      "contentText": "=== SHEET: Ung dung hinh hoc - Banh xe ===\nBÀI 2: BÉ HỌC VỀ ỨNG DỤNG CỦA HÌNH HỌC TRONG CUỘC SỐNG - TIẾT 1 (TIẾT 12)\nKhung chương trình 72 tiết - Khối Mẫu giáo Lớn (5 - 6 tuổi) | Bản Phân Tích Chuyên Môn Rút Gọn Cho Sale\nPHẦN I: HỒ SƠ CHUYÊN MÔN RÚT GỌN & LUẬN ĐIỂM TƯ VẤN THỰC CHIẾN (DÀNH CHO SALE)\nSTT\nHạng mục chuyên môn\nNội dung triển khai thực tế\nCăn cứ sư phạm & Mục đích kĩ năng\n1\nThông tin chung\n• Tên bài học: Bé học về ứng dụng của hình học trong cuộc sống (Tiết 1) – Khám phá bánh xe hình tròn.\n• Mã bài học: MGL25-07 (Tiết 12 – Khối Mẫu giáo Lớn 5 – 6 tuổi).\n• Nhóm kĩ năng: Tư duy khoa học STEAM & Kĩ năng thuyết trình tự tin.\n• Thời lượng: 30 – 35 phút/tiết.\n• Nhân vật & Bối cảnh: Sao Nova, Su, Liam; Cỗ xe ngựa của Hoàng tử Vương quốc Hạnh phúc bị sự cố thiếu bánh xe.\n• Học liệu nền tảng: Phần mềm KNS Novastars (material=473), bục Ngôi sao thuyết trình dán sàn, Bảng sao thưởng.\n• Dạng hoạt động:\n  Khởi động & Nhận diện ➔ Thảo luận giải quyết vấn đề (PBL) ➔ Thực nghiệm khoa học mô phỏng ➔ Thuyết trình giải pháp ➔ Tổng kết & Chuyển giao\n• Mục tiêu cốt lõi: Nhận diện và phân biệt 4 hình học cơ bản (tròn, vuông, tam giác, chữ nhật); hiểu bản chất khoa học hình tròn cong đều, không góc cạnh nên lăn nhanh và êm nhất để ứng dụng làm bánh xe; làm chủ 5 cử chỉ phi ngôn từ (Dáng thẳng, Mắt nhìn, Miệng cười, Tay vẫy, Giọng to) và tự tin thuyết trình giải pháp trước đám đông theo mẫu câu 4 vế chuẩn.\nLà Bài dạy tiêu biểu của Khối Lớn trong Gói Chuyển giao Mầm non Novastars, tiên phong ứng dụng mô hình STEAM tích hợp Dạy học giải quyết vấn đề (Problem-Based Learning - PBL).\n\nBiến kiến thức hình học trừu tượng thành ứng dụng đời sống sinh động; khơi dậy niềm say mê nghiên cứu khoa học, rèn luyện tư duy logic, năng lực quan sát đối chứng và rèn bản lĩnh tự tin nói trước đám đông của một \"diễn giả nhí\" chuẩn bị bước vào lớp 1.\n2\nHoạt động cụ thể 1:\nKhởi động & Game 'Truy tìm đồ vật'\nTrẻ tương tác chạm trực tiếp trên màn hình cảm ứng, nhanh tay phát hiện và gọi tên các đồ vật quen thuộc (đồng hồ, khung tranh, mái nhà, phong bì) để nhận diện và ôn tập chính xác 4 hình học cơ bản: tròn, vuông, tam giác, chữ nhật.\nÁp dụng Trò chơi hóa (Gamification) giúp kích hoạt phản xạ thị giác và hứng thú học tập đầu giờ; chuyển hóa việc ôn tập hình học khô khan thành trò chơi tìm kiếm hấp dẫn, tạo tâm thế tự tin và sẵn sàng bước vào bài học.\nHoạt động cụ thể 2:\nThảo luận điểm vô lý ở Vương quốc\nTrẻ theo dõi hoạt cảnh 3D cỗ xe ngựa của Hoàng tử bị đứng im, cùng cô đàm thoại phát hiện ra điểm bất thường cỗ xe thiếu bánh và hào hứng nhận nhiệm vụ tìm bánh xe giúp cỗ xe lăn bánh.\nTạo xung đột nhận thức (Cognitive Dissonance) và áp dụng Dạy học giải quyết vấn đề (PBL); biến trẻ từ người quan sát thụ động thành \"nhà điều tra nhí\" tháo gỡ sự cố, rèn tư duy phản biện và khả năng phát hiện vấn đề trong đời sống.\nHoạt động cụ thể 3:\nQuan sát thí nghiệm 'Bánh xe nào lăn nhanh?'\nTrẻ đưa ra dự đoán và quan sát video thí nghiệm thả 3 cỗ xe (bánh tròn, vuông, tam giác) trên dốc, thấy rõ xe bánh tròn lăn xa nhất và cùng cô rút ra kết luận: hình tròn cong đều, không góc cạnh nên lăn trơn tru nhất.\nỨng dụng Thực nghiệm mô phỏng số (Simulated Science) chuẩn xác 100% mà không cần chuẩn bị đồ dùng thủ công cồng kềnh; rèn trọn vẹn chu trình khoa học (Dự đoán ➔ Quan sát đối chứng ➔ Rút ra quy luật), giúp trẻ hiểu sâu bản chất vật lý của chuyển động tròn.\nHoạt động cụ thể 4:\nThuyết trình giải pháp trên 'Ngôi sao'\nTrẻ luyện tập bộ 5 cử chỉ phi ngôn từ cùng bạn Su, sau đó tự tin bước lên bục Ngôi sao thuyết trình giữa lớp để nói to, rõ ràng giải pháp chọn bánh xe hình tròn theo mẫu câu 4 vế chuẩn.\nPhương pháp Phân rã kỹ năng (Skill Scaffolding) kết hợp đạo cụ Neo tâm lý \"Ngôi sao thuyết trình\" tôn vinh trẻ; giúp trẻ 5 tuổi làm chủ ngôn ngữ cơ thể, xóa bỏ hoàn toàn rào cản sợ sân khấu và hình thành phong thái diễn giả nhí tự tin trước khi vào tiểu học.\nHoạt động cụ thể 5:\nTổng kết ứng dụng hình học\nTrẻ hào hứng theo dõi cỗ xe ngựa lắp bánh tròn bon bon chạy, lắng nghe Sao Nova tổng kết các loại phương tiện dùng bánh tròn, nhận Sao thưởng Nova và nhận nhiệm vụ về nhà quan sát bánh xe để kể cho bố mẹ.\nKhép kín Chu trình học tập trải nghiệm Kolb; kết nối tri thức lớp học với đời sống thực tế gia đình, duy trì thói quen quan sát thế giới xung quanh và tạo cầu nối gắn kết chia sẻ tự hào giữa trẻ và cha mẹ.\n3\nKhái quát bài học &\nĐiểm sáng tư vấn Sale\n• Bài học giúp học sinh: Chuyển dịch nhận thức từ \"nhận biết hình vẽ tĩnh trên giấy\" sang \"khám phá bản chất vật lý và ứng dụng thực tiễn của hình học\" (hình tròn cong đều, không góc cạnh nên lăn nhanh và êm nhất, ứng dụng làm bánh xe các phương tiện giao thông); đồng thời làm chủ chuỗi 5 cử chỉ phi ngôn từ (Dáng đứng thẳng - Mắt nhìn - Miệng cười - Tay vẫy chào - Giọng nói to) kết hợp cấu trúc thuyết trình 4 vế chuẩn mực.\n\n• Novastars thấu hiểu tâm lý lứa tuổi 5 – 6 tuổi: Trẻ chuẩn bị bước vào lớp 1 có nhu cầu khẳng định bản thân rất mạnh mẽ và khả năng tư duy trừu tượng, logic đang phát triển vượt bậc. Novastars biến tiết học thành cuộc phiêu lưu STEAM kỳ thú, xen kẽ nhịp nhàng giữa tương tác công nghệ, đàm thoại tư duy và thực hành sân khấu. Việc số hóa toàn bộ thí nghiệm vật lý trên nền tảng WebGL giúp hiện tượng ma sát góc cạnh trở nên trực quan 100%, kết hợp đạo cụ \"Ngôi sao thuyết trình\" tôn vinh trẻ như một diễn giả thực thụ, xóa bỏ hoàn toàn nỗi e dè, ngượng ngùng trước đám đông.\nĐIỂM SÁNG TƯ VẤN:\n\n1. Đột phá STEAM & Giải quyết vấn đề (PBL): Nâng cấp tiết học tạo hình/toán học đơn điệu thành chuyên đề khoa học ứng dụng đẳng cấp; chứng minh cho phụ huynh thấy trường đang áp dụng phương pháp giáo dục hiện đại hàng đầu.\n\n2. Bệ phóng kỹ năng Tiền tiểu học số 1: Trực tiếp giải quyết trăn trở lớn nhất của phụ huynh có con 5 tuổi: rèn bản lĩnh tự tin nói trước công chúng, khả năng biểu đạt mạch lạc và phong thái đĩnh đạc khi bước vào lớp 1.\n\n3. Đạo cụ biết nói & Hiệu ứng lan tỏa (Word-of-Mouth): Bục \"Ngôi sao thuyết trình\" và Sao thưởng Nova tạo trải nghiệm vinh danh đáng nhớ; trẻ hào hứng về nhà đố bố mẹ về bánh xe tròn, tạo \"bằng chứng sống\" thuyết phục phụ huynh về chất lượng đào tạo của trường.\n\n4. Giải pháp EdTech \"Chìa khóa trao tay\": Số hóa 100% thí nghiệm khoa học chuẩn xác, giáo viên không cần chuẩn bị mô hình cơ học cồng kềnh, dễ gãy hỏng; chỉ cần bật phần mềm là có ngay một tiết dạy mẫu (Open Day) xuất sắc, đạt chuẩn tuyển sinh.",
       "passThreshold": 80,
       "summaryPoints": [
-        "Luận điểm trọng tâm 1 cần nhớ khi tư vấn Chủ trường / Hiệu trưởng.",
-        "Luận điểm trọng tâm 2 về điểm khác biệt của chương trình Novastars."
+        "BÀI 2: BÉ HỌC VỀ ỨNG DỤNG CỦA HÌNH HỌC TRONG CUỘC SỐNG - TIẾT 1 (TIẾT 12)",
+        "Khung chương trình 72 tiết - Khối Mẫu giáo Lớn (5 - 6 tuổi) | Bản Phân Tích Chuyên Môn Rút Gọn Cho Sale",
+        "PHẦN I: HỒ SƠ CHUYÊN MÔN RÚT GỌN & LUẬN ĐIỂM TƯ VẤN THỰC CHIẾN (DÀNH CHO SALE)",
+        "Nội dung triển khai thực tế (Cô đọng)",
+        "Căn cứ sư phạm & Mục đích kĩ năng (Kẹp Sale)"
       ],
-      "uploadedTables": [],
+      "structuredType": "",
+      "uploadedTables": [
+        {
+          "rows": [
+            [
+              "BÀI 2: BÉ HỌC VỀ ỨNG DỤNG CỦA HÌNH HỌC TRONG CUỘC SỐNG - TIẾT 1 (TIẾT 12)",
+              "",
+              "",
+              ""
+            ],
+            [
+              "Khung chương trình 72 tiết - Khối Mẫu giáo Lớn (5 - 6 tuổi) | Bản Phân Tích Chuyên Môn Rút Gọn Cho Sale",
+              "",
+              "",
+              ""
+            ],
+            [
+              "PHẦN I: HỒ SƠ CHUYÊN MÔN RÚT GỌN & LUẬN ĐIỂM TƯ VẤN THỰC CHIẾN (DÀNH CHO SALE)",
+              "",
+              "",
+              ""
+            ],
+            [
+              "STT",
+              "Hạng mục chuyên môn",
+              "Nội dung triển khai thực tế (Cô đọng)",
+              "Căn cứ sư phạm & Mục đích kĩ năng (Kẹp Sale)"
+            ],
+            [
+              "1",
+              "Thông tin chung",
+              "• Tên bài học: Bé học về ứng dụng của hình học trong cuộc sống (Tiết 1) – Khám phá bánh xe hình tròn.\r\n• Mã bài học: MGL25-07 (Tiết 12 – Khối Mẫu giáo Lớn 5 – 6 tuổi).\r\n• Nhóm kĩ năng: Tư duy khoa học STEAM & Kĩ năng thuyết trình tự tin.\r\n• Thời lượng: 30 – 35 phút/tiết.\r\n• Nhân vật & Bối cảnh: Sao Nova, Su, Liam; Cỗ xe ngựa của Hoàng tử Vương quốc Hạnh phúc bị sự cố thiếu bánh xe.\r\n• Học liệu nền tảng: Phần mềm KNS Novastars (material=473), bục Ngôi sao thuyết trình dán sàn, Bảng sao thưởng.\r\n• Dạng hoạt động:\r\n  Khởi động & Nhận diện ➔ Thảo luận giải quyết vấn đề (PBL) ➔ Thực nghiệm khoa học mô phỏng ➔ Thuyết trình giải pháp ➔ Tổng kết & Chuyển giao\r\n• Mục tiêu cốt lõi: Nhận diện và phân biệt 4 hình học cơ bản (tròn, vuông, tam giác, chữ nhật); hiểu bản chất khoa học hình tròn cong đều, không góc cạnh nên lăn nhanh và êm nhất để ứng dụng làm bánh xe; làm chủ 5 cử chỉ phi ngôn từ (Dáng thẳng, Mắt nhìn, Miệng cười, Tay vẫy, Giọng to) và tự tin thuyết trình giải pháp trước đám đông theo mẫu câu 4 vế chuẩn.",
+              "Là Bài dạy tiêu biểu của Khối Lớn trong Gói Chuyển giao Mầm non Novastars, tiên phong ứng dụng mô hình STEAM tích hợp Dạy học giải quyết vấn đề (Problem-Based Learning - PBL).\r\n\r\nBiến kiến thức hình học trừu tượng thành ứng dụng đời sống sinh động; khơi dậy niềm say mê nghiên cứu khoa học, rèn luyện tư duy logic, năng lực quan sát đối chứng và rèn bản lĩnh tự tin nói trước đám đông của một \"diễn giả nhí\" chuẩn bị bước vào lớp 1."
+            ],
+            [
+              "2",
+              "Hoạt động cụ thể 1:\r\nKhởi động & Game 'Truy tìm đồ vật'",
+              "Trẻ tương tác chạm trực tiếp trên màn hình cảm ứng, nhanh tay phát hiện và gọi tên các đồ vật quen thuộc (đồng hồ, khung tranh, mái nhà, phong bì) để nhận diện và ôn tập chính xác 4 hình học cơ bản: tròn, vuông, tam giác, chữ nhật.",
+              "Áp dụng Trò chơi hóa (Gamification) giúp kích hoạt phản xạ thị giác và hứng thú học tập đầu giờ; chuyển hóa việc ôn tập hình học khô khan thành trò chơi tìm kiếm hấp dẫn, tạo tâm thế tự tin và sẵn sàng bước vào bài học."
+            ],
+            [
+              "",
+              "Hoạt động cụ thể 2:\r\nThảo luận điểm vô lý ở Vương quốc",
+              "Trẻ theo dõi hoạt cảnh 3D cỗ xe ngựa của Hoàng tử bị đứng im, cùng cô đàm thoại phát hiện ra điểm bất thường cỗ xe thiếu bánh và hào hứng nhận nhiệm vụ tìm bánh xe giúp cỗ xe lăn bánh.",
+              "Tạo xung đột nhận thức (Cognitive Dissonance) và áp dụng Dạy học giải quyết vấn đề (PBL); biến trẻ từ người quan sát thụ động thành \"nhà điều tra nhí\" tháo gỡ sự cố, rèn tư duy phản biện và khả năng phát hiện vấn đề trong đời sống."
+            ],
+            [
+              "",
+              "Hoạt động cụ thể 3:\r\nQuan sát thí nghiệm 'Bánh xe nào lăn nhanh?'",
+              "Trẻ đưa ra dự đoán và quan sát video thí nghiệm thả 3 cỗ xe (bánh tròn, vuông, tam giác) trên dốc, thấy rõ xe bánh tròn lăn xa nhất và cùng cô rút ra kết luận: hình tròn cong đều, không góc cạnh nên lăn trơn tru nhất.",
+              "Ứng dụng Thực nghiệm mô phỏng số (Simulated Science) chuẩn xác 100% mà không cần chuẩn bị đồ dùng thủ công cồng kềnh; rèn trọn vẹn chu trình khoa học (Dự đoán ➔ Quan sát đối chứng ➔ Rút ra quy luật), giúp trẻ hiểu sâu bản chất vật lý của chuyển động tròn."
+            ],
+            [
+              "",
+              "Hoạt động cụ thể 4:\r\nThuyết trình giải pháp trên 'Ngôi sao'",
+              "Trẻ luyện tập bộ 5 cử chỉ phi ngôn từ cùng bạn Su, sau đó tự tin bước lên bục Ngôi sao thuyết trình giữa lớp để nói to, rõ ràng giải pháp chọn bánh xe hình tròn theo mẫu câu 4 vế chuẩn.",
+              "Phương pháp Phân rã kỹ năng (Skill Scaffolding) kết hợp đạo cụ Neo tâm lý \"Ngôi sao thuyết trình\" tôn vinh trẻ; giúp trẻ 5 tuổi làm chủ ngôn ngữ cơ thể, xóa bỏ hoàn toàn rào cản sợ sân khấu và hình thành phong thái diễn giả nhí tự tin trước khi vào tiểu học."
+            ],
+            [
+              "",
+              "Hoạt động cụ thể 5:\r\nTổng kết ứng dụng hình học",
+              "Trẻ hào hứng theo dõi cỗ xe ngựa lắp bánh tròn bon bon chạy, lắng nghe Sao Nova tổng kết các loại phương tiện dùng bánh tròn, nhận Sao thưởng Nova và nhận nhiệm vụ về nhà quan sát bánh xe để kể cho bố mẹ.",
+              "Khép kín Chu trình học tập trải nghiệm Kolb; kết nối tri thức lớp học với đời sống thực tế gia đình, duy trì thói quen quan sát thế giới xung quanh và tạo cầu nối gắn kết chia sẻ tự hào giữa trẻ và cha mẹ."
+            ],
+            [
+              "3",
+              "Khái quát bài học &\r\nĐiểm sáng tư vấn Sale",
+              "• Bài học giúp học sinh: Chuyển dịch nhận thức từ \"nhận biết hình vẽ tĩnh trên giấy\" sang \"khám phá bản chất vật lý và ứng dụng thực tiễn của hình học\" (hình tròn cong đều, không góc cạnh nên lăn nhanh và êm nhất, ứng dụng làm bánh xe các phương tiện giao thông); đồng thời làm chủ chuỗi 5 cử chỉ phi ngôn từ (Dáng đứng thẳng - Mắt nhìn - Miệng cười - Tay vẫy chào - Giọng nói to) kết hợp cấu trúc thuyết trình 4 vế chuẩn mực.\r\n\r\n• Novastars thấu hiểu tâm lý lứa tuổi 5 – 6 tuổi: Trẻ chuẩn bị bước vào lớp 1 có nhu cầu khẳng định bản thân rất mạnh mẽ và khả năng tư duy trừu tượng, logic đang phát triển vượt bậc. Novastars biến tiết học thành cuộc phiêu lưu STEAM kỳ thú, xen kẽ nhịp nhàng giữa tương tác công nghệ, đàm thoại tư duy và thực hành sân khấu. Việc số hóa toàn bộ thí nghiệm vật lý trên nền tảng WebGL giúp hiện tượng ma sát góc cạnh trở nên trực quan 100%, kết hợp đạo cụ \"Ngôi sao thuyết trình\" tôn vinh trẻ như một diễn giả thực thụ, xóa bỏ hoàn toàn nỗi e dè, ngượng ngùng trước đám đông.",
+              "ĐIỂM SÁNG TƯ VẤN:\r\n\r\n1. Đột phá STEAM & Giải quyết vấn đề (PBL): Nâng cấp tiết học tạo hình/toán học đơn điệu thành chuyên đề khoa học ứng dụng đẳng cấp; chứng minh cho phụ huynh thấy trường đang áp dụng phương pháp giáo dục hiện đại hàng đầu.\r\n\r\n2. Bệ phóng kỹ năng Tiền tiểu học số 1: Trực tiếp giải quyết trăn trở lớn nhất của phụ huynh có con 5 tuổi: rèn bản lĩnh tự tin nói trước công chúng, khả năng biểu đạt mạch lạc và phong thái đĩnh đạc khi bước vào lớp 1.\r\n\r\n3. Đạo cụ biết nói & Hiệu ứng lan tỏa (Word-of-Mouth): Bục \"Ngôi sao thuyết trình\" và Sao thưởng Nova tạo trải nghiệm vinh danh đáng nhớ; trẻ hào hứng về nhà đố bố mẹ về bánh xe tròn, tạo \"bằng chứng sống\" thuyết phục phụ huynh về chất lượng đào tạo của trường.\r\n\r\n4. Giải pháp EdTech \"Chìa khóa trao tay\": Số hóa 100% thí nghiệm khoa học chuẩn xác, giáo viên không cần chuẩn bị mô hình cơ học cồng kềnh, dễ gãy hỏng; chỉ cần bật phần mềm là có ngay một tiết dạy mẫu (Open Day) xuất sắc, đạt chuẩn tuyển sinh."
+            ]
+          ],
+          "sheet": "Ung dung hinh hoc - Banh xe"
+        }
+      ],
       "durationMinutes": 20
     },
     {
       "id": "mod-05-ptbaihay-kb",
       "code": "HP05",
-      "title": "Phân tích nội dung hay các khối: Kĩ năng phòng tránh ngạt khói & Vui chơi an toàn dưới nắng",
+      "title": "Phân tích bài bé 38,39: Bé nhận diện nguy hiểm bằng các giác quan và kĩ năng bảo vệ bản thân khi xảy ra hỏa hoạn\"",
       "status": "published",
       "authorId": "up-huongdt",
-      "category": "Phân tích Bài học Tiêu biểu",
+      "category": "Tài liệu Đào tạo",
       "subtitle": "Khung chương trình 72 tiết - Khối Mẫu giáo Bé (3 - 4 tuổi) | Phân tích chuyên môn & Mục đích kĩ năng",
       "questions": [
         {
@@ -3341,7 +3317,9 @@
           "categoryLabel": "4. Xử lý tình huống"
         }
       ],
-      "updatedAt": "2026-11-26T07:54:00.166Z",
+      "updatedAt": "2026-11-27T06:35:22.399Z",
+      "approvedAt": "2026-11-27T06:35:22.399Z",
+      "approvedBy": "Đinh Thị Hương",
       "authorName": "Đinh Thị Hương",
       "sourceFile": {
         "name": "Sale-ptbaihay-KB.xlsx",
@@ -3641,23 +3619,206 @@
     {
       "id": "mod-mwyg98f2-i3b",
       "code": "HP12",
-      "title": "Học phần mới HP12: Tài liệu Đào tạo",
+      "title": "Phân tích bài lớn 62: Bé học cách sắp xếp sách vở gọn gàng",
       "status": "published",
       "authorId": "up-huongdt",
       "category": "Chuyên đề Đào tạo mới",
       "subtitle": "Bối cảnh tư vấn Chủ trường và Hiệu trưởng trường mầm non",
       "questions": [],
-      "updatedAt": "2026-11-27T03:56:52.768Z",
+      "updatedAt": "2026-11-27T06:29:20.504Z",
       "approvedAt": "2026-11-27T03:56:52.768Z",
       "approvedBy": "Đinh Thị Hương",
       "authorName": "Đinh Thị Hương",
-      "contentText": "",
+      "sourceFile": {
+        "name": "sale phan tich bai 62 lon moi.xlsx",
+        "type": "xlsx"
+      },
+      "contentText": "=== SHEET: Sắp xếp sách vở gọn gàng ===\nBÀI 1: BÉ HỌC CÁCH SẮP XẾP SÁCH, VỞ GỌN GÀNG (TIẾT 62)\nKhung chương trình 72 tiết - Khối Mẫu giáo Lớn (5 – 6 tuổi) | Bản Phân Tích Chuyên Môn Rút Gọn Cho Sale\nPHẦN I: HỒ SƠ CHUYÊN MÔN RÚT GỌN & LUẬN ĐIỂM TƯ VẤN THỰC CHIẾN (DÀNH CHO SALE)\nSTT\nHạng mục chuyên môn\nNội dung triển khai thực tế (Cô đọng)\nCăn cứ sư phạm & Mục đích kĩ năng (Kẹp Sale)\n1\nThông tin chung\n• Tên bài học: Bé học cách sắp xếp sách, vở gọn gàng\n• Mã tiết: Tiết 62 (Khung 72 tiết CGMN, MGL 29)\n• Khối lớp: Mẫu giáo Lớn (5 – 6 tuổi) | Thời lượng: 30 – 35 phút\n• Nhân vật & Bối cảnh: Sao Nova, Su, Liam; góc học tập với ba lô và sách vở lớp 1\n• Học liệu nền tảng: Phần mềm KNS Novastars; 05 bộ ba lô và sách giáo khoa tiểu học thật\n• Dạng hoạt động:\n  Khởi động ➔ Thảo luận ➔ Hướng dẫn thao tác ➔ Thực hành trải nghiệm ➔ Tổng kết\n• Mục tiêu cốt lõi: Hiểu rõ lý do cốt lõi cần xếp sách vở ngăn nắp để bảo vệ sách không bị quăn mép, rách nát và chống gù lưng, lệch cột sống; nằm lòng và thực hành thuần thục quy trình khoa học 3 bước (xoay cùng chiều gáy, xếp từ to đến nhỏ, áp sát sách to vào vách lưng ba lô, kéo khóa cẩn thận); hình thành thói quen tự giác sắp xếp và kiểm tra đồ dùng học tập độc lập mỗi tối.\nLà Bài dạy tiêu biểu của Khối Lớn trong Gói Chuyển giao Mầm non Novastars. Ứng dụng phương pháp Dạy học qua phân tích lỗi sai (Error-Based Learning), Phân rã hành vi (Task Analysis) và Học qua trải nghiệm trực tiếp (Experiential Learning). Giải quyết triệt để rào cản tâm lý ỷ lại vào cha mẹ và \"nỗi đau chuyển cấp\" mầm non lên tiểu học (School Readiness).\n\nĐặt nền móng xây dựng tính tự lập 100%, kỷ luật tự giác và ý thức trân trọng, giữ gìn tài sản cá nhân; đồng thời ứng dụng công thái học học đường để bảo vệ hệ xương khớp, chống gù lưng và lệch vai cho trẻ khi bước vào lớp 1.\n2\nHoạt động cụ thể 1:\nKhởi động & Đặt vấn đề tình huống\nTrẻ xem video bạn nhỏ muộn học vì ba lô bừa bộn làm quăn mép rách sách, cùng cô đàm thoại tìm ra nguyên nhân và hào hứng nhận thử thách rèn luyện ngăn nắp.\nĐánh thức nhận thức rủi ro (Emotional Hook): Dùng tình huống thực tế tạo điểm chạm cảm xúc gần gũi, giúp trẻ 5 tuổi tự nhận ra hậu quả của sự bừa bộn; chuyển trạng thái từ tự do sang tập trung có chủ đích, khơi dậy khát khao khẳng định mình là \"học sinh lớn\" tự lập.\nHoạt động cụ thể 2:\nThảo luận đối chiếu & Nhận diện lỗi sai\nTrẻ quan sát màn hình so sánh 2 chiếc ba lô bừa bộn vs ngay ngắn, chỉ ra các điểm bất hợp lý và cùng cô phân tích tác hại hỏng sách và gù lưng vẹo cột sống.\nDạy học qua phân tích lỗi sai (Error-Based Learning): Trực quan hóa đối chiếu Đúng – Sai giúp trẻ tự tư duy nguyên nhân và hậu quả mà không bị áp đặt lý thuyết một chiều; rèn tư duy phản biện sắc bén và nhận thức công thái học bảo vệ sức khỏe học đường.\nHoạt động cụ thể 3:\nHướng dẫn quy trình chuẩn 3 bước\nTrẻ quan sát cô thị phạm quy trình 3 bước gồm xoay cùng chiều gáy, xếp từ to đến nhỏ, áp sát sách to vào lưng ba lô và đồng thanh làm động tác tay mô phỏng.\nPhân rã hành vi (Task Analysis & Explicit Instruction): Chuẩn hóa hành vi phức tạp thành 3 bước logic, ngắn gọn, chuẩn hóa thao tác tay phù hợp năng lực tiếp thu của trẻ 5-6 tuổi; gắn liền nguyên lý công thái học; rèn vận động tinh (miết mép, so cạnh, kéo khóa) và tư duy sắp xếp theo kích thước.\nHoạt động cụ thể 4:\nThực hành nhóm trải nghiệm vật thật\nTrẻ chia 5 nhóm thi đua trực tiếp sắp xếp bộ sách giáo khoa lớp 1 thật vào 5 ba lô học sinh theo chuẩn 3 bước, đeo thử kiểm tra độ êm và nhận Sao thưởng Novastars.\nHọc qua trải nghiệm thực tế (Experiential Learning): Trực tiếp thao tác với ba lô và sách vở tiểu học thật giúp trẻ hình thành trí nhớ cơ bắp (Muscle Memory) và phản xạ tự giác; rèn kĩ năng tự phục vụ thực chiến, tinh thần làm việc nhóm và tạo sự kiêu hãnh làm chủ đồ dùng học tập trước khi vào lớp 1.\n3\nKhái quát bài học &\nĐiểm sáng tư vấn Sale\n• Bài học giúp học sinh: Hiểu rõ lý do cốt lõi cần sắp xếp sách vở ngăn nắp là để sách không bị quăn mép, rách nát và bảo vệ cột sống; nắm vững và thuần thục QUY TRÌNH 3 BƯỚC sắp xếp sách vở vào ba lô gồm xoay cùng chiều gáy, xếp chồng từ to đến nhỏ, cho sách to áp sát vách lưng ba lô, sách nhỏ vào sau và kéo khóa cẩn thận; đạt chuẩn 80% trẻ tự thực hiện độc lập mà không cần người lớn hỗ trợ, hình thành thói quen tự kiểm tra ba lô mỗi tối trước khi đi ngủ.\n\n• Novastars thấu hiểu tâm lý lứa tuổi 5 – 6 tuổi: Trẻ chuẩn bị vào lớp 1 đang ở giai đoạn phát triển nhận thức vượt bậc và khát khao khẳng định mình là \"học sinh lớn\", độc lập khỏi cha mẹ. Thay vì để phụ huynh dặn dò chung chung hoặc quát mắng con bừa bộn, bài học đánh trúng tâm lý tự hào này bằng cách quy trình hóa thao tác thành công thức 3 bước khoa học, trực quan, cho 100% trẻ được trực tiếp trải nghiệm thi đua trên 5 bộ ba lô và sách giáo khoa lớp 1 thật. Điều này biến việc soạn sách vở từ một nghĩa vụ mệt mỏi thành một trải nghiệm thú vị, khơi dậy niềm tự hào học tập và xóa bỏ hoàn toàn nỗi bỡ ngỡ, lo âu khi bước vào môi trường tiểu học mới.\nĐIỂM SÁNG TƯ VẤN:\n\n1. Giải quyết triệt để \"Nỗi đau chuyển cấp\" (School Readiness): Các trường mầm non hiện nay đa phần chỉ tập trung dạy chữ và toán tiền tiểu học mà bỏ quên kĩ năng tự phục vụ; Novastars giải quyết đúng mắt xích yếu nhất của trẻ 5-6 tuổi, giúp trẻ hình thành phản xạ tự lập 100%, không còn ỷ lại cha mẹ, tạo ấn tượng vượt trội về chất lượng giáo dục toàn diện của nhà trường đối với phụ huynh.\n\n2. Đạo cụ biết nói & Trí nhớ cơ bắp (Experiential Tooling): Không dạy \"chay\" qua hình ảnh, Novastars bàn giao trọn gói 05 bộ ba lô học sinh và sách vở tiểu học thật vào lớp học. Việc 100% trẻ được chạm tay nắn nót, miết từng mép sách, kéo khóa ba lô thật giúp hình thành trí nhớ cơ bắp (Muscle Memory) – biến thao tác thành phản xạ tự nhiên ăn sâu vào tiềm thức.\n\n3. Công thái học học đường & Rèn vận động tinh: Đột phá bằng việc tích hợp nguyên lý bảo vệ cột sống học đường (sách to áp sát vách lưng ba lô giúp phân bổ trọng lượng ôm sát cơ thể, chống gù lưng và lệch vai) cùng kỹ năng vận động tinh (miết mép, so cạnh, kéo khóa) – nền tảng then chốt bổ trợ trực tiếp cho kĩ năng cầm bút viết chữ đẹp của trẻ ở lớp 1.\n\n4. \"Bằng chứng sống\" tự lập – Marketing tuyển sinh đắt giá: Trẻ về nhà tự giác mở ba lô, tự xếp sách vở phẳng phiu trước khi đi ngủ mà không cần bố mẹ giục. Sự thay đổi thần kỳ này chính là \"bằng chứng sống\" thuyết phục nhất để phụ huynh truyền miệng (Word-of-Mouth), giúp nhà trường tổ chức các buổi học thử (Demo Class / Open Day) bùng nổ, gia tăng tỷ lệ chốt phụ huynh đăng ký vào trường.",
       "passThreshold": 80,
       "summaryPoints": [
-        "Luận điểm trọng tâm 1 cần nhớ khi tư vấn Chủ trường / Hiệu trưởng.",
-        "Luận điểm trọng tâm 2 về điểm khác biệt của chương trình Novastars."
+        "BÀI 1: BÉ HỌC CÁCH SẮP XẾP SÁCH, VỞ GỌN GÀNG (TIẾT 62)",
+        "Khung chương trình 72 tiết - Khối Mẫu giáo Lớn (5 – 6 tuổi) | Bản Phân Tích Chuyên Môn Rút Gọn Cho Sale",
+        "PHẦN I: HỒ SƠ CHUYÊN MÔN RÚT GỌN & LUẬN ĐIỂM TƯ VẤN THỰC CHIẾN (DÀNH CHO SALE)",
+        "Nội dung triển khai thực tế (Cô đọng)",
+        "Căn cứ sư phạm & Mục đích kĩ năng (Kẹp Sale)"
       ],
-      "uploadedTables": [],
+      "structuredType": "",
+      "uploadedTables": [
+        {
+          "rows": [
+            [
+              "BÀI 1: BÉ HỌC CÁCH SẮP XẾP SÁCH, VỞ GỌN GÀNG (TIẾT 62)",
+              "",
+              "",
+              ""
+            ],
+            [
+              "Khung chương trình 72 tiết - Khối Mẫu giáo Lớn (5 – 6 tuổi) | Bản Phân Tích Chuyên Môn Rút Gọn Cho Sale",
+              "",
+              "",
+              ""
+            ],
+            [
+              "PHẦN I: HỒ SƠ CHUYÊN MÔN RÚT GỌN & LUẬN ĐIỂM TƯ VẤN THỰC CHIẾN (DÀNH CHO SALE)",
+              "",
+              "",
+              ""
+            ],
+            [
+              "STT",
+              "Hạng mục chuyên môn",
+              "Nội dung triển khai thực tế (Cô đọng)",
+              "Căn cứ sư phạm & Mục đích kĩ năng (Kẹp Sale)"
+            ],
+            [
+              "1",
+              "Thông tin chung",
+              "• Tên bài học: Bé học cách sắp xếp sách, vở gọn gàng\r\n• Mã tiết: Tiết 62 (Khung 72 tiết CGMN, MGL 29)\r\n• Khối lớp: Mẫu giáo Lớn (5 – 6 tuổi) | Thời lượng: 30 – 35 phút\r\n• Nhân vật & Bối cảnh: Sao Nova, Su, Liam; góc học tập với ba lô và sách vở lớp 1\r\n• Học liệu nền tảng: Phần mềm KNS Novastars; 05 bộ ba lô và sách giáo khoa tiểu học thật\r\n• Dạng hoạt động:\r\n  Khởi động ➔ Thảo luận ➔ Hướng dẫn thao tác ➔ Thực hành trải nghiệm ➔ Tổng kết\r\n• Mục tiêu cốt lõi: Hiểu rõ lý do cốt lõi cần xếp sách vở ngăn nắp để bảo vệ sách không bị quăn mép, rách nát và chống gù lưng, lệch cột sống; nằm lòng và thực hành thuần thục quy trình khoa học 3 bước (xoay cùng chiều gáy, xếp từ to đến nhỏ, áp sát sách to vào vách lưng ba lô, kéo khóa cẩn thận); hình thành thói quen tự giác sắp xếp và kiểm tra đồ dùng học tập độc lập mỗi tối.",
+              "Là Bài dạy tiêu biểu của Khối Lớn trong Gói Chuyển giao Mầm non Novastars. Ứng dụng phương pháp Dạy học qua phân tích lỗi sai (Error-Based Learning), Phân rã hành vi (Task Analysis) và Học qua trải nghiệm trực tiếp (Experiential Learning). Giải quyết triệt để rào cản tâm lý ỷ lại vào cha mẹ và \"nỗi đau chuyển cấp\" mầm non lên tiểu học (School Readiness).\r\n\r\nĐặt nền móng xây dựng tính tự lập 100%, kỷ luật tự giác và ý thức trân trọng, giữ gìn tài sản cá nhân; đồng thời ứng dụng công thái học học đường để bảo vệ hệ xương khớp, chống gù lưng và lệch vai cho trẻ khi bước vào lớp 1."
+            ],
+            [
+              "2",
+              "Hoạt động cụ thể 1:\r\nKhởi động & Đặt vấn đề tình huống",
+              "Trẻ xem video bạn nhỏ muộn học vì ba lô bừa bộn làm quăn mép rách sách, cùng cô đàm thoại tìm ra nguyên nhân và hào hứng nhận thử thách rèn luyện ngăn nắp.",
+              "Đánh thức nhận thức rủi ro (Emotional Hook): Dùng tình huống thực tế tạo điểm chạm cảm xúc gần gũi, giúp trẻ 5 tuổi tự nhận ra hậu quả của sự bừa bộn; chuyển trạng thái từ tự do sang tập trung có chủ đích, khơi dậy khát khao khẳng định mình là \"học sinh lớn\" tự lập."
+            ],
+            [
+              "",
+              "Hoạt động cụ thể 2:\r\nThảo luận đối chiếu & Nhận diện lỗi sai",
+              "Trẻ quan sát màn hình so sánh 2 chiếc ba lô bừa bộn vs ngay ngắn, chỉ ra các điểm bất hợp lý và cùng cô phân tích tác hại hỏng sách và gù lưng vẹo cột sống.",
+              "Dạy học qua phân tích lỗi sai (Error-Based Learning): Trực quan hóa đối chiếu Đúng – Sai giúp trẻ tự tư duy nguyên nhân và hậu quả mà không bị áp đặt lý thuyết một chiều; rèn tư duy phản biện sắc bén và nhận thức công thái học bảo vệ sức khỏe học đường."
+            ],
+            [
+              "",
+              "Hoạt động cụ thể 3:\r\nHướng dẫn quy trình chuẩn 3 bước",
+              "Trẻ quan sát cô thị phạm quy trình 3 bước gồm xoay cùng chiều gáy, xếp từ to đến nhỏ, áp sát sách to vào lưng ba lô và đồng thanh làm động tác tay mô phỏng.",
+              "Phân rã hành vi (Task Analysis & Explicit Instruction): Chuẩn hóa hành vi phức tạp thành 3 bước logic, ngắn gọn, chuẩn hóa thao tác tay phù hợp năng lực tiếp thu của trẻ 5-6 tuổi; gắn liền nguyên lý công thái học; rèn vận động tinh (miết mép, so cạnh, kéo khóa) và tư duy sắp xếp theo kích thước."
+            ],
+            [
+              "",
+              "Hoạt động cụ thể 4:\r\nThực hành nhóm trải nghiệm vật thật",
+              "Trẻ chia 5 nhóm thi đua trực tiếp sắp xếp bộ sách giáo khoa lớp 1 thật vào 5 ba lô học sinh theo chuẩn 3 bước, đeo thử kiểm tra độ êm và nhận Sao thưởng Novastars.",
+              "Học qua trải nghiệm thực tế (Experiential Learning): Trực tiếp thao tác với ba lô và sách vở tiểu học thật giúp trẻ hình thành trí nhớ cơ bắp (Muscle Memory) và phản xạ tự giác; rèn kĩ năng tự phục vụ thực chiến, tinh thần làm việc nhóm và tạo sự kiêu hãnh làm chủ đồ dùng học tập trước khi vào lớp 1."
+            ],
+            [
+              "3",
+              "Khái quát bài học &\r\nĐiểm sáng tư vấn Sale",
+              "• Bài học giúp học sinh: Hiểu rõ lý do cốt lõi cần sắp xếp sách vở ngăn nắp là để sách không bị quăn mép, rách nát và bảo vệ cột sống; nắm vững và thuần thục QUY TRÌNH 3 BƯỚC sắp xếp sách vở vào ba lô gồm xoay cùng chiều gáy, xếp chồng từ to đến nhỏ, cho sách to áp sát vách lưng ba lô, sách nhỏ vào sau và kéo khóa cẩn thận; đạt chuẩn 80% trẻ tự thực hiện độc lập mà không cần người lớn hỗ trợ, hình thành thói quen tự kiểm tra ba lô mỗi tối trước khi đi ngủ.\r\n\r\n• Novastars thấu hiểu tâm lý lứa tuổi 5 – 6 tuổi: Trẻ chuẩn bị vào lớp 1 đang ở giai đoạn phát triển nhận thức vượt bậc và khát khao khẳng định mình là \"học sinh lớn\", độc lập khỏi cha mẹ. Thay vì để phụ huynh dặn dò chung chung hoặc quát mắng con bừa bộn, bài học đánh trúng tâm lý tự hào này bằng cách quy trình hóa thao tác thành công thức 3 bước khoa học, trực quan, cho 100% trẻ được trực tiếp trải nghiệm thi đua trên 5 bộ ba lô và sách giáo khoa lớp 1 thật. Điều này biến việc soạn sách vở từ một nghĩa vụ mệt mỏi thành một trải nghiệm thú vị, khơi dậy niềm tự hào học tập và xóa bỏ hoàn toàn nỗi bỡ ngỡ, lo âu khi bước vào môi trường tiểu học mới.",
+              "ĐIỂM SÁNG TƯ VẤN:\r\n\r\n1. Giải quyết triệt để \"Nỗi đau chuyển cấp\" (School Readiness): Các trường mầm non hiện nay đa phần chỉ tập trung dạy chữ và toán tiền tiểu học mà bỏ quên kĩ năng tự phục vụ; Novastars giải quyết đúng mắt xích yếu nhất của trẻ 5-6 tuổi, giúp trẻ hình thành phản xạ tự lập 100%, không còn ỷ lại cha mẹ, tạo ấn tượng vượt trội về chất lượng giáo dục toàn diện của nhà trường đối với phụ huynh.\r\n\r\n2. Đạo cụ biết nói & Trí nhớ cơ bắp (Experiential Tooling): Không dạy \"chay\" qua hình ảnh, Novastars bàn giao trọn gói 05 bộ ba lô học sinh và sách vở tiểu học thật vào lớp học. Việc 100% trẻ được chạm tay nắn nót, miết từng mép sách, kéo khóa ba lô thật giúp hình thành trí nhớ cơ bắp (Muscle Memory) – biến thao tác thành phản xạ tự nhiên ăn sâu vào tiềm thức.\r\n\r\n3. Công thái học học đường & Rèn vận động tinh: Đột phá bằng việc tích hợp nguyên lý bảo vệ cột sống học đường (sách to áp sát vách lưng ba lô giúp phân bổ trọng lượng ôm sát cơ thể, chống gù lưng và lệch vai) cùng kỹ năng vận động tinh (miết mép, so cạnh, kéo khóa) – nền tảng then chốt bổ trợ trực tiếp cho kĩ năng cầm bút viết chữ đẹp của trẻ ở lớp 1.\r\n\r\n4. \"Bằng chứng sống\" tự lập – Marketing tuyển sinh đắt giá: Trẻ về nhà tự giác mở ba lô, tự xếp sách vở phẳng phiu trước khi đi ngủ mà không cần bố mẹ giục. Sự thay đổi thần kỳ này chính là \"bằng chứng sống\" thuyết phục nhất để phụ huynh truyền miệng (Word-of-Mouth), giúp nhà trường tổ chức các buổi học thử (Demo Class / Open Day) bùng nổ, gia tăng tỷ lệ chốt phụ huynh đăng ký vào trường."
+            ]
+          ],
+          "sheet": "Sắp xếp sách vở gọn gàng"
+        }
+      ],
+      "durationMinutes": 20
+    },
+    {
+      "id": "mod-mwx7lopj",
+      "code": "HP06",
+      "title": "Phân tích bài bé 38,39: Bé nhận diện nguy hiểm bằng các giác quan và kĩ năng bảo vệ bản thân khi xảy ra hỏa hoạn",
+      "status": "pending",
+      "authorId": "up-huongdt",
+      "category": "Chuyên đề Đào tạo mới",
+      "subtitle": "Bối cảnh tư vấn Chủ trường và Hiệu trưởng trường mầm non",
+      "questions": [],
+      "updatedAt": "2026-11-26T07:16:52.774Z",
+      "authorName": "Đinh Thị Hương",
+      "sourceFile": {
+        "name": "sale-ptbai3839-KB.xlsx",
+        "type": "xlsx"
+      },
+      "contentText": "=== SHEET: Kĩ năng phòng tránh ngạt khói ===\nBÀI 1: KĨ NĂNG PHÒNG TRÁNH VÀ BẢO VỆ BẢN THÂN KHI XẢY RA HOẢ HOẠN (TIẾT 38 & 39)\nKhung chương trình 72 tiết - Khối Mẫu giáo Bé (3 - 4 tuổi) | Kĩ năng an toàn, bảo vệ bản thân & Thoát hiểm khẩn cấp\nPHẦN I: HỒ SƠ CHUYÊN MÔN CHI TIẾT (CỘT: STT | HẠNG MỤC | NỘI DUNG TRIỂN KHAI | PHÂN TÍCH CHUYÊN MÔN & MỤC ĐÍCH KĨ NĂNG)\nSTT | Hạng mục chuyên môn | Nội dung triển khai thực tế | Phân tích chuyên môn (Kẹp Mục đích phát triển kĩ năng cho trẻ)\n1 | Thông tin chung | • Tên bài học liên hoàn: Kĩ năng nhận diện nguy hiểm bằng các giác quan & Phòng tránh ngạt khói khi có hoả hoạn\n• Mã tiết chuẩn khung 72 tiết: Tiết 38 (Lý thuyết nhận diện & Kêu cứu) và Tiết 39 (Thực hành chống ngạt khói & Thoát hiểm an toàn)\n• Khối lớp: Mẫu giáo Bé (3 - 4 tuổi)\n• Nhóm kĩ năng: Kĩ năng an toàn, bảo vệ bản thân & Thoát hiểm sinh tồn khẩn cấp\n• Thời lượng chuẩn: 2 tiết (30 - 35 phút/tiết) | 1. Phân tích sư phạm chuyên sâu:\n• Thiết kế cặp bài liên hoàn kế thừa và bổ trợ hoàn hảo: Tiết 38 đặt nền tảng nhận thức giác quan (nhìn, nghe, ngửi), hiểu rõ nguyên nhân - hậu quả và rèn phản xạ ngôn ngữ báo động (hô cứu); Tiết 39 nâng cấp lên hành động sinh tồn thực tế (chống ngạt khói bằng đồ vải ướt và di chuyển thoát hiểm cúi thấp sát sàn).\n• Chia nhỏ tiến trình thành 2 tiết độc lập giúp trẻ 3 tuổi không bị quá tải tâm lý, biến kiến thức an toàn cháy nổ thành chuỗi phản xạ tự nhiên ăn sâu vào tiềm thức.\n\n2. Mục đích phát triển kĩ năng cho trẻ:\n• Trang bị Kĩ năng sinh tồn cơ bản nhất (Survival Skills), giúp trẻ 3 tuổi không hoảng loạn khóc lóc, biết cách báo động cho người lớn và tự che chắn đường hô hấp khi có sự cố cháy nổ.\n2 | Kiến thức kĩ năng cốt lõi | 1. Kiến thức trọng tâm:\n• Hậu quả nghiêm trọng của hỏa hoạn: Cháy rụi nhà cửa, hư hỏng đồ đạc, tạo ra khói độc cay mắt khó thở và gây nguy hiểm trực tiếp đến tính mạng con người.\n• 4 Nguyên nhân phổ biến gây cháy: Bạn nhỏ nghịch bật lửa, người lớn đốt vàng mã, cắm quá nhiều thiết bị vào một ổ điện, vứt tàn thuốc lá vào bãi cỏ khô.\n• 4 Dấu hiệu nhận biết cháy bằng giác quan: Ngửi thấy mùi khét nồng (Khứu giác); Nhìn thấy khói đen bốc lên và ngọn lửa đỏ (Thị giác); Nghe thấy tiếng chuông/còi báo cháy reo inh ỏi (Thính giác).\n• Số điện thoại khẩn cấp: Nhớ số cứu hỏa 114.\n• Kĩ năng kêu cứu chuẩn: Giơ 2 tay lên miệng làm loa và hô thật to, rõ ràng: 'CHÁY! CHÁY! CỨU!'.\n• Bản chất nguy hiểm của khói độc: Trong đám cháy, KHÓI ĐỘC NGUY HIỂM HƠN LỬA đối với tính mạng (gây ngạt thở, ngất xỉu); khói bốc lên cao, tầng khí sạch dễ thở nằm ở SÁT MẶT SÀN NHÀ.\n• Nguyên tắc ngăn khói tại chỗ: Tìm nhanh đồ dùng bằng vải (khăn, quần áo, mũ vải, giẻ lau...), làm ướt bằng nguồn nước gần nhất (bình nước, chai nước, hộp sữa tươi, vòi nước) và gấp che kín cả MŨI lẫn MIỆNG.\n• Nguyên tắc thoát hiểm an toàn: Cúi gập người / bò sát sàn men theo chân tường ra cửa Exit; tuyệt đối KHÔNG dùng thang máy, KHÔNG trốn vào gầm giường/tủ quần áo/nhà vệ sinh, KHÔNG quay lại lấy đồ chơi.\n\n2. Kĩ năng đạt chuẩn:\n• 90% trẻ nhắc lại được 4 dấu hiệu nhận biết cháy qua các giác quan và số 114.\n•trẻ thực hiện đúng động tác loa tay và hô to dõng dạc câu: 'Cháy! Cháy! Cứu!'.\n• trẻ biết tìm đồ vải, làm ướt và gấp che kín hoàn toàn cả mũi và miệng.\n• trẻ thực hành đúng tư thế cúi thấp người / bò men theo chân tường thoát ra ngoài. | 1. Phân tích sư phạm chuyên sâu:\n• Bài học đi thẳng vào bản chất khoa học của sự cố: Triệt tiêu thói quen nghịch lửa nguy hiểm ở lứa tuổi mầm non và phá vỡ bản năng sai lầm (sợ hãi chui rúc vào góc tối). Thay vào đó, trẻ được trao quyền năng hành động: biết dùng giác quan để phát hiện sớm, biết mở miệng hô cứu và biết hạ thấp trọng tâm để tự bảo vệ lá phổi.\n\n2. Mục đích phát triển kĩ năng cho trẻ:\n• Kĩ năng quan sát & nhận thức giác quan: Nhạy bén phát hiện các biến đổi bất thường của môi trường (mùi lạ, âm thanh còi, cột khói).\n• Kĩ năng ngôn ngữ & phát tín hiệu khẩn cấp: Hô khẩu lệnh ngắn, to, dứt khoát trong hoàn cảnh hoảng loạn.\n• Kĩ năng tự bảo vệ & thích ứng sinh tồn: Bảo toàn oxy, che chắn đường hô hấp và định hướng không gian.\n3 | Khái quát nội dung bài | Bài học liên hoàn (Tiết 38 & 39): Kĩ năng nhận diện nguy hiểm bằng các giác quan & Phòng tránh ngạt khói khi có hoả hoạn (Khối Bé 3–4 tuổi, 2 tiết, 30–35 phút/tiết) là nội dung đào tạo sinh tồn khẩn cấp tối quan trọng giúp trẻ hình thành kĩ năng tự bảo vệ bản thân và ứng phó sự cố cháy nổ. Trọng tâm bài học giải quyết triệt để rào cản tâm lý hoảng loạn và bản năng trốn tránh nguy hiểm của trẻ mầm non bằng cách kích hoạt đa giác quan nhận diện sớm dấu hiệu cháy (ngửi mùi khét, thấy khói lửa, nghe chuông báo), ghi nhớ số khẩn cấp 114 và rèn phản xạ ngôn ngữ làm loa tay hô to: “CHÁY! CHÁY! CỨU!”. Từ đó, trẻ nắm vững nguyên lý khoa học sống còn: “Khói độc nguy hiểm hơn lửa và tầng khí sạch nằm sát sàn nhà”, nhanh chóng tìm đồ vải làm ướt che kín cả mũi lẫn miệng và thực hiện đúng tư thế cúi thấp người/bò men theo chân tường hướng ra cửa thoát hiểm Exit.\n\nĐặc biệt, thấu hiểu tâm sinh lý trẻ 3 tuổi rất dễ hoảng sợ trước lửa khói nhưng lại nhanh quên nếu chỉ học lý thuyết suông, Novastars đã tách biệt thành chuỗi bài liên hoàn 2 tiết kế thừa khoa học: Tiết 38 đặt nền tảng nhận thức và phản xạ báo động qua phóng sự thực tế, thảo luận và game số tương tác “Rồng phun lửa”; Tiết 39 nâng cấp lên hành động thực chiến thông qua thử thách tìm đồ vải, làm ướt khăn bịt kín mũi miệng và diễn tập thoát hiểm trong không gian thực tế. Sự luân chuyển trạng thái liên tục này giúp trẻ tiếp thu bài học tự nhiên, không bị áp lực tâm lý và biến kĩ năng sinh tồn thành chuỗi phản xạ có điều kiện ăn sâu vào tiềm thức. | 1. Phân tích sư phạm chuyên sâu:\n• Thiết kế chuỗi bài liên hoàn 2 bậc thang 'Nhận thức giác quan ➔ Hành động sinh tồn': Giúp trẻ 3-4 tuổi không bị quá tải tâm lý; chuyển hóa kiến thức an toàn cháy nổ thành phản xạ tự nhiên.\n\n2. Mục đích phát triển kĩ năng cho trẻ:\n• Kĩ năng sinh tồn khẩn cấp (Survival Skills): Biết tự bảo vệ đường hô hấp bằng đồ vải ướt và di chuyển an toàn men chân tường ra cửa Exit.\n• Kĩ năng giao tiếp & Cầu cứu: Hô to dõng dạc câu báo động, chủ động tìm sự trợ giúp của người lớn khi gặp nguy hiểm.\n4 | Hoạt động cụ thể 1 (Tiết 38):\nPhóng sự hỏa hoạn (Hậu quả & Nguyên nhân) | • Tên hoạt động: Khởi động – Xem phóng sự hỏa hoạn cùng Su và Kem\n• Hình thức tổ chức: Tương tác qua video phóng sự kết hợp đàm thoại phản biện\n• Tiến trình chi tiết:\n  - Giáo viên ổn định lớp, chào hỏi, nhắc tên môn học Kĩ năng sống Novastars.\n  - Cho trẻ xem đoạn video phóng sự thời sự: Su và Kem đang theo dõi bản tin về một vụ cháy lớn.\n  - Đàm thoại về HẬU QUẢ CỦA ĐÁM CHÁY: Giáo viên hỏi: 'Khi có hỏa hoạn, chuyện gì có thể xảy ra?' -> Trẻ trả lời theo quan sát và kinh nghiệm (nhà bị cháy sập, khói cay mắt, đồ dùng bị thiêu rụi, người bị nạn...); cô ghi nhận và giải thích sự nguy hiểm.\n  - Đàm thoại về 4 NGUYÊN NHÂN GÂY CHÁY: Giáo viên hỏi: 'Có những nguyên nhân nào dẫn tới hỏa hoạn?' -> Cùng trẻ mổ xẻ 4 tình huống thực tế: (1) Bạn nhỏ nghịch bật lửa; (2) Người lớn đốt vàng mã không trông coi; (3) Cắm quá nhiều thiết bị vào một ổ cắm điện gây chập điện; (4) Vứt tàn thuốc lá đang cháy vào bãi cỏ khô.\n  - Giáo viên mở video tổng kết bài học về nguyên nhân và hậu quả. | 1. Phân tích sư phạm chuyên sâu:\n• Hoạt động ở đầu sử dụng chất liệu phóng sự thực tế mang tính thời sự giúp thu hút sự chú ý tối đa của trẻ 3 tuổi. Bằng cách chỉ ra 4 nguyên nhân đời thường (đặc biệt là hành vi nghịch bật lửa của trẻ nhỏ), bài học đánh thức ý thức cảnh giác phòng ngừa tai nạn từ sớm.\n\n2. Mục đích phát triển kĩ năng cho trẻ:\n• Kĩ năng tư duy nguyên nhân - kết quả: Nhận thức rõ hành vi nghịch lửa/điện sẽ dẫn tới hậu quả khôn lường là đám cháy phá hủy tài sản và đe dọa mạng sống.\n• Kĩ năng tập trung chú ý & phân tích thông tin: Lắng nghe, quan sát video phóng sự và diễn đạt suy nghĩ bằng lời nói.\n5 | Hoạt động cụ thể 2 (Tiết 38):\nThảo luận dấu hiệu cảnh báo bằng giác quan | • Tên hoạt động: Hoạt động 2 – Thảo luận: Dấu hiệu cảnh báo khi có cháy & Số cứu hỏa 114\n• Hình thức tổ chức: Xem video tương tác kết hợp thảo luận giác quan\n• Tiến trình chi tiết:\n  - Giáo viên cho trẻ xem video các tình huống cháy và đặt câu hỏi kích thích tư duy giác quan: 'Khi có cháy, chúng mình sẽ ngửi thấy gì, nghe thấy gì và nhìn thấy gì?'.\n  - Hướng dẫn trẻ liên kết từng giác quan với dấu hiệu cảnh báo:\n  * Khứu giác (Mũi ngửi): Ngửi thấy mùi khét lẹt, cay nồng.\n  * Thị giác (Mắt nhìn): Nhìn thấy khói đen cuồn cuộn bốc lên, nhìn thấy ngọn lửa đỏ rực.\n  * Thính giác (Tai nghe): Nghe thấy tiếng chuông/còi báo cháy reo vang inh ỏi khắp tòa nhà.\n  - Giới thiệu số điện thoại khẩn cấp của Đội Cứu hỏa: Số 114.\n  - Cho trẻ xem video hoạt hình tổng kết 4 dấu hiệu và nhắc lại đồng thanh. | 1. Phân tích sư phạm chuyên sâu:\n• Thay vì định nghĩa trừu tượng, bài học gắn liền dấu hiệu nguy hiểm với các bộ phận cơ thể quen thuộc của trẻ (mũi ngửi mùi khét, mắt nhìn khói lửa, tai nghe còi). Đây là phương pháp dạy học giác quan trực quan kinh điển, giúp trẻ 3 tuổi ghi nhớ sâu sắc và phản xạ ngay lập tức khi xuất hiện mùi khét hay tiếng còi.\n\n2. Mục đích phát triển kĩ năng cho trẻ:\n• Kĩ năng nhận biết thế giới qua các giác quan: Tăng cường độ nhạy bén của khứu giác, thính giác và thị giác trong việc phát hiện nguy cơ mất an toàn.\n• Kĩ năng ghi nhớ thông tin khẩn cấp: Ghi nhớ số điện thoại 114 để nhờ người lớn bấm gọi cứu trợ.\n6 | Hoạt động cụ thể 3 (Tiết 38):\nGiới thiệu & Luyện tập kĩ năng loa tay kêu cứu | • Tên hoạt động: Hoạt động 3 – Huấn luyện phản xạ kêu cứu 'Cháy! Cháy! Cứu!'\n• Hình thức tổ chức: Thực hành kĩ năng cá nhân và nhóm nhỏ kết hợp khích lệ bằng Sao thưởng\n• Tiến trình chi tiết:\n  - Giáo viên mở video hướng dẫn thao tác kêu cứu khi phát hiện cháy: Đặt câu hỏi: 'Khi thấy đám cháy, việc đầu tiên chúng mình cần làm là gì?' -> Nhanh chóng báo hiệu cho người lớn xung quanh.\n  - Hướng dẫn kĩ thuật phát âm thanh khẩn cấp: Giơ 2 bàn tay cong khum áp sát vào khóe miệng để tạo thành chiếc LOA PHÓNG THANH, giúp âm thanh vang xa và rõ nhất.\n  - Dạy khẩu lệnh kêu cứu ngắn gọn, dứt khoát: 'CHÁY! CHÁY! CỨU!' (hoặc 'Cháy! Cháy! Cứu với!').\n  - Tổ chức luyện tập đa cấp độ:\n  * Cấp độ 1: Cả lớp cùng đứng dậy, làm động tác loa tay và hô đồng thanh nhiều hướng.\n  * Cấp độ 2: Giáo viên mời từng nhóm 02 – 03 trẻ/lượt lên trước lớp thực hành hô to dõng dạc.\n  - Khen ngợi và trao tặng Sao thưởng Novastars dũng cảm cho các bé thực hành đúng.\n  - Xem video tổng kết kĩ năng kêu cứu và củng cố toàn bộ Tiết 38. | 1. Phân tích sư phạm chuyên sâu:\n•  Hiệu lệnh thông báo khi xảy ra đám cháy được rút gọn chỉ gồm 3 từ đanh thép 'Cháy! Cháy! Cứu!' giúp trẻ không bị ngọng hay hụt hơi trong trạng thái hoảng loạn, đảm bảo tín hiệu kêu cứu đến tai người lớn nhanh nhất.\n\n2. Mục đích phát triển kĩ năng cho trẻ:\n• Kĩ năng vận động thô & phối hợp tay - miệng: Đưa tay lên tạo vòm loa chuẩn xác và lấy hơi từ bụng để phát âm lượng lớn.\n• Kĩ năng cảm xúc xã hội (SEL) & Bản lĩnh cá nhân: Vượt qua sự rụt rè nhút nhát, tự tin đứng trước đám đông hô to khẩu lệnh khẩn cấp.\n7 | Hoạt động cụ thể 4 (Tiết 39):\nGame 'Rồng phun lửa' & Thảo luận nguy cơ khói độc | • Tên hoạt động: Hoạt động 1 (Tiết 39) – Game tương tác 'Rồng phun lửa' & Cú sốc nhận thức về khói độc\n• Hình thức tổ chức: Game tương tác số trên phần mềm Novastars kết hợp đàm thoại phản biện\n• Tiến trình chi tiết:\n  - Giáo viên giới thiệu căn phòng mô phỏng và thử thách số 1 của Biệt đội cứu hỏa nhí: Trò chơi 'Rồng phun lửa'.\n  - Nhiệm vụ: Điều khiển nhân vật né tránh các ngọn lửa do rồng phun ra. Cả lớp cùng đứng dậy nghiêng người sang phải, nghiêng sang trái theo chuyển động trên màn hình.\n  - Đàm thoại tạo cú sốc nhận thức sau game: 'Chúng mình đã giúp nhân vật né tránh được hết lửa rồi, tại sao bạn ấy vẫn gặp nguy hiểm và ngất xỉu trong đám cháy?'.\n  - Cho trẻ xem video khoa học 'Sự nguy hiểm của khói trong đám cháy': Phân tích chuyện gì xảy ra nếu hít phải quá nhiều khói độc (khói làm cay xè mắt không nhìn thấy đường, khói độc tràn vào phổi gây ho sặc sụa, ngạt thở và ngất xỉu).\n  - Đúc kết thông điệp sinh tử: Trong đám cháy, chúng ta không chỉ cần tránh lửa mà BẮT BUỘC PHẢI TRÁNH CẢ KHÓI ĐỘC. | 1. Phân tích sư phạm chuyên sâu:\n•  Tình huống 'né hết lửa mà vẫn bị nạn' là một cú sốc nhận thức (Cognitive Dissonance) sư phạm đắt giá, đánh đổ quan niệm ngây thơ của trẻ con rằng 'cháy chỉ nguy hiểm vì lửa'. Qua đó trẻ tự giác nhận ra: Khói độc mới chính là kẻ thù số 1 cần phòng chống hàng đầu.\n\n2. Mục đích phát triển kĩ năng cho trẻ:\n• Kĩ năng tư duy phản biện & Bản chất vấn đề: Nhận thức rõ ràng khói độc nguy hiểm hơn ngọn lửa đối với đường hô hấp.\n• Kĩ năng vận động thô phản xạ: Luyện khả năng nghiêng thân mình né tránh chướng ngại vật theo nhịp độ hình ảnh.\n8 | Hoạt động cụ thể 5 (Tiết 39):\nGame tương tác 'Truy tìm đồ dùng vải trong phòng' | • Tên hoạt động: Hoạt động 2 (Tiết 39) – Thử thách 'Truy tìm đồ dùng vải để ngăn khói'\n• Hình thức tổ chức: Game tương tác chạm/chọn trên màn hình cảm ứng kết hợp nhận diện vật thật\n• Tiến trình chi tiết:\n  - Giáo viên mở video thử thách số 2: Tìm kiếm các đồ vật bằng vải có trong căn phòng mô phỏng để làm 'mặt nạ lọc khói'.\n  - Mời từng trẻ lên chạm/chọn các đồ vật bằng vải xuất hiện trong phòng: Khăn mặt, khăn tay, quần áo, mũ vải, rèm cửa, giẻ lau...\n  - Đàm thoại củng cố: Kể tên các đồ vải xung quanh mình có thể dùng để che mũi miệng khi có cháy.\n  - Chốt nguyên tắc sinh tồn: Khi có hỏa hoạn, phải thật nhanh chóng tìm bất kỳ đồ vật nào bằng vải ở gần mình nhất, kể cả vạt áo hay tay áo đang mặc trên người đều dùng để ngăn khói độc được. | 1. Phân tích sư phạm chuyên sâu:\n• Ứng dụng trò chơi hóa vào rèn luyện kĩ năng phân loại chất liệu. Giáo trình mở rộng tư duy của trẻ vượt ra ngoài khuôn khổ sách vở: Không cứng nhắc đi tìm chiếc 'khăn mặt', mà linh hoạt biến mọi vật liệu vải có sẵn xung quanh (quần áo đang mặc, mũ, giẻ lau) thành 'lá chắn lọc khí cứu sinh'.\n\n2. Mục đích phát triển kĩ năng cho trẻ:\n• Kĩ năng quan sát & phân loại chất liệu: Nhận biết đặc tính thấm hút và lọc khí của chất liệu vải so với các đồ vật nhựa, gỗ, kim loại.\n• Kĩ năng giải quyết vấn đề linh hoạt (Resourcefulness): Biết tận dụng tài nguyên có sẵn trên người trong tình huống cấp bách.\n9 | Hoạt động cụ thể 6 (Tiết 39):\nTrò chơi 'Nguồn nước ở đâu?' & Thực hành làm ướt khăn | • Tên hoạt động: Hoạt động 3 & 4 (Tiết 39) – Tìm nguồn nước & Thực hành làm ướt đồ vải che kín mũi miệng\n• Hình thức tổ chức: Trò chơi vận động tìm thẻ tranh trong lớp kết hợp thao tác trực tiếp với vật thật\n• Tiến trình chi tiết:\n  - Xem video thử thách số 3: Đi tìm nguồn nước để làm ướt đồ vải khi không có vòi nước bồn rửa.\n  - Trẻ vận động tìm các thẻ tranh nguồn nước giấu quanh lớp học (bình nước lọc, chai nước khoáng, hộp sữa giấy, vòi nước) gắn lên bảng kết quả.\n  - Thực hành làm ướt vật thật: Giáo viên mời học sinh lên thao tác trực tiếp làm ướt khăn bằng nước trong bình, nước đóng chai và nước từ hộp sữa tươi.\n  - Hướng dẫn kĩ thuật che mũi miệng: Vắt nhẹ khăn, gấp lại và áp chặt che kín hoàn toàn cả MŨI và MIỆNG, thở chậm rãi qua lớp vải ướt.\n  - Trải nghiệm mở rộng: Cho trẻ quan sát chiếc mặt nạ chống khói chuyên dụng để nhận biết trang bị cứu hộ hiện đại. | 1. Phân tích sư phạm chuyên sâu:\n• Đưa tình huống thực tế 'khan hiếm tài nguyên' vào giảng dạy. Việc cho trẻ trực tiếp rót nước từ bình, chai và hộp sữa thật vào khăn giúp hình thành kinh nghiệm cảm giác chân thực (Hands-on Experience). Trẻ hiểu rằng trong tình huống sinh tử, bất kỳ chất lỏng an toàn nào (kể cả sữa tươi) đều là cứu tinh để làm ướt khăn ngăn khói độc xâm nhập vào phổi.\n\n2. Mục đích phát triển kĩ năng cho trẻ:\n• Kĩ năng vận động tinh & thao tác phối hợp: Thao tác rót nước, nhúng khăn, vắt khăn vừa phải và áp chặt kín khít sống mũi và khóe miệng.\n• Kĩ năng ứng biến hoàn cảnh khẩn cấp: Tự tin xử lý tình huống khi không có vòi nước máy bên cạnh.\n10 | Hoạt động cụ thể 7 (Tiết 39):\nLuyện tập di chuyển cúi thấp người men chân tường & Diễn tập còi báo cháy | • Tên hoạt động: Hoạt động 5 & Tổng kết (Tiết 39) – Huấn luyện di chuyển thoát hiểm cúi thấp men chân tường & Diễn tập còi báo cháy thực tế\n• Hình thức tổ chức: Luyện tập vận động thực địa kết hợp kích hoạt phản xạ còi báo cháy thật\n• Tiến trình chi tiết:\n  - Huấn luyện tư thế thoát hiểm chuẩn xác: Giáo viên làm mẫu và chỉnh sửa tư thế cho học sinh: Một tay giữ chặt khăn ướt áp kín mũi miệng; Toàn bộ cơ thể cúi gập thật thấp (hoặc bò bằng đầu gối và một bàn tay sát mặt sàn) để hít thở tầng không khí sạch.\n  - Kĩ thuật dò đường men chân tường: Một bàn tay còn lại luôn đặt chạm men theo mép tường để định hướng phương hướng di chuyển trong làn khói dày, dẫn thẳng ra cửa có biển báo Exit màu xanh lá cây.\n  - Cả lớp xếp thành hàng nối đuôi nhau thực hành di chuyển cúi thấp men tường quanh phòng học ra cửa thoát hiểm.\n  - Tình huống thực chiến bất ngờ: Giáo viên bật âm thanh còi báo cháy thật của trường mầm non. Trẻ lập tức phối hợp chuỗi kĩ năng hoàn chỉnh: Giữ khăn ướt che kín mũi miệng -> Hạ thấp người bò men tường -> Nhanh chóng theo cô giáo di chuyển an toàn ra sân trường.\n  - Giáo viên tổng kết, khen ngợi và trao huy hiệu lính cứu hỏa nhí dũng cảm cho cả lớp. | 1. Phân tích sư phạm chuyên sâu:\n• Luyện tập phản xạ hành vi & Thử nghiệm tích cực: Việc loại bỏ đạo cụ ống chui cồng kềnh giúp tiết học tập trung hoàn toàn vào kĩ năng cốt lõi thực tế: Cúi thấp người hạ thấp trọng tâm và sờ tay men theo chân tường để không bị lạc lối trong bóng tối. Âm thanh còi báo cháy thật chuyển hóa kiến thức trên lớp thành bản năng sinh tồn trọn đời.\n\n2. Mục đích phát triển kĩ năng cho trẻ:\n• Kĩ năng vận động thô thích ứng không gian: Duy trì tư thế bò, trườn hoặc đi khom lưng giữ thăng bằng trong khi một tay luôn phải giữ chặt khăn che mặt.\n• Kĩ năng định hướng không gian: Rèn thói quen dùng xúc giác sờ men theo bờ tường để tìm lối thoát hiểm Exit.\n• Kĩ năng quản lý cảm xúc (SEL): Giữ được sự bình tĩnh, không khóc lóc giẫm đạp lên nhau, tuân thủ kỷ luật thoát hiểm an toàn.",
+      "passThreshold": 80,
+      "summaryPoints": [
+        "BÀI 1: KĨ NĂNG PHÒNG TRÁNH VÀ BẢO VỆ BẢN THÂN KHI XẢY RA HOẢ HOẠN (TIẾT 38 & 39)",
+        "Khung chương trình 72 tiết - Khối Mẫu giáo Bé (3 - 4 tuổi) | Kĩ năng an toàn, bảo vệ bản thân & Thoát hiểm khẩn cấp",
+        "PHẦN I: HỒ SƠ CHUYÊN MÔN CHI TIẾT (CỘT: STT | HẠNG MỤC | NỘI DUNG TRIỂN KHAI | PHÂN TÍCH CHUYÊN MÔN & MỤC ĐÍCH KĨ NĂNG)",
+        "STT | Hạng mục chuyên môn | Nội dung triển khai thực tế | Phân tích chuyên môn (Kẹp Mục đích phát triển kĩ năng cho trẻ)",
+        "1 | Thông tin chung | • Tên bài học liên hoàn: Kĩ năng nhận diện nguy hiểm bằng các giác quan & Phòng tránh ngạt khói khi có hoả hoạn"
+      ],
+      "structuredType": "",
+      "uploadedTables": [
+        {
+          "rows": [
+            [
+              "BÀI 1: KĨ NĂNG PHÒNG TRÁNH VÀ BẢO VỆ BẢN THÂN KHI XẢY RA HOẢ HOẠN (TIẾT 38 & 39)"
+            ],
+            [
+              "Khung chương trình 72 tiết - Khối Mẫu giáo Bé (3 - 4 tuổi) | Kĩ năng an toàn, bảo vệ bản thân & Thoát hiểm khẩn cấp"
+            ],
+            [
+              "PHẦN I: HỒ SƠ CHUYÊN MÔN CHI TIẾT (CỘT: STT | HẠNG MỤC | NỘI DUNG TRIỂN KHAI | PHÂN TÍCH CHUYÊN MÔN & MỤC ĐÍCH KĨ NĂNG)"
+            ],
+            [
+              "STT",
+              "Hạng mục chuyên môn",
+              "Nội dung triển khai thực tế",
+              "Phân tích chuyên môn (Kẹp Mục đích phát triển kĩ năng cho trẻ)"
+            ],
+            [
+              "1",
+              "Thông tin chung",
+              "• Tên bài học liên hoàn: Kĩ năng nhận diện nguy hiểm bằng các giác quan & Phòng tránh ngạt khói khi có hoả hoạn\n• Mã tiết chuẩn khung 72 tiết: Tiết 38 (Lý thuyết nhận diện & Kêu cứu) và Tiết 39 (Thực hành chống ngạt khói & Thoát hiểm an toàn)\n• Khối lớp: Mẫu giáo Bé (3 - 4 tuổi)\n• Nhóm kĩ năng: Kĩ năng an toàn, bảo vệ bản thân & Thoát hiểm sinh tồn khẩn cấp\n• Thời lượng chuẩn: 2 tiết (30 - 35 phút/tiết)",
+              "1. Phân tích sư phạm chuyên sâu:\n• Thiết kế cặp bài liên hoàn kế thừa và bổ trợ hoàn hảo: Tiết 38 đặt nền tảng nhận thức giác quan (nhìn, nghe, ngửi), hiểu rõ nguyên nhân - hậu quả và rèn phản xạ ngôn ngữ báo động (hô cứu); Tiết 39 nâng cấp lên hành động sinh tồn thực tế (chống ngạt khói bằng đồ vải ướt và di chuyển thoát hiểm cúi thấp sát sàn).\n• Chia nhỏ tiến trình thành 2 tiết độc lập giúp trẻ 3 tuổi không bị quá tải tâm lý, biến kiến thức an toàn cháy nổ thành chuỗi phản xạ tự nhiên ăn sâu vào tiềm thức.\n\n2. Mục đích phát triển kĩ năng cho trẻ:\n• Trang bị Kĩ năng sinh tồn cơ bản nhất (Survival Skills), giúp trẻ 3 tuổi không hoảng loạn khóc lóc, biết cách báo động cho người lớn và tự che chắn đường hô hấp khi có sự cố cháy nổ."
+            ],
+            [
+              "2",
+              "Kiến thức kĩ năng cốt lõi",
+              "1. Kiến thức trọng tâm:\n• Hậu quả nghiêm trọng của hỏa hoạn: Cháy rụi nhà cửa, hư hỏng đồ đạc, tạo ra khói độc cay mắt khó thở và gây nguy hiểm trực tiếp đến tính mạng con người.\n• 4 Nguyên nhân phổ biến gây cháy: Bạn nhỏ nghịch bật lửa, người lớn đốt vàng mã, cắm quá nhiều thiết bị vào một ổ điện, vứt tàn thuốc lá vào bãi cỏ khô.\n• 4 Dấu hiệu nhận biết cháy bằng giác quan: Ngửi thấy mùi khét nồng (Khứu giác); Nhìn thấy khói đen bốc lên và ngọn lửa đỏ (Thị giác); Nghe thấy tiếng chuông/còi báo cháy reo inh ỏi (Thính giác).\n• Số điện thoại khẩn cấp: Nhớ số cứu hỏa 114.\n• Kĩ năng kêu cứu chuẩn: Giơ 2 tay lên miệng làm loa và hô thật to, rõ ràng: 'CHÁY! CHÁY! CỨU!'.\n• Bản chất nguy hiểm của khói độc: Trong đám cháy, KHÓI ĐỘC NGUY HIỂM HƠN LỬA đối với tính mạng (gây ngạt thở, ngất xỉu); khói bốc lên cao, tầng khí sạch dễ thở nằm ở SÁT MẶT SÀN NHÀ.\n• Nguyên tắc ngăn khói tại chỗ: Tìm nhanh đồ dùng bằng vải (khăn, quần áo, mũ vải, giẻ lau...), làm ướt bằng nguồn nước gần nhất (bình nước, chai nước, hộp sữa tươi, vòi nước) và gấp che kín cả MŨI lẫn MIỆNG.\n• Nguyên tắc thoát hiểm an toàn: Cúi gập người / bò sát sàn men theo chân tường ra cửa Exit; tuyệt đối KHÔNG dùng thang máy, KHÔNG trốn vào gầm giường/tủ quần áo/nhà vệ sinh, KHÔNG quay lại lấy đồ chơi.\n\n2. Kĩ năng đạt chuẩn:\n• 90% trẻ nhắc lại được 4 dấu hiệu nhận biết cháy qua các giác quan và số 114.\n• 85% trẻ thực hiện đúng động tác loa tay và hô to dõng dạc câu: 'Cháy! Cháy! Cứu!'.\n• 85% trẻ biết tìm đồ vải, làm ướt và gấp che kín hoàn toàn cả mũi và miệng.\n• 80% trẻ thực hành đúng tư thế cúi thấp người / bò men theo chân tường thoát ra ngoài.",
+              "1. Phân tích sư phạm chuyên sâu:\n• Bài học đi thẳng vào bản chất khoa học của sự cố: Triệt tiêu thói quen nghịch lửa nguy hiểm ở lứa tuổi mầm non và phá vỡ bản năng sai lầm (sợ hãi chui rúc vào góc tối). Thay vào đó, trẻ được trao quyền năng hành động: biết dùng giác quan để phát hiện sớm, biết mở miệng hô cứu và biết hạ thấp trọng tâm để tự bảo vệ lá phổi.\n\n2. Mục đích phát triển kĩ năng cho trẻ:\n• Kĩ năng quan sát & nhận thức giác quan: Nhạy bén phát hiện các biến đổi bất thường của môi trường (mùi lạ, âm thanh còi, cột khói).\n• Kĩ năng ngôn ngữ & phát tín hiệu khẩn cấp: Hô khẩu lệnh ngắn, to, dứt khoát trong hoàn cảnh hoảng loạn.\n• Kĩ năng tự bảo vệ & thích ứng sinh tồn: Bảo toàn oxy, che chắn đường hô hấp và định hướng không gian."
+            ],
+            [
+              "3",
+              "Khái quát nội dung bài",
+              "Bài học liên hoàn (Tiết 38 & 39): Kĩ năng nhận diện nguy hiểm bằng các giác quan & Phòng tránh ngạt khói khi có hoả hoạn (Khối Bé 3–4 tuổi, 2 tiết, 30–35 phút/tiết) là nội dung đào tạo sinh tồn khẩn cấp tối quan trọng giúp trẻ hình thành kĩ năng tự bảo vệ bản thân và ứng phó sự cố cháy nổ. Trọng tâm bài học giải quyết triệt để rào cản tâm lý hoảng loạn và bản năng trốn tránh nguy hiểm của trẻ mầm non bằng cách kích hoạt đa giác quan nhận diện sớm dấu hiệu cháy (ngửi mùi khét, thấy khói lửa, nghe chuông báo), ghi nhớ số khẩn cấp 114 và rèn phản xạ ngôn ngữ làm loa tay hô to: “CHÁY! CHÁY! CỨU!”. Từ đó, trẻ nắm vững nguyên lý khoa học sống còn: “Khói độc nguy hiểm hơn lửa và tầng khí sạch nằm sát sàn nhà”, nhanh chóng tìm đồ vải làm ướt che kín cả mũi lẫn miệng và thực hiện đúng tư thế cúi thấp người/bò men theo chân tường hướng ra cửa thoát hiểm Exit.\n\nĐặc biệt, thấu hiểu tâm sinh lý trẻ 3 tuổi rất dễ hoảng sợ trước lửa khói nhưng lại nhanh quên nếu chỉ học lý thuyết suông, Novastars đã tách biệt thành chuỗi bài liên hoàn 2 tiết kế thừa khoa học: Tiết 38 đặt nền tảng nhận thức và phản xạ báo động qua phóng sự thực tế, thảo luận và game số tương tác “Rồng phun lửa”; Tiết 39 nâng cấp lên hành động thực chiến thông qua thử thách tìm đồ vải, làm ướt khăn bịt kín mũi miệng và diễn tập thoát hiểm trong không gian thực tế. Sự luân chuyển trạng thái liên tục này giúp trẻ tiếp thu bài học tự nhiên, không bị áp lực tâm lý và biến kĩ năng sinh tồn thành chuỗi phản xạ có điều kiện ăn sâu vào tiềm thức.",
+              "1. Phân tích sư phạm chuyên sâu:\n• Thiết kế chuỗi bài liên hoàn 2 bậc thang 'Nhận thức giác quan ➔ Hành động sinh tồn': Giúp trẻ 3-4 tuổi không bị quá tải tâm lý; chuyển hóa kiến thức an toàn cháy nổ thành phản xạ tự nhiên.\n\n2. Mục đích phát triển kĩ năng cho trẻ:\n• Kĩ năng sinh tồn khẩn cấp (Survival Skills): Biết tự bảo vệ đường hô hấp bằng đồ vải ướt và di chuyển an toàn men chân tường ra cửa Exit.\n• Kĩ năng giao tiếp & Cầu cứu: Hô to dõng dạc câu báo động, chủ động tìm sự trợ giúp của người lớn khi gặp nguy hiểm."
+            ],
+            [
+              "4",
+              "Hoạt động cụ thể 1 (Tiết 38):\nPhóng sự hỏa hoạn (Hậu quả & Nguyên nhân)",
+              "• Tên hoạt động: Khởi động – Xem phóng sự hỏa hoạn cùng Su và Kem\n• Hình thức tổ chức: Tương tác qua video phóng sự kết hợp đàm thoại phản biện\n• Tiến trình chi tiết:\n  - Giáo viên ổn định lớp, chào hỏi, nhắc tên môn học Kĩ năng sống Novastars.\n  - Cho trẻ xem đoạn video phóng sự thời sự: Su và Kem đang theo dõi bản tin về một vụ cháy lớn.\n  - Đàm thoại về HẬU QUẢ CỦA ĐÁM CHÁY: Giáo viên hỏi: 'Khi có hỏa hoạn, chuyện gì có thể xảy ra?' -> Trẻ trả lời theo quan sát và kinh nghiệm (nhà bị cháy sập, khói cay mắt, đồ dùng bị thiêu rụi, người bị nạn...); cô ghi nhận và giải thích sự nguy hiểm.\n  - Đàm thoại về 4 NGUYÊN NHÂN GÂY CHÁY: Giáo viên hỏi: 'Có những nguyên nhân nào dẫn tới hỏa hoạn?' -> Cùng trẻ mổ xẻ 4 tình huống thực tế: (1) Bạn nhỏ nghịch bật lửa; (2) Người lớn đốt vàng mã không trông coi; (3) Cắm quá nhiều thiết bị vào một ổ cắm điện gây chập điện; (4) Vứt tàn thuốc lá đang cháy vào bãi cỏ khô.\n  - Giáo viên mở video tổng kết bài học về nguyên nhân và hậu quả.",
+              "1. Phân tích sư phạm chuyên sâu:\n• Hoạt động ở đầu sử dụng chất liệu phóng sự thực tế mang tính thời sự giúp thu hút sự chú ý tối đa của trẻ 3 tuổi. Bằng cách chỉ ra 4 nguyên nhân đời thường (đặc biệt là hành vi nghịch bật lửa của trẻ nhỏ), bài học đánh thức ý thức cảnh giác phòng ngừa tai nạn từ sớm.\n\n2. Mục đích phát triển kĩ năng cho trẻ:\n• Kĩ năng tư duy nguyên nhân - kết quả: Nhận thức rõ hành vi nghịch lửa/điện sẽ dẫn tới hậu quả khôn lường là đám cháy phá hủy tài sản và đe dọa mạng sống.\n• Kĩ năng tập trung chú ý & phân tích thông tin: Lắng nghe, quan sát video phóng sự và diễn đạt suy nghĩ bằng lời nói."
+            ],
+            [
+              "5",
+              "Hoạt động cụ thể 2 (Tiết 38):\nThảo luận dấu hiệu cảnh báo bằng giác quan",
+              "• Tên hoạt động: Hoạt động 2 – Thảo luận: Dấu hiệu cảnh báo khi có cháy & Số cứu hỏa 114\n• Hình thức tổ chức: Xem video tương tác kết hợp thảo luận giác quan\n• Tiến trình chi tiết:\n  - Giáo viên cho trẻ xem video các tình huống cháy và đặt câu hỏi kích thích tư duy giác quan: 'Khi có cháy, chúng mình sẽ ngửi thấy gì, nghe thấy gì và nhìn thấy gì?'.\n  - Hướng dẫn trẻ liên kết từng giác quan với dấu hiệu cảnh báo:\n  * Khứu giác (Mũi ngửi): Ngửi thấy mùi khét lẹt, cay nồng.\n  * Thị giác (Mắt nhìn): Nhìn thấy khói đen cuồn cuộn bốc lên, nhìn thấy ngọn lửa đỏ rực.\n  * Thính giác (Tai nghe): Nghe thấy tiếng chuông/còi báo cháy reo vang inh ỏi khắp tòa nhà.\n  - Giới thiệu số điện thoại khẩn cấp của Đội Cứu hỏa: Số 114.\n  - Cho trẻ xem video hoạt hình tổng kết 4 dấu hiệu và nhắc lại đồng thanh.",
+              "1. Phân tích sư phạm chuyên sâu:\n• Thay vì định nghĩa trừu tượng, bài học gắn liền dấu hiệu nguy hiểm với các bộ phận cơ thể quen thuộc của trẻ (mũi ngửi mùi khét, mắt nhìn khói lửa, tai nghe còi). Đây là phương pháp dạy học giác quan trực quan kinh điển, giúp trẻ 3 tuổi ghi nhớ sâu sắc và phản xạ ngay lập tức khi xuất hiện mùi khét hay tiếng còi.\n\n2. Mục đích phát triển kĩ năng cho trẻ:\n• Kĩ năng nhận biết thế giới qua các giác quan: Tăng cường độ nhạy bén của khứu giác, thính giác và thị giác trong việc phát hiện nguy cơ mất an toàn.\n• Kĩ năng ghi nhớ thông tin khẩn cấp: Ghi nhớ số điện thoại 114 để nhờ người lớn bấm gọi cứu trợ."
+            ],
+            [
+              "6",
+              "Hoạt động cụ thể 3 (Tiết 38):\nGiới thiệu & Luyện tập kĩ năng loa tay kêu cứu",
+              "• Tên hoạt động: Hoạt động 3 – Huấn luyện phản xạ kêu cứu 'Cháy! Cháy! Cứu!'\n• Hình thức tổ chức: Thực hành kĩ năng cá nhân và nhóm nhỏ kết hợp khích lệ bằng Sao thưởng\n• Tiến trình chi tiết:\n  - Giáo viên mở video hướng dẫn thao tác kêu cứu khi phát hiện cháy: Đặt câu hỏi: 'Khi thấy đám cháy, việc đầu tiên chúng mình cần làm là gì?' -> Nhanh chóng báo hiệu cho người lớn xung quanh.\n  - Hướng dẫn kĩ thuật phát âm thanh khẩn cấp: Giơ 2 bàn tay cong khum áp sát vào khóe miệng để tạo thành chiếc LOA PHÓNG THANH, giúp âm thanh vang xa và rõ nhất.\n  - Dạy khẩu lệnh kêu cứu ngắn gọn, dứt khoát: 'CHÁY! CHÁY! CỨU!' (hoặc 'Cháy! Cháy! Cứu với!').\n  - Tổ chức luyện tập đa cấp độ:\n  * Cấp độ 1: Cả lớp cùng đứng dậy, làm động tác loa tay và hô đồng thanh nhiều hướng.\n  * Cấp độ 2: Giáo viên mời từng nhóm 02 – 03 trẻ/lượt lên trước lớp thực hành hô to dõng dạc.\n  - Khen ngợi và trao tặng Sao thưởng Novastars dũng cảm cho các bé thực hành đúng.\n  - Xem video tổng kết kĩ năng kêu cứu và củng cố toàn bộ Tiết 38.",
+              "1. Phân tích sư phạm chuyên sâu:\n•  Hiệu lệnh thông báo khi xảy ra đám cháy được rút gọn chỉ gồm 3 từ đanh thép 'Cháy! Cháy! Cứu!' giúp trẻ không bị ngọng hay hụt hơi trong trạng thái hoảng loạn, đảm bảo tín hiệu kêu cứu đến tai người lớn nhanh nhất.\n\n2. Mục đích phát triển kĩ năng cho trẻ:\n• Kĩ năng vận động thô & phối hợp tay - miệng: Đưa tay lên tạo vòm loa chuẩn xác và lấy hơi từ bụng để phát âm lượng lớn.\n• Kĩ năng cảm xúc xã hội (SEL) & Bản lĩnh cá nhân: Vượt qua sự rụt rè nhút nhát, tự tin đứng trước đám đông hô to khẩu lệnh khẩn cấp."
+            ],
+            [
+              "7",
+              "Hoạt động cụ thể 4 (Tiết 39):\nGame 'Rồng phun lửa' & Thảo luận nguy cơ khói độc",
+              "• Tên hoạt động: Hoạt động 1 (Tiết 39) – Game tương tác 'Rồng phun lửa' & Cú sốc nhận thức về khói độc\n• Hình thức tổ chức: Game tương tác số trên phần mềm Novastars kết hợp đàm thoại phản biện\n• Tiến trình chi tiết:\n  - Giáo viên giới thiệu căn phòng mô phỏng và thử thách số 1 của Biệt đội cứu hỏa nhí: Trò chơi 'Rồng phun lửa'.\n  - Nhiệm vụ: Điều khiển nhân vật né tránh các ngọn lửa do rồng phun ra. Cả lớp cùng đứng dậy nghiêng người sang phải, nghiêng sang trái theo chuyển động trên màn hình.\n  - Đàm thoại tạo cú sốc nhận thức sau game: 'Chúng mình đã giúp nhân vật né tránh được hết lửa rồi, tại sao bạn ấy vẫn gặp nguy hiểm và ngất xỉu trong đám cháy?'.\n  - Cho trẻ xem video khoa học 'Sự nguy hiểm của khói trong đám cháy': Phân tích chuyện gì xảy ra nếu hít phải quá nhiều khói độc (khói làm cay xè mắt không nhìn thấy đường, khói độc tràn vào phổi gây ho sặc sụa, ngạt thở và ngất xỉu).\n  - Đúc kết thông điệp sinh tử: Trong đám cháy, chúng ta không chỉ cần tránh lửa mà BẮT BUỘC PHẢI TRÁNH CẢ KHÓI ĐỘC.",
+              "1. Phân tích sư phạm chuyên sâu:\n•  Tình huống 'né hết lửa mà vẫn bị nạn' là một cú sốc nhận thức (Cognitive Dissonance) sư phạm đắt giá, đánh đổ quan niệm ngây thơ của trẻ con rằng 'cháy chỉ nguy hiểm vì lửa'. Qua đó trẻ tự giác nhận ra: Khói độc mới chính là kẻ thù số 1 cần phòng chống hàng đầu.\n\n2. Mục đích phát triển kĩ năng cho trẻ:\n• Kĩ năng tư duy phản biện & Bản chất vấn đề: Nhận thức rõ ràng khói độc nguy hiểm hơn ngọn lửa đối với đường hô hấp.\n• Kĩ năng vận động thô phản xạ: Luyện khả năng nghiêng thân mình né tránh chướng ngại vật theo nhịp độ hình ảnh."
+            ],
+            [
+              "8",
+              "Hoạt động cụ thể 5 (Tiết 39):\nGame tương tác 'Truy tìm đồ dùng vải trong phòng'",
+              "• Tên hoạt động: Hoạt động 2 (Tiết 39) – Thử thách 'Truy tìm đồ dùng vải để ngăn khói'\n• Hình thức tổ chức: Game tương tác chạm/chọn trên màn hình cảm ứng kết hợp nhận diện vật thật\n• Tiến trình chi tiết:\n  - Giáo viên mở video thử thách số 2: Tìm kiếm các đồ vật bằng vải có trong căn phòng mô phỏng để làm 'mặt nạ lọc khói'.\n  - Mời từng trẻ lên chạm/chọn các đồ vật bằng vải xuất hiện trong phòng: Khăn mặt, khăn tay, quần áo, mũ vải, rèm cửa, giẻ lau...\n  - Đàm thoại củng cố: Kể tên các đồ vải xung quanh mình có thể dùng để che mũi miệng khi có cháy.\n  - Chốt nguyên tắc sinh tồn: Khi có hỏa hoạn, phải thật nhanh chóng tìm bất kỳ đồ vật nào bằng vải ở gần mình nhất, kể cả vạt áo hay tay áo đang mặc trên người đều dùng để ngăn khói độc được.",
+              "1. Phân tích sư phạm chuyên sâu:\n• Ứng dụng trò chơi hóa vào rèn luyện kĩ năng phân loại chất liệu. Giáo trình mở rộng tư duy của trẻ vượt ra ngoài khuôn khổ sách vở: Không cứng nhắc đi tìm chiếc 'khăn mặt', mà linh hoạt biến mọi vật liệu vải có sẵn xung quanh (quần áo đang mặc, mũ, giẻ lau) thành 'lá chắn lọc khí cứu sinh'.\n\n2. Mục đích phát triển kĩ năng cho trẻ:\n• Kĩ năng quan sát & phân loại chất liệu: Nhận biết đặc tính thấm hút và lọc khí của chất liệu vải so với các đồ vật nhựa, gỗ, kim loại.\n• Kĩ năng giải quyết vấn đề linh hoạt (Resourcefulness): Biết tận dụng tài nguyên có sẵn trên người trong tình huống cấp bách."
+            ],
+            [
+              "9",
+              "Hoạt động cụ thể 6 (Tiết 39):\nTrò chơi 'Nguồn nước ở đâu?' & Thực hành làm ướt khăn",
+              "• Tên hoạt động: Hoạt động 3 & 4 (Tiết 39) – Tìm nguồn nước & Thực hành làm ướt đồ vải che kín mũi miệng\n• Hình thức tổ chức: Trò chơi vận động tìm thẻ tranh trong lớp kết hợp thao tác trực tiếp với vật thật\n• Tiến trình chi tiết:\n  - Xem video thử thách số 3: Đi tìm nguồn nước để làm ướt đồ vải khi không có vòi nước bồn rửa.\n  - Trẻ vận động tìm các thẻ tranh nguồn nước giấu quanh lớp học (bình nước lọc, chai nước khoáng, hộp sữa giấy, vòi nước) gắn lên bảng kết quả.\n  - Thực hành làm ướt vật thật: Giáo viên mời học sinh lên thao tác trực tiếp làm ướt khăn bằng nước trong bình, nước đóng chai và nước từ hộp sữa tươi.\n  - Hướng dẫn kĩ thuật che mũi miệng: Vắt nhẹ khăn, gấp lại và áp chặt che kín hoàn toàn cả MŨI và MIỆNG, thở chậm rãi qua lớp vải ướt.\n  - Trải nghiệm mở rộng: Cho trẻ quan sát chiếc mặt nạ chống khói chuyên dụng để nhận biết trang bị cứu hộ hiện đại.",
+              "1. Phân tích sư phạm chuyên sâu:\n• Đưa tình huống thực tế 'khan hiếm tài nguyên' vào giảng dạy. Việc cho trẻ trực tiếp rót nước từ bình, chai và hộp sữa thật vào khăn giúp hình thành kinh nghiệm cảm giác chân thực (Hands-on Experience). Trẻ hiểu rằng trong tình huống sinh tử, bất kỳ chất lỏng an toàn nào (kể cả sữa tươi) đều là cứu tinh để làm ướt khăn ngăn khói độc xâm nhập vào phổi.\n\n2. Mục đích phát triển kĩ năng cho trẻ:\n• Kĩ năng vận động tinh & thao tác phối hợp: Thao tác rót nước, nhúng khăn, vắt khăn vừa phải và áp chặt kín khít sống mũi và khóe miệng.\n• Kĩ năng ứng biến hoàn cảnh khẩn cấp: Tự tin xử lý tình huống khi không có vòi nước máy bên cạnh."
+            ],
+            [
+              "10",
+              "Hoạt động cụ thể 7 (Tiết 39):\nLuyện tập di chuyển cúi thấp người men chân tường & Diễn tập còi báo cháy",
+              "• Tên hoạt động: Hoạt động 5 & Tổng kết (Tiết 39) – Huấn luyện di chuyển thoát hiểm cúi thấp men chân tường & Diễn tập còi báo cháy thực tế\n• Hình thức tổ chức: Luyện tập vận động thực địa kết hợp kích hoạt phản xạ còi báo cháy thật\n• Tiến trình chi tiết:\n  - Huấn luyện tư thế thoát hiểm chuẩn xác: Giáo viên làm mẫu và chỉnh sửa tư thế cho học sinh: Một tay giữ chặt khăn ướt áp kín mũi miệng; Toàn bộ cơ thể cúi gập thật thấp (hoặc bò bằng đầu gối và một bàn tay sát mặt sàn) để hít thở tầng không khí sạch.\n  - Kĩ thuật dò đường men chân tường: Một bàn tay còn lại luôn đặt chạm men theo mép tường để định hướng phương hướng di chuyển trong làn khói dày, dẫn thẳng ra cửa có biển báo Exit màu xanh lá cây.\n  - Cả lớp xếp thành hàng nối đuôi nhau thực hành di chuyển cúi thấp men tường quanh phòng học ra cửa thoát hiểm.\n  - Tình huống thực chiến bất ngờ: Giáo viên bật âm thanh còi báo cháy thật của trường mầm non. Trẻ lập tức phối hợp chuỗi kĩ năng hoàn chỉnh: Giữ khăn ướt che kín mũi miệng -> Hạ thấp người bò men tường -> Nhanh chóng theo cô giáo di chuyển an toàn ra sân trường.\n  - Giáo viên tổng kết, khen ngợi và trao huy hiệu lính cứu hỏa nhí dũng cảm cho cả lớp.",
+              "1. Phân tích sư phạm chuyên sâu:\n• Luyện tập phản xạ hành vi & Thử nghiệm tích cực: Việc loại bỏ đạo cụ ống chui cồng kềnh giúp tiết học tập trung hoàn toàn vào kĩ năng cốt lõi thực tế: Cúi thấp người hạ thấp trọng tâm và sờ tay men theo chân tường để không bị lạc lối trong bóng tối. Âm thanh còi báo cháy thật chuyển hóa kiến thức trên lớp thành bản năng sinh tồn trọn đời.\n\n2. Mục đích phát triển kĩ năng cho trẻ:\n• Kĩ năng vận động thô thích ứng không gian: Duy trì tư thế bò, trườn hoặc đi khom lưng giữ thăng bằng trong khi một tay luôn phải giữ chặt khăn che mặt.\n• Kĩ năng định hướng không gian: Rèn thói quen dùng xúc giác sờ men theo bờ tường để tìm lối thoát hiểm Exit.\n• Kĩ năng quản lý cảm xúc (SEL): Giữ được sự bình tĩnh, không khóc lóc giẫm đạp lên nhau, tuân thủ kỷ luật thoát hiểm an toàn."
+            ]
+          ],
+          "sheet": "Kĩ năng phòng tránh ngạt khói"
+        }
+      ],
       "durationMinutes": 20
     },
     {
@@ -3695,95 +3856,6 @@
   ],
   "progress": [
     {
-      "id": "prog__mod-04-lo-trinh-72-tiet__sale-haunt",
-      "passed": false,
-      "userId": "sale-haunt",
-      "attempts": [
-        {
-          "id": "att-mwxapc9w",
-          "note": "",
-          "score": 63,
-          "passed": false,
-          "answers": {
-            "hp04-q1": 2,
-            "hp04-q3": 1,
-            "hp04-q4": 3,
-            "hp04-q5": 2,
-            "hp04-q6": 2,
-            "hp04-q7": 3,
-            "hp04-q8": 1
-          },
-          "timestamp": "2026-11-26T08:33:27.140Z",
-          "totalCount": 8,
-          "tabSwitches": 1,
-          "correctCount": 5,
-          "timeSpentSec": 26
-        }
-      ],
-      "moduleId": "mod-04-lo-trinh-72-tiet",
-      "userName": "Nguyễn Thị Hậu",
-      "bestScore": 63,
-      "docViewed": true,
-      "updatedAt": "2026-11-26T08:33:27.140Z",
-      "docViewedAt": "2026-11-26T08:32:50.898Z"
-    },
-    {
-      "id": "prog__mod-01-tong-quan__sale-haunt",
-      "passed": true,
-      "userId": "sale-haunt",
-      "attempts": [
-        {
-          "score": 90,
-          "passed": true,
-          "timestamp": "2026-11-26T03:47:16.174Z",
-          "totalCount": 10,
-          "tabSwitches": 0,
-          "correctCount": 9,
-          "timeSpentSec": 145
-        }
-      ],
-      "moduleId": "mod-01-tong-quan",
-      "userName": "Nguyễn Thị Hậu",
-      "bestScore": 90,
-      "docViewed": true
-    },
-    {
-      "id": "prog__mod-05-ptbaihay-kb__sale-haunt",
-      "passed": false,
-      "userId": "sale-haunt",
-      "attempts": [],
-      "moduleId": "mod-05-ptbaihay-kb",
-      "userName": "Nguyễn Thị Hậu",
-      "bestScore": 0,
-      "docViewed": false,
-      "updatedAt": "2026-11-26T07:54:00.188Z",
-      "docViewedAt": null
-    },
-    {
-      "id": "prog__mod-02-nen-tang-sp__sale-haunt",
-      "passed": false,
-      "userId": "sale-haunt",
-      "attempts": [],
-      "moduleId": "mod-02-nen-tang-sp",
-      "userName": "Nguyễn Thị Hậu",
-      "bestScore": 0,
-      "docViewed": false,
-      "updatedAt": "2026-11-26T06:31:12.711Z",
-      "docViewedAt": null
-    },
-    {
-      "id": "prog__mod-03-10-bai-mau__sale-haunt",
-      "passed": false,
-      "userId": "sale-haunt",
-      "attempts": [],
-      "moduleId": "mod-03-10-bai-mau",
-      "userName": "Nguyễn Thị Hậu",
-      "bestScore": 0,
-      "docViewed": true,
-      "updatedAt": "2026-11-26T04:13:27.493Z",
-      "docViewedAt": "2026-11-26T04:13:32.137Z"
-    },
-    {
       "id": "prog__mod-01-tong-quan__sale-tientt",
       "passed": false,
       "userId": "sale-tientt",
@@ -3796,42 +3868,6 @@
       "docViewedAt": "2026-11-25T08:25:34.126Z"
     },
     {
-      "id": "prog__mod-mwyg98f2-i3b__sale-haunt",
-      "userId": "sale-haunt",
-      "userName": "Nguyễn Thị Hậu",
-      "moduleId": "mod-mwyg98f2-i3b",
-      "docViewed": false,
-      "docViewedAt": null,
-      "bestScore": 0,
-      "passed": false,
-      "attempts": [],
-      "updatedAt": "2026-11-27T04:05:31.453Z"
-    },
-    {
-      "id": "prog__mod-mwx7fnso__sale-haunt",
-      "passed": false,
-      "userId": "sale-haunt",
-      "attempts": [],
-      "moduleId": "mod-mwx7fnso",
-      "userName": "Nguyễn Thị Hậu",
-      "bestScore": 0,
-      "docViewed": true,
-      "updatedAt": "2026-11-27T03:59:17.757Z",
-      "docViewedAt": "2026-11-27T03:59:23.680Z"
-    },
-    {
-      "id": "prog__mod-mwx7lopj__sale-haunt",
-      "passed": false,
-      "userId": "sale-haunt",
-      "attempts": [],
-      "moduleId": "mod-mwx7lopj",
-      "userName": "Nguyễn Thị Hậu",
-      "bestScore": 0,
-      "docViewed": false,
-      "updatedAt": "2026-11-27T04:27:51.523Z",
-      "docViewedAt": null
-    },
-    {
       "id": "prog__mod-01-tong-quan__sale-thuylt",
       "userId": "sale-thuylt",
       "userName": "Lê Thu Thuỷ",
@@ -3842,6 +3878,18 @@
       "passed": false,
       "attempts": [],
       "updatedAt": "2026-11-27T06:28:46.794Z"
+    },
+    {
+      "id": "prog__mod-01-tong-quan__sale-haunt",
+      "userId": "sale-haunt",
+      "userName": "Nguyễn Thị Hậu",
+      "moduleId": "mod-01-tong-quan",
+      "docViewed": false,
+      "docViewedAt": null,
+      "bestScore": 0,
+      "passed": false,
+      "attempts": [],
+      "updatedAt": "2026-11-27T06:35:58.834Z"
     }
   ],
   "presence": {
@@ -3850,48 +3898,114 @@
       "userId": "admin",
       "moduleId": "mod-01-tong-quan",
       "userName": "Admin",
-      "lastSeenAt": "2026-11-27T06:28:36.270Z",
+      "lastSeenAt": "2026-11-27T06:35:39.204Z",
       "moduleCode": "HP01",
-      "statusText": "Đang xem Admin: Theo dõi hoạt động & Online"
+      "statusText": "Đang xem Admin: Bảng điều khiển"
     },
     "up-huongdt": {
       "role": "uploader",
       "userId": "up-huongdt",
-      "moduleId": "mod-mwyg98f2-i3b",
+      "moduleId": "mod-05-ptbaihay-kb",
       "userName": "Đinh Thị Hương",
-      "lastSeenAt": "2026-11-27T06:28:28.870Z",
-      "moduleCode": "HP12",
-      "statusText": "Đang biên tập tài liệu HP12"
+      "lastSeenAt": "2026-11-27T06:35:46.487Z",
+      "moduleCode": "HP05",
+      "statusText": "Đang biên tập tài liệu HP05"
     },
     "up-hienntm": {
       "role": "uploader",
       "userId": "up-hienntm",
-      "moduleId": "mod-mwx92vfb",
+      "moduleId": "mod-mwyg98f2-i3b",
       "userName": "Nguyễn Thị Minh Hiền",
-      "lastSeenAt": "2026-11-27T06:28:45.397Z",
-      "moduleCode": "HP09",
-      "statusText": "Đang đọc tài liệu HP09 (Mục 1)"
-    },
-    "sale-haunt": {
-      "role": "sale",
-      "userId": "sale-haunt",
-      "moduleId": "mod-01-tong-quan",
-      "userName": "Nguyễn Thị Hậu",
-      "lastSeenAt": "2026-11-27T03:55:12.389Z",
-      "moduleCode": "HP01",
-      "statusText": "Đang đọc tài liệu HP01 (Mục 1)"
+      "lastSeenAt": "2026-11-27T06:35:45.291Z",
+      "moduleCode": "HP12",
+      "statusText": "Đang đọc tài liệu HP12 (Mục 1)"
     },
     "sale-thuylt": {
       "role": "sale",
       "userId": "sale-thuylt",
       "moduleId": "mod-01-tong-quan",
       "userName": "Lê Thu Thuỷ",
-      "lastSeenAt": "2026-11-27T06:28:46.778Z",
+      "lastSeenAt": "2026-11-27T06:35:39.809Z",
       "moduleCode": "HP01",
       "statusText": "Đang đọc tài liệu HP01 (Mục 1)"
+    },
+    "sale-haunt": {
+      "userId": "sale-haunt",
+      "userName": "Nguyễn Thị Hậu",
+      "role": "sale",
+      "statusText": "Đang đọc tài liệu HP01 (Mục 1)",
+      "moduleId": "mod-01-tong-quan",
+      "moduleCode": "HP01",
+      "lastSeenAt": "2026-11-27T06:35:58.822Z"
     }
   },
   "activityLogs": [
+    {
+      "id": "act-mwyly4ct-tdky",
+      "userId": "sale-haunt",
+      "userName": "Nguyễn Thị Hậu",
+      "role": "sale",
+      "actionType": "login",
+      "actionLabel": "Đăng nhập hệ thống",
+      "detail": "Vai trò: Học Viên",
+      "moduleCode": "",
+      "timestamp": "2026-11-27T06:35:58.733Z"
+    },
+    {
+      "id": "act-mwylxcbj-m409",
+      "role": "uploader",
+      "detail": "HP05: Phân tích bài bé 38,39: Bé nhận diện nguy hiểm bằng các giác quan và kĩ năng bảo vệ bản thân khi xảy ra hỏa hoạn\" (20 câu hỏi)",
+      "userId": "up-huongdt",
+      "userName": "Đinh Thị Hương",
+      "timestamp": "2026-11-27T06:35:22.399Z",
+      "actionType": "approve_module",
+      "moduleCode": "HP05",
+      "actionLabel": "Đào tạo tự duyệt & đẩy bài cho Học Viên"
+    },
+    {
+      "id": "act-mwyltaq9-mypg",
+      "role": "admin",
+      "detail": "Vai trò: Admin",
+      "userId": "admin",
+      "userName": "Admin",
+      "timestamp": "2026-11-27T06:32:13.714Z",
+      "actionType": "login",
+      "moduleCode": "",
+      "actionLabel": "Đăng nhập hệ thống"
+    },
+    {
+      "id": "act-mwylsqvn-8z58",
+      "role": "sale",
+      "detail": "Vai trò: Học Viên",
+      "userId": "sale-thuylt",
+      "userName": "Lê Thu Thuỷ",
+      "timestamp": "2026-11-27T06:31:47.987Z",
+      "actionType": "login",
+      "moduleCode": "",
+      "actionLabel": "Đăng nhập hệ thống"
+    },
+    {
+      "id": "act-mwylruoe-q4zc",
+      "role": "uploader",
+      "detail": "HP09: Phân tích bài lớn 12: Bé học về ứng dụng của hình học trong cuộc sống tiết 1 (0 câu hỏi)",
+      "userId": "up-huongdt",
+      "userName": "Đinh Thị Hương",
+      "timestamp": "2026-11-27T06:31:06.254Z",
+      "actionType": "approve_module",
+      "moduleCode": "HP09",
+      "actionLabel": "Đào tạo tự duyệt & đẩy bài cho Học Viên"
+    },
+    {
+      "id": "act-mwylpalc-l0kg",
+      "role": "uploader",
+      "detail": "File: sale phan tich bai 62 lon moi.xlsx (6490 ký tự)",
+      "userId": "up-huongdt",
+      "userName": "Đinh Thị Hương",
+      "timestamp": "2026-11-27T06:29:06.912Z",
+      "actionType": "upload_doc",
+      "moduleCode": "HP12",
+      "actionLabel": "Tải file tài liệu lên học phần"
+    },
     {
       "id": "act-mwylov1d-854b",
       "role": "sale",
@@ -4221,6 +4335,17 @@
       "actionType": "submit_review",
       "moduleCode": "HP05",
       "actionLabel": "Gửi học phần chờ Admin duyệt"
+    },
+    {
+      "id": "act-mwyffn5z-zzbf",
+      "role": "admin",
+      "detail": "HP05: Phân tích bài bé 56: bé học cách vui chơi an toàn dưới nắng (bản cập nhật)",
+      "userId": "admin",
+      "userName": "Admin",
+      "timestamp": "2026-11-27T03:33:38.951Z",
+      "actionType": "approve_module",
+      "moduleCode": "HP05",
+      "actionLabel": "Admin duyệt xuất bản học phần"
     },
     {
       "id": "act-mwyfehu9-oqiv",
