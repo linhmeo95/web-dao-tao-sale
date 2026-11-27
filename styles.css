@@ -3558,6 +3558,39 @@ dialog::backdrop {
   border-color: #FECDD3;
 }
 
+.btn-row-act.warn-outline {
+  color: #B45309;
+  background: #FFFBEB;
+  border-color: #FDE68A;
+}
+
+.btn-row-act.warn-outline:hover {
+  background: #FEF3C7;
+  border-color: #F59E0B;
+}
+
+.perm-inline-chk {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #1E293B;
+  white-space: nowrap;
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid #E2E8F0;
+  background: #FFFFFF;
+  cursor: pointer;
+}
+
+.perm-inline-chk input[type="checkbox"] {
+  accent-color: #059669;
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+}
+
 .inline-edit-group {
   display: flex;
   gap: 6px;

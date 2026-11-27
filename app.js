@@ -187,6 +187,7 @@
         : [];
     }
     upgradeCoreModulesIfNeeded(result);
+    migrateUploaderPermissionsIfNeeded(result);
     if (!Array.isArray(result.progress)) result.progress = [];
     if (!result.presence || typeof result.presence !== "object") result.presence = {};
     if (!Array.isArray(result.activityLogs)) result.activityLogs = [];
@@ -251,6 +252,31 @@
     return (db.modules || []).filter(m => m.status !== "draft" && m.status !== "pending");
   }
 
+  function migrateUploaderPermissionsIfNeeded(targetDb) {
+    if (!targetDb || typeof targetDb !== "object") return false;
+    if (!targetDb.meta) targetDb.meta = {};
+    if ((targetDb.meta.uploaderPermVersion || 0) >= 1) return false;
+    const defaultGrantedIds = new Set(["up-huongdt", "up-hienntm"]);
+    if (Array.isArray(targetDb.users)) {
+      targetDb.users.forEach(u => {
+        if (u && u.role === "uploader" && u.canSelfApprove === undefined) {
+          u.canSelfApprove = defaultGrantedIds.has(u.id);
+        }
+      });
+    }
+    targetDb.meta.uploaderPermVersion = 1;
+    targetDb.meta.updatedAt = new Date().toISOString();
+    return true;
+  }
+
+  function canUserSelfApprove(userObj = currentUser) {
+    if (!userObj) return false;
+    if (userObj.role === "admin") return true;
+    if (userObj.role !== "uploader") return false;
+    const liveUser = (db.users || []).find(u => u.id === userObj.id);
+    return Boolean(liveUser && liveUser.canSelfApprove === true);
+  }
+
   function canCurrentUserEditModule(mod) {
     if (!currentUser || !mod) return false;
     if (currentUser.role === "admin") return true;
@@ -261,6 +287,18 @@
       return Boolean(aName && uName && aName === uName);
     }
     return false;
+  }
+
+  function canCurrentUserPublishModule(mod) {
+    return Boolean(mod && canCurrentUserEditModule(mod) && canUserSelfApprove(currentUser));
+  }
+
+  function sanitizeStatusForCurrentUser(requestedStatus, currentStatus) {
+    const nextStatus = requestedStatus || "draft";
+    if (nextStatus === "published" && !canUserSelfApprove(currentUser) && currentStatus !== "published") {
+      return "pending";
+    }
+    return nextStatus;
   }
 
   function getCurrentModule() {
@@ -406,7 +444,7 @@
         }
       }
 
-      if (upgradeCoreModulesIfNeeded(db)) {
+      if (upgradeCoreModulesIfNeeded(db) || migrateUploaderPermissionsIfNeeded(db)) {
         triggerAutoSave(true, true);
       }
 
@@ -2701,14 +2739,46 @@
     }
 
     const canEdit = canCurrentUserEditModule(mod);
+    const canSelfApprove = canUserSelfApprove(currentUser);
+    const canPublish = canEdit && canSelfApprove;
 
     const roBanner = document.getElementById("upReadOnlyNoticeBanner");
     const roAuthor = document.getElementById("lblReadOnlyBannerAuthor");
     if (roBanner) roBanner.classList.toggle("hidden", canEdit);
     if (roAuthor) roAuthor.textContent = mod.authorName || "Quản trị viên";
 
-    document.getElementById("upModStatus").value = mod.status || "published";
-    document.getElementById("upModStatus").disabled = !canEdit;
+    const statusSel = document.getElementById("upModStatus");
+    if (statusSel) {
+      statusSel.value = mod.status || "published";
+      statusSel.disabled = !canEdit;
+      const pubOpt = statusSel.querySelector('option[value="published"]');
+      if (pubOpt) {
+        pubOpt.disabled = !canSelfApprove && mod.status !== "published";
+        pubOpt.textContent = canSelfApprove
+          ? "Đã duyệt (Học Viên nhìn thấy)"
+          : "Đã duyệt (Chỉ Admin hoặc ĐT được cấp quyền)";
+      }
+      statusSel.onchange = () => {
+        if (!canCurrentUserEditModule(mod)) return;
+        const safeStatus = sanitizeStatusForCurrentUser(statusSel.value, mod.status);
+        statusSel.value = safeStatus;
+        mod.status = safeStatus;
+        if (safeStatus === "published") {
+          mod.approvedBy = currentUser ? currentUser.name : "Đào tạo";
+          mod.approvedAt = new Date().toISOString();
+        }
+        mod.updatedAt = new Date().toISOString();
+        logUserActivity(
+          safeStatus === "published" ? "approve_module" : "save_module",
+          safeStatus === "published" ? "Đổi trạng thái: Mở cho Học Viên" : `Đổi trạng thái học phần: ${safeStatus}`,
+          `${mod.code}: ${mod.title}`,
+          mod.code
+        );
+        triggerAutoSave(true, true);
+        renderSidebar();
+        renderUploaderWorkspace();
+      };
+    }
     document.getElementById("upModCode").value = mod.code || "HP";
     document.getElementById("upModCategory").value = mod.category || "Tài liệu Đào tạo";
     document.getElementById("upModDuration").value = mod.durationMinutes || 20;
@@ -2719,7 +2789,10 @@
     document.getElementById("upModSummaryPoints").value = (mod.summaryPoints || []).join("\n");
     const lblAuthor = document.getElementById("lblUploaderModuleAuthor");
     if (lblAuthor) {
-      lblAuthor.textContent = `Tác giả: ${mod.authorName || "Đào tạo"}${canEdit ? " (Có quyền chỉnh sửa)" : " (Chỉ xem)"}`;
+      const permNote = canEdit
+        ? (canSelfApprove ? " · Quyền: Tự duyệt & Đẩy bài" : " · Quyền: Sửa & Gửi Admin duyệt")
+        : " (Chỉ xem)";
+      lblAuthor.textContent = `Tác giả: ${mod.authorName || "Đào tạo"}${permNote}`;
     }
 
     const btnDelMod = document.getElementById("btnUploaderDeleteModule");
@@ -2727,7 +2800,18 @@
     const btnSubApp = document.getElementById("btnUploaderSubmitForApproval");
     if (btnDelMod) btnDelMod.classList.toggle("hidden", !canEdit);
     if (btnSaveMod) btnSaveMod.classList.toggle("hidden", !canEdit);
-    if (btnSubApp) btnSubApp.classList.toggle("hidden", !canEdit);
+    if (btnSubApp) {
+      btnSubApp.classList.toggle("hidden", !canEdit);
+      if (canPublish) {
+        btnSubApp.textContent = mod.status === "published"
+          ? "✓ Cập nhật bài đang mở cho HV"
+          : "✓ Duyệt & Đẩy cho Học Viên";
+        btnSubApp.title = "Tự duyệt và đẩy học phần lên ngay cho Học Viên nhìn thấy";
+      } else {
+        btnSubApp.textContent = "Lưu & Gửi Admin duyệt";
+        btnSubApp.title = "Lưu nội dung và gửi sang hàng chờ Admin duyệt xuất bản";
+      }
+    }
 
     const uploadLabelBtn = document.querySelector(".up-doc-toolbar .btn-upload-doc-primary");
     if (uploadLabelBtn) uploadLabelBtn.classList.toggle("hidden", !canEdit);
@@ -2811,7 +2895,8 @@
 
   function syncUploaderDocFieldsToModule(mod) {
     if (!mod || !canCurrentUserEditModule(mod)) return;
-    mod.status = document.getElementById("upModStatus").value || "published";
+    const reqStatus = document.getElementById("upModStatus").value || "draft";
+    mod.status = sanitizeStatusForCurrentUser(reqStatus, mod.status);
     mod.title = document.getElementById("upModTitle").value.trim() || mod.title || "Bài học mới";
     mod.contentText = document.getElementById("upModContentText").value;
     mod.updatedAt = new Date().toISOString();
@@ -4513,17 +4598,38 @@
           });
         } else {
           const switchLabel = roleName === "sale" ? "Chuyển sang Đào tạo" : "Chuyển sang Học Viên";
+          const permToggleBtn = roleName === "uploader"
+            ? `<button type="button" class="btn-row-act ${u.canSelfApprove ? "save" : "warn-outline"}" data-toggle-approve-u="${escapeHtml(u.id)}" title="${u.canSelfApprove ? "Bấm để tắt quyền tự duyệt" : "Bấm để cấp quyền tự duyệt đẩy bài cho Học Viên"}">${u.canSelfApprove ? "✓ Tự duyệt bài" : "Chờ Admin duyệt"}</button>`
+            : "";
           row.innerHTML = `
             <div><strong>${escapeHtml(u.name)}</strong> — Mã PIN: <code>${escapeHtml(u.pin)}</code></div>
             <div class="manage-row-actions">
+              ${permToggleBtn}
               <button type="button" class="btn-row-act" data-switch-role-u="${escapeHtml(u.id)}">${switchLabel}</button>
               <button type="button" class="btn-row-act" data-edit-u="${escapeHtml(u.id)}">Sửa tên / PIN</button>
               <button type="button" class="btn-row-act danger" data-del-u="${escapeHtml(u.id)}">Xóa</button>
             </div>
           `;
+          const permBtn = row.querySelector("[data-toggle-approve-u]");
+          if (permBtn) {
+            permBtn.onclick = () => {
+              u.canSelfApprove = !u.canSelfApprove;
+              if (db.meta) db.meta.updatedAt = new Date().toISOString();
+              logUserActivity(
+                "update_permission",
+                u.canSelfApprove ? "Cấp quyền Đào tạo tự duyệt & đẩy bài" : "Tắt quyền tự duyệt bài của Đào tạo",
+                `${u.name} (${u.id})`
+              );
+              triggerAutoSave(true, true);
+              renderManageUsersModal();
+              renderAll();
+            };
+          }
           row.querySelector("[data-switch-role-u]").onclick = () => {
             u.role = roleName === "sale" ? "uploader" : "sale";
             u.title = u.role === "uploader" ? "Phụ trách Nội dung & Đào tạo" : "Học Viên";
+            if (u.role === "uploader" && u.canSelfApprove === undefined) u.canSelfApprove = false;
+            if (db.meta) db.meta.updatedAt = new Date().toISOString();
             triggerAutoSave(true, true);
             renderManageUsersModal();
             populateAuthSelects();
@@ -4926,7 +5032,7 @@
       subtitle: "Bối cảnh tư vấn Chủ trường và Hiệu trưởng trường mầm non",
       durationMinutes: 20,
       passThreshold: (db.meta && db.meta.defaultPassThreshold) || 80,
-      status: (currentUser && currentUser.role === "admin") ? "published" : "pending",
+      status: (currentUser && currentUser.role === "admin") ? "published" : "draft",
       authorId: currentUser ? currentUser.id : "",
       authorName: currentUser ? currentUser.name : "Đào tạo",
       updatedAt: new Date().toISOString(),
@@ -5020,11 +5126,14 @@
 
         if (!mod.authorId && currentUser) mod.authorId = currentUser.id;
         mod.authorName = currentUser ? currentUser.name : (mod.authorName || "Đào tạo");
-        if (currentUser && currentUser.role === "uploader") {
+        if (currentUser && currentUser.role === "uploader" && !canUserSelfApprove(currentUser) && mod.status !== "published") {
           mod.status = "pending";
         }
         logUserActivity("upload_doc", "Tải file tài liệu lên học phần", `File: ${file.name} (${(extracted.text || "").length} ký tự)`, mod.code);
-        statusEl.innerHTML = `✓ Đã bóc tách thành công tài liệu <strong>${escapeHtml(file.name)}</strong> vào học phần <strong>${escapeHtml(mod.code)}</strong> (${(extracted.text || "").length.toLocaleString("vi-VN")} ký tự, ${(extracted.tables || []).length} bảng dữ liệu). Bạn có thể chuyển sang Bước 2 để tạo bộ câu hỏi trắc nghiệm ngay!`;
+        const publishHint = canUserSelfApprove(currentUser)
+          ? `Sau khi kiểm tra, hãy bấm nút <strong>"✓ Duyệt &amp; Đẩy cho Học Viên"</strong> ở góc phải để mở cho Học Viên học ngay!`
+          : `Bạn có thể chuyển sang Bước 2 để tạo bộ câu hỏi trắc nghiệm và gửi Admin duyệt nhé!`;
+        statusEl.innerHTML = `✓ Đã bóc tách thành công tài liệu <strong>${escapeHtml(file.name)}</strong> vào học phần <strong>${escapeHtml(mod.code)}</strong> (${(extracted.text || "").length.toLocaleString("vi-VN")} ký tự, ${(extracted.tables || []).length} bảng dữ liệu). ${publishHint}`;
         triggerAutoSave(true, true);
         renderUploaderWorkspace();
         renderSidebar();
@@ -5258,15 +5367,30 @@
     if (btnSubmitApprove) {
       btnSubmitApprove.addEventListener("click", () => {
         const mod = getCurrentModule();
-        if (!mod) return;
+        if (!mod || !canCurrentUserEditModule(mod)) return;
         syncUploaderDocFieldsToModule(mod);
         if (currentUser) mod.authorName = currentUser.name;
-        mod.status = (currentUser && currentUser.role === "admin") ? "published" : "pending";
+        const canPublish = canUserSelfApprove(currentUser);
+        if (canPublish) {
+          if ((!Array.isArray(mod.questions) || mod.questions.length === 0) && mod.status !== "published") {
+            const ok = confirm(`Học phần "${mod.code}: ${mod.title}" hiện chưa có câu hỏi trắc nghiệm nào.\n\nBạn vẫn muốn duyệt và đẩy lên cho Học Viên xem tài liệu trước chứ?`);
+            if (!ok) return;
+          }
+          mod.status = "published";
+          mod.approvedBy = currentUser ? currentUser.name : "Đào tạo";
+          mod.approvedAt = new Date().toISOString();
+        } else {
+          mod.status = "pending";
+        }
         mod.updatedAt = new Date().toISOString();
         expandedUploaderQuestionIndex = null;
+        const statusSel = document.getElementById("upModStatus");
+        if (statusSel) statusSel.value = mod.status;
         logUserActivity(
-          "submit_review",
-          mod.status === "pending" ? "Gửi học phần chờ Admin duyệt" : "Duyệt & Xuất bản học phần",
+          mod.status === "published" ? "approve_module" : "submit_review",
+          mod.status === "pending"
+            ? "Gửi học phần chờ Admin duyệt"
+            : (currentUser && currentUser.role === "admin" ? "Admin duyệt & xuất bản học phần" : "Đào tạo tự duyệt & đẩy bài cho Học Viên"),
           `${mod.code}: ${mod.title} (${(mod.questions || []).length} câu hỏi)`,
           mod.code
         );
@@ -5276,7 +5400,7 @@
         alert(
           mod.status === "pending"
             ? `Đã lưu và gửi học phần "${mod.code}: ${mod.title}" sang mục Quản lý Học phần để chờ Admin duyệt xuất bản!`
-            : `Đã lưu và xuất bản học phần "${mod.code}: ${mod.title}"!`
+            : `✓ Đã duyệt và đẩy học phần "${mod.code}: ${mod.title}" lên cho Học Viên nhìn thấy và học ngay!`
         );
       });
     }
@@ -5403,18 +5527,23 @@
     function handleAddUploader() {
       const nameInp = document.getElementById("newUploaderName");
       const pinInp = document.getElementById("newUploaderPin");
+      const chkApprove = document.getElementById("chkNewUploaderSelfApprove");
       const name = nameInp ? nameInp.value.trim() : "";
       const pin = (pinInp ? pinInp.value.trim() : "") || "7777";
+      const canSelfApprove = Boolean(chkApprove && chkApprove.checked);
       if (!name) return;
       db.users.push({
         id: "up-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 5),
         name,
         pin,
         role: "uploader",
+        canSelfApprove,
         title: "Phụ trách Nội dung & Đào tạo"
       });
       nameInp.value = "";
       pinInp.value = "";
+      if (chkApprove) chkApprove.checked = false;
+      if (db.meta) db.meta.updatedAt = new Date().toISOString();
       triggerAutoSave(true, true);
       renderManageUsersModal();
       populateAuthSelects();
@@ -5722,6 +5851,8 @@
             statusBadge = `<span class="sidebar-item-status pending">Chờ Admin duyệt</span>`;
           } else if (m.status === "draft") {
             statusBadge = `<span class="sidebar-item-status draft">Bản nháp (Ẩn)</span>`;
+          } else if (m.approvedBy) {
+            statusBadge = `<span class="sidebar-item-status done" title="Người duyệt: ${escapeHtml(m.approvedBy)}">✓ Đã duyệt</span><span class="admin-mod-author-sub">Duyệt: ${escapeHtml(m.approvedBy)}</span>`;
           }
 
           return `
@@ -5980,9 +6111,12 @@
               <input type="text" class="input-control mono-input" data-inline-user-pin="${escapeHtml(u.id)}" value="${escapeHtml(u.pin)}" style="padding:5px 9px;font-size:13px;text-align:center;">
             </td>
             <td style="width:125px;text-align:center;">${metricHtml}</td>
-            <td style="width:155px;">
-              <div style="display:flex;gap:6px;justify-content:flex-end;">
-                ${!isUploader ? `<button type="button" class="btn-row-act" data-inline-act-as="${escapeHtml(u.id)}" title="Xem giao diện học dưới quyền Học Viên này">Xem thử</button>` : ""}
+            <td style="width:${isUploader ? "215px" : "155px"};">
+              <div style="display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap;">
+                ${isUploader
+                  ? `<button type="button" class="btn-row-act ${u.canSelfApprove ? "save" : "warn-outline"}" data-inline-toggle-approve="${escapeHtml(u.id)}" title="${u.canSelfApprove ? "Bấm để tắt quyền tự duyệt xuất bản" : "Bấm để cấp quyền tự duyệt & đẩy bài cho Học Viên"}">${u.canSelfApprove ? "✓ Tự duyệt bài" : "Chờ Admin duyệt"}</button>`
+                  : `<button type="button" class="btn-row-act" data-inline-act-as="${escapeHtml(u.id)}" title="Xem giao diện học dưới quyền Học Viên này">Xem thử</button>`
+                }
                 <button type="button" class="btn-row-act danger" data-inline-del-user="${escapeHtml(u.id)}">Xóa</button>
               </div>
             </td>
@@ -6036,8 +6170,11 @@
 
           <!-- ĐÀO TẠO COLUMN -->
           <div style="border:1px solid #FED7AA;border-radius:12px;padding:14px;background:#FFFBF5;display:flex;flex-direction:column;gap:10px;">
-            <div style="display:flex;justify-content:space-between;align-items:center;">
-              <h3 style="font-size:14.5px;font-weight:800;color:#9A3412;">2. Nhân sự Đào tạo (${uploaders.length})</h3>
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
+              <div>
+                <h3 style="font-size:14.5px;font-weight:800;color:#9A3412;">2. Nhân sự Đào tạo (${uploaders.length})</h3>
+                <div style="font-size:11.5px;color:#78350F;margin-top:2px;">Bấm <strong>"Tự duyệt bài"</strong> để cho phép tự đẩy bài lên cho Học Viên.</div>
+              </div>
               <span class="presence-role-tag uploader">Đăng tài liệu &amp; Câu hỏi</span>
             </div>
             <div class="table-responsive">
@@ -6047,7 +6184,7 @@
                     <th>Họ và tên Đào tạo</th>
                     <th style="text-align:center;">Mã PIN</th>
                     <th style="text-align:center;">Học phần</th>
-                    <th style="text-align:right;">Thao tác</th>
+                    <th style="text-align:right;">Phân quyền &amp; Thao tác</th>
                   </tr>
                 </thead>
                 <tbody>${buildUserTableRows(uploaders, true)}</tbody>
@@ -6055,7 +6192,10 @@
             </div>
             <div class="add-row-form" style="margin-top:4px;">
               <input type="text" id="inpInlineNewUploaderName" class="input-control" placeholder="Nhập họ và tên Đào tạo mới...">
-              <input type="text" id="inpInlineNewUploaderPin" class="input-control mono-input" placeholder="PIN (4 số)" style="max-width:110px;">
+              <input type="text" id="inpInlineNewUploaderPin" class="input-control mono-input" placeholder="PIN (4 số)" style="max-width:95px;">
+              <label class="perm-inline-chk" title="Cho phép tự duyệt & đẩy bài mình soạn lên cho Học Viên">
+                <input type="checkbox" id="chkInlineNewUploaderSelfApprove"> Tự duyệt bài
+              </label>
               <button type="button" class="btn-primary" id="btnInlineAddUploader">+ Thêm Đào tạo</button>
             </div>
           </div>
@@ -6107,6 +6247,22 @@
       };
     });
 
+    panel.querySelectorAll("[data-inline-toggle-approve]").forEach(btn => {
+      btn.onclick = () => {
+        const u = (db.users || []).find(item => item.id === btn.dataset.inlineToggleApprove);
+        if (!u) return;
+        u.canSelfApprove = !u.canSelfApprove;
+        if (db.meta) db.meta.updatedAt = new Date().toISOString();
+        logUserActivity(
+          "update_permission",
+          u.canSelfApprove ? "Admin cấp quyền Đào tạo tự duyệt & đẩy bài" : "Admin tắt quyền tự duyệt bài của Đào tạo",
+          `${u.name} (${u.id})`
+        );
+        triggerAutoSave(true, true);
+        renderAdminWorkspace();
+      };
+    });
+
     panel.querySelectorAll("[data-inline-del-user]").forEach(btn => {
       btn.onclick = () => {
         const u = (db.users || []).find(item => item.id === btn.dataset.inlineDelUser);
@@ -6123,16 +6279,22 @@
     const addInlineUser = (role) => {
       const nameEl = document.getElementById(role === "sale" ? "inpInlineNewSaleName" : "inpInlineNewUploaderName");
       const pinEl = document.getElementById(role === "sale" ? "inpInlineNewSalePin" : "inpInlineNewUploaderPin");
+      const chkApproveEl = role === "uploader" ? document.getElementById("chkInlineNewUploaderSelfApprove") : null;
       const name = nameEl ? nameEl.value.trim() : "";
       const pin = (pinEl ? pinEl.value.trim() : "") || (role === "sale" ? "1234" : "7777");
       if (!name) return;
-      db.users.push({
+      const newUser = {
         id: `${role === "sale" ? "sale" : "up"}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 5)}`,
         name,
         pin,
         role,
         title: role === "sale" ? "Học Viên" : "Phụ trách Nội dung & Đào tạo"
-      });
+      };
+      if (role === "uploader") {
+        newUser.canSelfApprove = Boolean(chkApproveEl && chkApproveEl.checked);
+      }
+      db.users.push(newUser);
+      if (db.meta) db.meta.updatedAt = new Date().toISOString();
       triggerAutoSave(true, true);
       populateAuthSelects();
       renderAdminWorkspace();
