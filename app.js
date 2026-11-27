@@ -1709,14 +1709,18 @@
   }
 
   function formatStudyRichTextHtml(rawText) {
-    const raw = String(rawText == null ? "" : rawText).trim();
+    let raw = String(rawText == null ? "" : rawText).trim();
     if (!raw) return "";
-    const lines = raw.split(/\r?\n+/).map(l => l.trim()).filter(Boolean);
+    raw = raw
+      .replace(/\r\n/g, "\n")
+      .replace(/([^\n])\s*([•●▪✦➢])/g, "$1\n$2")
+      .replace(/([^\n])\s+(\d+\.\s+(?:Phân tích|Mục đích|Kiến thức|Kĩ năng|Giải pháp|Quy trình|Lưu ý))/gi, "$1\n$2");
+    const lines = raw.split(/\n+/).map(l => l.trim()).filter(Boolean);
     return `<div class="stc-rich-list">${lines.map(line => {
-      const isSub = /^[+–]\s+/.test(line);
+      const isSub = /^[+–-]\s+/.test(line);
       const colonIdx = line.indexOf(":");
       let innerHtml = "";
-      if (colonIdx > 1 && colonIdx < 58) {
+      if (colonIdx > 1 && colonIdx < 62) {
         const head = line.slice(0, colonIdx + 1);
         const rest = line.slice(colonIdx + 1);
         innerHtml = `<span class="stc-rich-key">${escapeHtml(head)}</span>${escapeHtml(rest)}`;
@@ -2124,39 +2128,142 @@
       return lines.map(l => `<span class="doc-line-block">${escapeHtml(l)}</span>`).join("");
     }
 
+    function classifyCardTone(headerText) {
+      const h = String(headerText || "").toLowerCase();
+      if (/sale|chốt|tư vấn|điểm sáng|luận điểm|thuyết phục/.test(h)) return "pitch";
+      if (/sư phạm|giá trị|nổi bật|mục đích|phân tích|usp|khác biệt|căn cứ/.test(h)) return "usp";
+      if (/trường|cũ|bộ gd|truyền thống/.test(h)) return "traditional";
+      return "novastars";
+    }
+
+    function splitHighlightBlock(rawText) {
+      const txt = String(rawText || "").replace(/\r\n/g, "\n").trim();
+      const match = txt.match(/(?:^|\n)\s*((?:ĐIỂM SÁNG TƯ VẤN|LUẬN ĐIỂM SALE|CÂU CHỐT(?: SALE)?)\s*:?[\s\S]*)$/i);
+      if (!match) return { mainText: txt, highlightText: "" };
+      const idx = match.index;
+      const before = txt.slice(0, idx).trim();
+      let hl = match[1].trim().replace(/^(?:ĐIỂM SÁNG TƯ VẤN|LUẬN ĐIỂM SALE|CÂU CHỐT(?: SALE)?)\s*:?\s*/i, "").trim();
+      return { mainText: before, highlightText: hl || match[1].trim() };
+    }
+
+    function extractAgeBadge(bannerLines, fallbackText) {
+      const joined = `${bannerLines.join(" ")} ${fallbackText || ""}`;
+      const m = joined.match(/Khối\s+(?:Mẫu\s*giáo\s*)?(Bé|Nhỡ|Lớn)(?:\s*\([^)]+\))?/i);
+      if (m) return m[0].replace(/\s+/g, " ").trim();
+      if (bannerLines[1]) return truncateShortLabel(bannerLines[1].split("|")[0].trim(), 36);
+      return "";
+    }
+
+    function deriveShortTreeParts(rawTopic, rowOrderIdx) {
+      const cleaned = String(rawTopic || "").replace(/\r\n/g, " ").replace(/\s+/g, " ").trim();
+      if (!cleaned) {
+        return { treeCode: `Mục ${rowOrderIdx + 1}`, treeTitle: `Nội dung ${rowOrderIdx + 1}`, fullTitle: `Mục ${rowOrderIdx + 1}` };
+      }
+      if (/^thông tin chung$/i.test(cleaned)) {
+        return { treeCode: "Tổng quan", treeTitle: "Thông tin chung", fullTitle: "Thông tin chung" };
+      }
+      if (/kiến thức.*cốt lõi/i.test(cleaned)) {
+        return { treeCode: "Cốt lõi", treeTitle: cleaned, fullTitle: cleaned };
+      }
+      if (/khái quát|điểm sáng/i.test(cleaned)) {
+        return { treeCode: "Chốt Sale", treeTitle: "Khái quát & Điểm sáng tư vấn", fullTitle: cleaned };
+      }
+      const actMatch = cleaned.match(/^Hoạt động(?:\s+cụ\s+thể)?\s*(\d+[^:–-]*)\s*[:–-]?\s*(.*)$/i);
+      if (actMatch) {
+        const numPart = actMatch[1].trim();
+        const subTitle = (actMatch[2] || "").trim();
+        const shortNum = (numPart.match(/\d+/) || [String(rowOrderIdx + 1)])[0];
+        return {
+          treeCode: `HĐ ${shortNum}`,
+          treeTitle: subTitle || `Hoạt động ${numPart}`,
+          fullTitle: subTitle ? `Hoạt động ${numPart}: ${subTitle}` : cleaned
+        };
+      }
+      return {
+        treeCode: `Mục ${rowOrderIdx + 1}`,
+        treeTitle: cleaned,
+        fullTitle: cleaned
+      };
+    }
+
+    function buildSectionCardHtml({ badgeLeft, title, badgesRight, spotlightLabel, spotlightText, boxes }) {
+      const rightBadgesHtml = (badgesRight || []).filter(Boolean).map(b => `<span class="stc-badge">${escapeHtml(b)}</span>`).join("");
+      const spotlightHtml = spotlightText
+        ? `<div class="stc-pitch-spotlight">
+             <div class="stc-box-label">${escapeHtml(spotlightLabel || "Điểm sáng tư vấn Sale")}</div>
+             ${formatStudyRichTextHtml(spotlightText)}
+           </div>`
+        : "";
+      const validBoxes = (boxes || []).filter(b => b && String(b.content || "").trim());
+      let boxesHtml = "";
+      if (validBoxes.length === 2) {
+        boxesHtml = `<div class="stc-balanced-pair">${validBoxes.map(b => `
+          <div class="stc-box ${b.tone || "novastars"}">
+            <div class="stc-box-label">${escapeHtml(b.label)}</div>
+            <div class="stc-box-content">${formatStudyRichTextHtml(b.content)}</div>
+          </div>
+        `).join("")}</div>`;
+      } else if (validBoxes.length > 0) {
+        boxesHtml = validBoxes.map(b => `
+          <div class="stc-box ${b.tone || "novastars"}">
+            <div class="stc-box-label">${escapeHtml(b.label)}</div>
+            <div class="stc-box-content">${formatStudyRichTextHtml(b.content)}</div>
+          </div>
+        `).join("");
+      }
+      return `
+        <article class="study-topic-card">
+          <div class="stc-head">
+            <div class="stc-head-left">
+              ${badgeLeft ? `<span class="stc-num">${escapeHtml(badgeLeft)}</span>` : ""}
+              <h4 class="stc-title">${escapeHtml(title)}</h4>
+            </div>
+            ${rightBadgesHtml ? `<div class="stc-badges">${rightBadgesHtml}</div>` : ""}
+          </div>
+          <div class="stc-tier-stack">
+            ${spotlightHtml}
+            ${boxesHtml}
+          </div>
+        </article>
+      `;
+    }
+
     const customSteps = [];
     if (Array.isArray(mod.customSections) && mod.customSections.length > 0) {
+      const totalSec = mod.customSections.length;
       mod.customSections.forEach((sec, sIdx) => {
         const secTitle = String(sec.title || "").trim() || `Mục ${sIdx + 1}`;
         const secBody = String(sec.content || "").trim();
-        const bodyHtml = secBody
-          ? secBody
-              .replace(/\r\n/g, "\n")
-              .split(/\n+/)
-              .map(l => l.trim())
-              .filter(Boolean)
-              .map(p => `<p style="font-size:14.2px;line-height:1.68;white-space:pre-line;">${formatMultilineCellHtml(p)}</p>`)
-              .join("")
-          : `<p style="color:#64748B;font-size:13.5px;">Chưa có nội dung cho mục này.</p>`;
+        const { mainText, highlightText } = splitHighlightBlock(secBody);
+        const cardHtml = buildSectionCardHtml({
+          badgeLeft: `${mod.code || "HP"} · Mục ${sIdx + 1}/${totalSec}`,
+          title: secTitle,
+          badgesRight: [mod.category || ""],
+          spotlightLabel: "Điểm sáng tư vấn Sale",
+          spotlightText: highlightText,
+          boxes: mainText
+            ? [{ label: "Nội dung chi tiết", tone: "novastars", content: mainText }]
+            : (!highlightText ? [{ label: "Nội dung", tone: "novastars", content: "Chưa có nội dung cho mục này." }] : [])
+        });
         customSteps.push({
           pillLabel: `${sIdx + 1}. ${secTitle}`,
           treeCode: `Mục ${sIdx + 1}`,
           treeTitle: secTitle,
           title: secTitle,
-          html: `<div style="display:flex;flex-direction:column;gap:10px;">${bodyHtml}</div>`
+          html: cardHtml
         });
       });
     }
 
-    if (Array.isArray(mod.uploadedTables) && mod.uploadedTables.length > 0) {
+    if (customSteps.length === 0 && Array.isArray(mod.uploadedTables) && mod.uploadedTables.length > 0) {
+      const multiSheet = mod.uploadedTables.length > 1;
       mod.uploadedTables.forEach((tbl, tIdx) => {
-        const rows = tbl.rows || [];
+        const rows = Array.isArray(tbl.rows) ? tbl.rows : [];
         if (rows.length === 0) return;
-        const maxCols = rows.reduce((mx, r) => Math.max(mx, Array.isArray(r) ? r.length : 0), 1);
 
-        // Find the header row (first row with >= 2 non-empty cells or starting with STT)
+        // Detect header row (first row within top 8 rows having >= 2 non-empty cells)
         let headerIdx = -1;
-        for (let r = 0; r < Math.min(rows.length, 6); r++) {
+        for (let r = 0; r < Math.min(rows.length, 8); r++) {
           const nonEmpty = (rows[r] || []).filter(c => String(c || "").trim().length > 0);
           if (nonEmpty.length >= 2) {
             headerIdx = r;
@@ -2164,51 +2271,138 @@
           }
         }
 
-        const trs = rows.map((r, rIdx) => {
-          const nonEmpty = (r || []).map(c => String(c || "").trim()).filter(Boolean);
-          if (nonEmpty.length === 0) return "";
-          if (nonEmpty.length === 1 && maxCols > 1 && rIdx < (headerIdx === -1 ? 3 : headerIdx)) {
-            return `<tr><td colspan="${maxCols}" class="doc-table-banner-row">${formatMultilineCellHtml(nonEmpty[0])}</td></tr>`;
-          }
-          const isHeader = rIdx === headerIdx || (headerIdx === -1 && rIdx === 0);
-          const tag = isHeader ? "th" : "td";
-          const cellClass = isHeader ? "" : ' class="doc-multiline-cell"';
-          const cells = r.map(c => `<${tag}${cellClass}>${formatMultilineCellHtml(c)}</${tag}>`).join("");
-          return `<tr>${cells}</tr>`;
-        }).join("");
+        const bannerLines = [];
+        for (let r = 0; r < (headerIdx === -1 ? Math.min(rows.length, 3) : headerIdx); r++) {
+          const text = (rows[r] || []).map(c => String(c || "").trim()).filter(Boolean).join(" · ");
+          if (text && !/^PHẦN\s+[IVX0-9]+:/i.test(text)) bannerLines.push(text);
+        }
+        const ageBadge = extractAgeBadge(bannerLines, mod.title);
+        const sheetName = tbl.sheet || `Phần ${tIdx + 1}`;
 
-        const sheetTitle = tbl.sheet || `Bảng dữ liệu ${tIdx + 1}`;
-        customSteps.push({
-          pillLabel: `${tIdx + 1}. ${sheetTitle}`,
-          title: sheetTitle,
-          html: `<div class="table-responsive" style="max-height:520px;overflow-y:auto;"><table class="progress-matrix-table">${trs}</table></div>`
-        });
+        if (headerIdx !== -1) {
+          const headers = (rows[headerIdx] || []).map(c => String(c || "").trim());
+          let sttColIdx = headers.findIndex(h => /^(?:stt|tt|số)$/i.test(h));
+          let titleColIdx = headers.findIndex((h, i) => i !== sttColIdx && /hạng mục|chuyên đề|tiêu chí|hoạt động|bài|mục|nội dung chính|tên/i.test(h));
+          if (titleColIdx === -1) {
+            titleColIdx = headers.findIndex((h, i) => i !== sttColIdx && h.length > 0);
+          }
+          if (titleColIdx === -1) titleColIdx = sttColIdx === 0 ? 1 : 0;
+
+          const dataRows = [];
+          for (let r = headerIdx + 1; r < rows.length; r++) {
+            const row = rows[r] || [];
+            const hasContent = row.some(c => String(c || "").trim().length > 0);
+            if (hasContent) dataRows.push(row);
+          }
+
+          const totalDataRows = dataRows.length;
+          dataRows.forEach((row, dIdx) => {
+            const rawTopic = row[titleColIdx] || row.find((c, i) => i !== sttColIdx && String(c || "").trim()) || "";
+            const { treeCode, treeTitle, fullTitle } = deriveShortTreeParts(rawTopic, dIdx);
+
+            let spotlightText = "";
+            let spotlightLabel = "Điểm sáng tư vấn Sale";
+            const boxes = [];
+
+            headers.forEach((hLabel, colIdx) => {
+              if (colIdx === sttColIdx || colIdx === titleColIdx) return;
+              const cellVal = String(row[colIdx] || "").trim();
+              if (!cellVal) return;
+              const colLabel = (hLabel || `Thông tin ${colIdx + 1}`).replace(/\s*\(Kẹp[^)]*\)/gi, "").replace(/\s*\(Cô đọng\)/gi, "").trim();
+              const tone = classifyCardTone(hLabel);
+              const { mainText, highlightText } = splitHighlightBlock(cellVal);
+
+              if (highlightText) {
+                spotlightText = spotlightText ? `${spotlightText}\n${highlightText}` : highlightText;
+                if (mainText) boxes.push({ label: colLabel, tone, content: mainText });
+              } else if (tone === "pitch" && !spotlightText) {
+                spotlightLabel = colLabel;
+                spotlightText = cellVal;
+              } else {
+                boxes.push({ label: colLabel, tone, content: cellVal });
+              }
+            });
+
+            const cardHtml = buildSectionCardHtml({
+              badgeLeft: ageBadge || (mod.code ? `${mod.code} · ${treeCode}` : treeCode),
+              title: fullTitle,
+              badgesRight: [
+                bannerLines[0] && dIdx === 0 ? truncateShortLabel(bannerLines[0], 42) : "",
+                `${mod.code || "HP"} · Mục ${dIdx + 1}/${totalDataRows}`
+              ],
+              spotlightLabel,
+              spotlightText,
+              boxes
+            });
+
+            customSteps.push({
+              groupLabel: multiSheet ? sheetName : "",
+              pillLabel: `${treeCode} · ${treeTitle}`,
+              treeCode,
+              treeTitle,
+              title: fullTitle,
+              html: cardHtml
+            });
+          });
+        } else {
+          // Single-column fallback table -> wrap cleanly as one rich card
+          const plainLines = rows
+            .map(r => (r || []).map(c => String(c || "").trim()).filter(Boolean).join(" — "))
+            .filter(Boolean)
+            .join("\n");
+          const { mainText, highlightText } = splitHighlightBlock(plainLines);
+          customSteps.push({
+            groupLabel: multiSheet ? sheetName : "",
+            pillLabel: `${tIdx + 1}. ${sheetName}`,
+            treeCode: `Mục ${tIdx + 1}`,
+            treeTitle: sheetName,
+            title: sheetName,
+            html: buildSectionCardHtml({
+              badgeLeft: ageBadge || mod.code || `Mục ${tIdx + 1}`,
+              title: bannerLines[0] || sheetName,
+              spotlightLabel: "Điểm sáng tư vấn Sale",
+              spotlightText: highlightText,
+              boxes: mainText ? [{ label: "Nội dung tài liệu", tone: "novastars", content: mainText }] : []
+            })
+          });
+        }
       });
     }
 
     const rawText = (mod.contentText || "").trim();
     if (rawText && customSteps.length === 0) {
-      const normalizedRaw = rawText
-        .replace(/\r\n/g, "\n")
-        .replace(/([^\n])\s*([•●▪✦➢])/g, "$1\n$2");
-      const lines = normalizedRaw.split(/\n+/).map(l => l.trim()).filter(Boolean);
-      const chunkSize = 8;
-      for (let i = 0; i < lines.length; i += chunkSize) {
-        const chunk = lines.slice(i, i + chunkSize);
-        const stepNum = Math.floor(i / chunkSize) + 1;
+      const splitSections = autoSplitTextToSections(rawText, mod.title || "Nội dung bài học");
+      splitSections.forEach((sec, sIdx) => {
+        const secTitle = String(sec.title || "").trim() || `Phần ${sIdx + 1}`;
+        const { mainText, highlightText } = splitHighlightBlock(sec.content || "");
         customSteps.push({
-          pillLabel: `Phần ${stepNum}`,
-          title: `Nội dung phần ${stepNum}`,
-          html: `<div style="display:flex;flex-direction:column;gap:10px;">${chunk.map(p => `<p style="font-size:14.2px;line-height:1.68;white-space:pre-line;">${formatMultilineCellHtml(p)}</p>`).join("")}</div>`
+          pillLabel: `${sIdx + 1}. ${secTitle}`,
+          treeCode: `Mục ${sIdx + 1}`,
+          treeTitle: secTitle,
+          title: secTitle,
+          html: buildSectionCardHtml({
+            badgeLeft: `${mod.code || "HP"} · Mục ${sIdx + 1}/${splitSections.length}`,
+            title: secTitle,
+            badgesRight: [mod.category || ""],
+            spotlightLabel: "Điểm sáng tư vấn Sale",
+            spotlightText: highlightText,
+            boxes: mainText ? [{ label: "Nội dung chi tiết", tone: "novastars", content: mainText }] : []
+          })
         });
-      }
+      });
     }
 
     if (customSteps.length === 0) {
       customSteps.push({
         pillLabel: "Phần 1",
+        treeCode: "Mục 1",
+        treeTitle: mod.title || "Tài liệu học tập",
         title: mod.title || "Tài liệu học tập",
-        html: `<p style="color:#64748B;font-size:13.5px;">Chưa có nội dung tài liệu. Đào tạo có thể tải file hoặc dán nội dung ở mục Đào tạo.</p>`
+        html: buildSectionCardHtml({
+          badgeLeft: mod.code || "HP",
+          title: mod.title || "Tài liệu học tập",
+          boxes: [{ label: "Thông báo", tone: "traditional", content: "Chưa có nội dung tài liệu. Đào tạo có thể tải file hoặc nhập nội dung ở mục Đào tạo." }]
+        })
       });
     }
     return customSteps;
@@ -3390,8 +3584,18 @@
 
     if (docMode === "sections") {
       renderUploaderSectionsEditor(mod, canEdit);
+      const statusEl = document.getElementById("upDocFileStatus");
+      if (statusEl && statusEl.dataset.stickyUpload !== mod.id) statusEl.classList.add("hidden");
     } else {
       document.getElementById("lblDocCharCount").textContent = `${textContent.length.toLocaleString("vi-VN")} ký tự`;
+      const statusEl = document.getElementById("upDocFileStatus");
+      if (statusEl && Array.isArray(mod.uploadedTables) && mod.uploadedTables.length > 0 && (!Array.isArray(mod.customSections) || mod.customSections.length === 0)) {
+        const cardCount = buildDocumentSteps(mod).length;
+        statusEl.classList.remove("hidden");
+        statusEl.innerHTML = `✓ Bảng Excel đã tự động dựng thành <strong>${cardCount} thẻ/nhánh</strong> cho Học Viên — bấm tab <strong>"3. Xem thử"</strong> để kiểm tra.`;
+      } else if (statusEl) {
+        statusEl.classList.add("hidden");
+      }
     }
 
     if (btnModeSec) {
@@ -5833,7 +6037,11 @@
         }
         if (Array.isArray(extracted.tables) && extracted.tables.length > 0) {
           mod.uploadedTables = extracted.tables;
-          mod.structuredType = ""; // Use uploadedTables rendering
+          mod.customSections = []; // Prioritize structured multi-card table renderer
+          mod.structuredType = "";
+          uploaderDocModePreference[mod.id] = "fulltext";
+        } else if (extracted.text) {
+          mod.uploadedTables = [];
         }
 
         if (!mod.authorId && currentUser) mod.authorId = currentUser.id;
@@ -5842,10 +6050,11 @@
           mod.status = "pending";
         }
         logUserActivity("upload_doc", "Tải file tài liệu lên học phần", `File: ${file.name} (${(extracted.text || "").length} ký tự)`, mod.code);
+        const generatedCardCount = buildDocumentSteps(mod).length;
         const publishHint = canUserSelfApprove(currentUser)
-          ? `Sau khi kiểm tra, hãy bấm nút <strong>"✓ Duyệt &amp; Đẩy cho Học Viên"</strong> ở góc phải để mở cho Học Viên học ngay!`
-          : `Bạn có thể chuyển sang Bước 2 để tạo bộ câu hỏi trắc nghiệm và gửi Admin duyệt nhé!`;
-        statusEl.innerHTML = `✓ Đã bóc tách thành công tài liệu <strong>${escapeHtml(file.name)}</strong> vào học phần <strong>${escapeHtml(mod.code)}</strong> (${(extracted.text || "").length.toLocaleString("vi-VN")} ký tự, ${(extracted.tables || []).length} bảng dữ liệu). ${publishHint}`;
+          ? `Vào tab <strong>"3. Xem thử"</strong> kiểm tra hiển thị thẻ rồi bấm <strong>"✓ Duyệt &amp; Đẩy bài"</strong>!`
+          : `Vào tab <strong>"3. Xem thử"</strong> kiểm tra thẻ rồi chuyển sang Bước 2 tạo câu hỏi.`;
+        statusEl.innerHTML = `✓ Đã bóc tách <strong>${escapeHtml(file.name)}</strong> và tự động dựng thành <strong>${generatedCardCount} thẻ/nhánh mục lục</strong> cho Học Viên! ${publishHint}`;
         triggerAutoSave(true, true);
         renderUploaderWorkspace();
         renderSidebar();
