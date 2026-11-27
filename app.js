@@ -29,9 +29,21 @@
   let currentUser = loadInitialUser();
   let activeWorkspaceView = determineInitialWorkspaceView(); // "sale" | "uploader" | "admin"
   let impersonatedSaleUser = null; // When Admin/Uploader previews as a specific Sale
-  let currentModuleId = (db.modules && db.modules[0]) ? db.modules[0].id : "";
+  let currentModuleId = (() => {
+    const mods = db.modules || [];
+    if (currentUser && currentUser.role === "uploader") {
+      const own = mods.find(m => (m.authorId && m.authorId === currentUser.id) || String(m.authorName || "").trim().toLowerCase() === String(currentUser.name || "").trim().toLowerCase());
+      if (own) return own.id;
+    }
+    return mods[0] ? mods[0].id : "";
+  })();
   let activeSaleTab = "doc"; // "doc" | "quiz"
-  let activeUploaderTab = "doc"; // "doc" | "quiz"
+  let activeUploaderTab = "doc"; // "doc" | "quiz" | "preview" | "bugs"
+  let uploaderSidebarFilter = (currentUser && currentUser.role === "uploader") ? "MINE" : "ALL"; // "MINE" | "PENDING" | "ALL"
+  let uploaderDocModePreference = {}; // { [moduleId]: "sections" | "fulltext" }
+  let uploaderQuizFilter = "ALL"; // "ALL" | "NO_EXP" | "BAD_OPTS"
+  let uploaderQuizSearchQuery = "";
+  let uploaderPreviewStepIndex = 0;
   let activeAdminTab = "matrix"; // "matrix" | "dossier" | "analytics"
   let activeDossierSaleId = null;
   let activeAnalyticsModuleId = null;
@@ -406,13 +418,15 @@
           .sort((a, b) => (Date.parse(b.createdAt || "") || 0) - (Date.parse(a.createdAt || "") || 0));
       }
 
+      let didCloudUpdateConfig = false;
       if (cloudConfig) {
         const cloudTime = Date.parse((cloudConfig.meta && cloudConfig.meta.updatedAt) || "") || 0;
         const localTime = Date.parse((db.meta && db.meta.updatedAt) || "") || 0;
         const cloudRosterVer = (cloudConfig.meta && cloudConfig.meta.rosterVersion) || 0;
         const localRosterVer = (db.meta && db.meta.rosterVersion) || 3;
 
-        if (cloudRosterVer >= localRosterVer && cloudTime >= localTime) {
+        if (cloudRosterVer >= localRosterVer && cloudTime > localTime) {
+          didCloudUpdateConfig = true;
           if (cloudConfig.meta) {
             db.meta = { ...db.meta, ...cloudConfig.meta };
           }
@@ -438,7 +452,7 @@
             });
             db.modules = mergedMods;
           }
-        } else {
+        } else if (localTime > cloudTime) {
           // Local changes are newer than cloud; push local config to cloud
           triggerAutoSave(true, true);
         }
@@ -476,7 +490,7 @@
       }
 
       localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
-      if (forceRender || !isUserTyping()) {
+      if (forceRender || (!isUserTyping() && activeWorkspaceView !== "uploader" && (didCloudUpdateConfig || activeWorkspaceView === "admin"))) {
         renderAll();
       }
       return true;
@@ -816,6 +830,8 @@
         currentUser = { id: user.id, name: user.name, role: "uploader" };
         impersonatedSaleUser = null;
         activeWorkspaceView = "uploader";
+        activeUploaderTab = "doc";
+        uploaderSidebarFilter = "MINE";
         const ownMod = (db.modules || []).find(m => canCurrentUserEditModule(m));
         if (ownMod) currentModuleId = ownMod.id;
         localStorage.setItem(SESSION_KEY, JSON.stringify(currentUser));
@@ -881,7 +897,7 @@
       btnUploader.classList.remove("hidden");
       btnSale.classList.remove("hidden");
     } else if (currentUser.role === "uploader") {
-      nameEl.textContent = "Đào tạo · " + currentUser.name;
+      nameEl.textContent = currentUser.name;
       if (dotEl) dotEl.style.background = "#A5B4FC";
       switcher.classList.remove("hidden");
       btnAdmin.classList.add("hidden");
@@ -910,6 +926,11 @@
 
     if (btnToggleSidebar) {
       btnToggleSidebar.classList.toggle("hidden", activeWorkspaceView === "admin");
+    }
+
+    const saveTextEl = document.getElementById("saveText");
+    if (saveTextEl && saveTextEl.textContent === "Tự động lưu") {
+      saveTextEl.textContent = "Đã lưu";
     }
 
     const isLearnerScreen = activeWorkspaceView === "sale";
@@ -970,8 +991,40 @@
           : `${pct}%`;
     }
 
+    const upFiltersEl = document.getElementById("sidebarUploaderFilters");
+    if (upFiltersEl) {
+      upFiltersEl.classList.toggle("hidden", !isUploaderView);
+      if (isUploaderView) {
+        if (currentUser && currentUser.role === "admin" && uploaderSidebarFilter === "MINE") {
+          const hasAdminMods = modulesList.some(m => canCurrentUserEditModule(m) && m.authorId === "admin");
+          if (!hasAdminMods) uploaderSidebarFilter = "ALL";
+        }
+        const mineCount = modulesList.filter(m => canCurrentUserEditModule(m)).length;
+        const pendingCount = modulesList.filter(m => m.status === "pending" || m.status === "draft").length;
+        const allCount = modulesList.length;
+        const labelMap = {
+          MINE: `Của tôi (${mineCount})`,
+          PENDING: `Chờ/Nháp (${pendingCount})`,
+          ALL: `Tất cả (${allCount})`
+        };
+        upFiltersEl.querySelectorAll("[data-up-filter]").forEach(btn => {
+          const key = btn.dataset.upFilter;
+          btn.textContent = labelMap[key] || key;
+          btn.classList.toggle("active", uploaderSidebarFilter === key);
+          btn.onclick = () => {
+            uploaderSidebarFilter = key;
+            renderSidebar();
+          };
+        });
+      }
+    }
+
     const q = sidebarSearchQuery.trim().toLowerCase();
-    const filtered = modulesList.filter(m => {
+    let filtered = modulesList.filter(m => {
+      if (isUploaderView) {
+        if (uploaderSidebarFilter === "MINE" && !canCurrentUserEditModule(m)) return false;
+        if (uploaderSidebarFilter === "PENDING" && m.status !== "pending" && m.status !== "draft") return false;
+      }
       if (!q) return true;
       return (
         (m.code || "").toLowerCase().includes(q) ||
@@ -980,8 +1033,12 @@
       );
     });
 
+    if (isUploaderView && uploaderSidebarFilter === "ALL" && currentUser && currentUser.role === "uploader") {
+      filtered = [...filtered].sort((a, b) => Number(canCurrentUserEditModule(b)) - Number(canCurrentUserEditModule(a)));
+    }
+
     if (filtered.length === 0) {
-      listEl.innerHTML = `<div style="padding:20px 10px;text-align:center;color:#64748B;font-size:12.5px;">Không tìm thấy bài học.</div>`;
+      listEl.innerHTML = `<div style="padding:20px 10px;text-align:center;color:#64748B;font-size:12.5px;">Không có bài học phù hợp.</div>`;
       return;
     }
 
@@ -1022,11 +1079,11 @@
 
       const canEditThis = canCurrentUserEditModule(mod);
       const authorPermTag = (currentUser && currentUser.role === "uploader")
-        ? (canEditThis ? `<span style="color:#059669;font-weight:700;">Của bạn</span>` : `<span>Chỉ xem</span>`)
+        ? (canEditThis ? `<span style="color:#059669;font-weight:700;">Của tôi</span>` : `<span>Chỉ xem</span>`)
         : `<span>${qCount} câu</span>`;
 
       const authorLineHtml = showAuthorInSidebar
-        ? `<div class="sidebar-author-line"><span>Tác giả: <strong>${escapeHtml(mod.authorName || "Đào tạo")}</strong></span>${authorPermTag}</div>`
+        ? `<div class="sidebar-author-line"><span><strong>${escapeHtml(mod.authorName || "Đào tạo")}</strong></span>${authorPermTag}</div>`
         : "";
 
       const branchArrowHtml = !isUploaderView
@@ -1081,6 +1138,10 @@
           if (!ok) return;
         }
         currentModuleId = mod.id;
+        uploaderPreviewStepIndex = 0;
+        uploaderQuizFilter = "ALL";
+        uploaderQuizSearchQuery = "";
+        expandedUploaderQuestionIndex = null;
         const savedState = !isUploaderView ? getLearnerModuleReadingState(learner.id, mod.id) : { lastStep: 0 };
         activeDocStepIndex = Number(savedState.lastStep || 0);
         hp03LessonSubTab = "compare";
@@ -1933,6 +1994,29 @@
     }
 
     const customSteps = [];
+    if (Array.isArray(mod.customSections) && mod.customSections.length > 0) {
+      mod.customSections.forEach((sec, sIdx) => {
+        const secTitle = String(sec.title || "").trim() || `Mục ${sIdx + 1}`;
+        const secBody = String(sec.content || "").trim();
+        const bodyHtml = secBody
+          ? secBody
+              .replace(/\r\n/g, "\n")
+              .split(/\n+/)
+              .map(l => l.trim())
+              .filter(Boolean)
+              .map(p => `<p style="font-size:14.2px;line-height:1.68;white-space:pre-line;">${formatMultilineCellHtml(p)}</p>`)
+              .join("")
+          : `<p style="color:#64748B;font-size:13.5px;">Chưa có nội dung cho mục này.</p>`;
+        customSteps.push({
+          pillLabel: `${sIdx + 1}. ${secTitle}`,
+          treeCode: `Mục ${sIdx + 1}`,
+          treeTitle: secTitle,
+          title: secTitle,
+          html: `<div style="display:flex;flex-direction:column;gap:10px;">${bodyHtml}</div>`
+        });
+      });
+    }
+
     if (Array.isArray(mod.uploadedTables) && mod.uploadedTables.length > 0) {
       mod.uploadedTables.forEach((tbl, tIdx) => {
         const rows = tbl.rows || [];
@@ -2693,6 +2777,268 @@
   // =========================================================================
   // VIEW B: ĐÀO TẠO WORKSPACE (COMPACT & STREAMLINED)
   // =========================================================================
+  function buildPlainTextFromCustomSections(sections) {
+    if (!Array.isArray(sections) || sections.length === 0) return "";
+    return sections
+      .map((s, idx) => {
+        const title = String((s && s.title) || "").trim() || `Mục ${idx + 1}`;
+        const body = String((s && s.content) || "").trim();
+        return body ? `[${title}]\n${body}` : `[${title}]`;
+      })
+      .join("\n\n");
+  }
+
+  function autoSplitTextToSections(rawText, fallbackTitle = "Nội dung trọng tâm") {
+    const clean = String(rawText || "").replace(/\r\n/g, "\n").trim();
+    if (!clean) {
+      return [{ id: `sec-${Date.now().toString(36)}`, title: fallbackTitle, content: "" }];
+    }
+    const lines = clean.split("\n");
+    const sections = [];
+    let current = null;
+
+    const isHeadingLine = line => {
+      const t = line.trim();
+      if (!t || t.length > 110) return false;
+      if (/^\[[^\]]{2,95}\]$/.test(t)) return true;
+      if (/^(?:Mục|Phần|Chương|Bài|Lý do|Tiêu chí|Bước)\s+\d+[\s.:–-]/i.test(t)) return true;
+      if (/^(?:[IVX]+\.|[0-9]{1,2}\.)\s+[A-ZÀ-Ỹa-zà-ỹ0-9]/.test(t) && t.length <= 85) return true;
+      return false;
+    };
+
+    const normalizeTitle = line => line.trim().replace(/^\[/, "").replace(/\]$/, "").trim();
+
+    lines.forEach(rawLine => {
+      const line = rawLine.trimEnd();
+      if (isHeadingLine(line)) {
+        if (current && (current.title || current.content.trim())) {
+          sections.push(current);
+        }
+        current = {
+          id: `sec-${Date.now().toString(36)}-${sections.length + 1}`,
+          title: normalizeTitle(line),
+          content: ""
+        };
+      } else {
+        if (!current) {
+          current = {
+            id: `sec-${Date.now().toString(36)}-0`,
+            title: fallbackTitle,
+            content: ""
+          };
+        }
+        if (line.trim() || current.content) {
+          current.content += (current.content ? "\n" : "") + line;
+        }
+      }
+    });
+    if (current && (current.title || current.content.trim())) {
+      sections.push(current);
+    }
+
+    // Fallback: if whole document had no explicit heading markers, split cleanly into readable paragraph chunks
+    if (sections.length <= 1 && clean.split(/\n+/).filter(l => l.trim()).length > 10) {
+      const nonEmpty = clean.split(/\n+/).map(l => l.trim()).filter(Boolean);
+      const chunked = [];
+      for (let i = 0; i < nonEmpty.length; i += 8) {
+        const idx = chunked.length + 1;
+        chunked.push({
+          id: `sec-${Date.now().toString(36)}-${idx}`,
+          title: `Mục ${idx}: ${truncateShortLabel(nonEmpty[i], 42)}`,
+          content: nonEmpty.slice(i, i + 8).join("\n")
+        });
+      }
+      return chunked;
+    }
+
+    return sections.map(s => ({ ...s, content: s.content.trim() }));
+  }
+
+  function getUploaderDocModeForModule(mod) {
+    if (!mod) return "fulltext";
+    if (uploaderDocModePreference[mod.id]) return uploaderDocModePreference[mod.id];
+    if (Array.isArray(mod.customSections) && mod.customSections.length > 0) return "sections";
+    if (!(mod.contentText || "").trim() && !(Array.isArray(mod.uploadedTables) && mod.uploadedTables.length > 0)) {
+      return "sections";
+    }
+    return "fulltext";
+  }
+
+  function renderUploaderSectionsEditor(mod, canEdit) {
+    const listEl = document.getElementById("upSectionsList");
+    if (!listEl) return;
+    if (!Array.isArray(mod.customSections) || mod.customSections.length === 0) {
+      mod.customSections = [{
+        id: `sec-${Date.now().toString(36)}`,
+        title: "Nội dung trọng tâm",
+        content: ""
+      }];
+    }
+    const sections = mod.customSections;
+    listEl.innerHTML = "";
+
+    const updateCharCounter = () => {
+      const fullText = buildPlainTextFromCustomSections(sections);
+      mod.contentText = fullText;
+      const cntEl = document.getElementById("lblDocCharCount");
+      if (cntEl) cntEl.textContent = `${sections.length} mục · ${fullText.length.toLocaleString("vi-VN")} ký tự`;
+    };
+
+    sections.forEach((sec, idx) => {
+      const card = document.createElement("div");
+      card.className = "up-section-card";
+      card.innerHTML = `
+        <div class="up-section-head">
+          <span class="up-section-badge">Mục ${idx + 1}</span>
+          <input type="text" class="input-control up-section-title-inp" data-sec-title="${idx}" value="${escapeHtml(sec.title || "")}" placeholder="Tên mục / nhánh (hiện ở Mục lục Học Viên)..." ${canEdit ? "" : "readonly"}>
+          ${canEdit ? `
+            <div class="up-section-actions">
+              <button type="button" class="btn-q-mini" data-sec-up="${idx}" ${idx === 0 ? "disabled" : ""} title="Chuyển lên">↑</button>
+              <button type="button" class="btn-q-mini" data-sec-down="${idx}" ${idx === sections.length - 1 ? "disabled" : ""} title="Chuyển xuống">↓</button>
+              <button type="button" class="btn-q-mini danger" data-sec-del="${idx}" ${sections.length <= 1 ? "disabled" : ""} title="Xóa mục">✕</button>
+            </div>
+          ` : ""}
+        </div>
+        <textarea class="input-control up-section-body-inp" rows="4" data-sec-body="${idx}" placeholder="Nhập nội dung chính của mục này..." ${canEdit ? "" : "readonly"}>${escapeHtml(sec.content || "")}</textarea>
+      `;
+
+      if (canEdit) {
+        card.querySelector(`[data-sec-title="${idx}"]`).addEventListener("input", e => {
+          sec.title = e.target.value;
+          updateCharCounter();
+          triggerAutoSave(false, true);
+        });
+        card.querySelector(`[data-sec-body="${idx}"]`).addEventListener("input", e => {
+          sec.content = e.target.value;
+          updateCharCounter();
+          triggerAutoSave(false, true);
+        });
+        const btnUp = card.querySelector(`[data-sec-up="${idx}"]`);
+        if (btnUp) {
+          btnUp.onclick = () => {
+            if (idx <= 0) return;
+            [sections[idx - 1], sections[idx]] = [sections[idx], sections[idx - 1]];
+            updateCharCounter();
+            triggerAutoSave(true, true);
+            renderUploaderSectionsEditor(mod, canEdit);
+          };
+        }
+        const btnDown = card.querySelector(`[data-sec-down="${idx}"]`);
+        if (btnDown) {
+          btnDown.onclick = () => {
+            if (idx >= sections.length - 1) return;
+            [sections[idx], sections[idx + 1]] = [sections[idx + 1], sections[idx]];
+            updateCharCounter();
+            triggerAutoSave(true, true);
+            renderUploaderSectionsEditor(mod, canEdit);
+          };
+        }
+        const btnDel = card.querySelector(`[data-sec-del="${idx}"]`);
+        if (btnDel) {
+          btnDel.onclick = () => {
+            if (sections.length <= 1) return;
+            sections.splice(idx, 1);
+            updateCharCounter();
+            triggerAutoSave(true, true);
+            renderUploaderSectionsEditor(mod, canEdit);
+          };
+        }
+      }
+      listEl.appendChild(card);
+    });
+
+    updateCharCounter();
+
+    const btnAddSec = document.getElementById("btnAddDocSection");
+    if (btnAddSec) {
+      btnAddSec.classList.toggle("hidden", !canEdit);
+      btnAddSec.onclick = () => {
+        sections.push({
+          id: `sec-${Date.now().toString(36)}`,
+          title: `Mục ${sections.length + 1}: Nội dung mới`,
+          content: ""
+        });
+        updateCharCounter();
+        triggerAutoSave(true, true);
+        renderUploaderSectionsEditor(mod, canEdit);
+        const lastInp = listEl.querySelector(`[data-sec-title="${sections.length - 1}"]`);
+        if (lastInp) {
+          lastInp.focus();
+          lastInp.select();
+        }
+      };
+    }
+  }
+
+  function renderUploaderPreviewPanel(mod) {
+    const box = document.getElementById("uploaderPreviewContainer");
+    if (!box || !mod) return;
+    const steps = buildDocumentSteps(mod);
+    if (uploaderPreviewStepIndex >= steps.length) uploaderPreviewStepIndex = 0;
+    if (uploaderPreviewStepIndex < 0) uploaderPreviewStepIndex = 0;
+    const curStep = steps[uploaderPreviewStepIndex];
+    const qList = Array.isArray(mod.questions) ? mod.questions : [];
+    const statusText = mod.status === "published" ? "Đang mở cho Học Viên" : (mod.status === "pending" ? "Chờ Admin duyệt" : "Bản nháp (Đang ẩn)");
+
+    const branchBtnsHtml = steps.length > 1
+      ? `<div class="up-preview-branch-strip">
+          ${steps.map((s, idx) => `<button type="button" class="up-preview-branch-btn ${idx === uploaderPreviewStepIndex ? "active" : ""}" data-preview-step="${idx}">${escapeHtml(s.treeCode || `Mục ${idx + 1}`)}: ${escapeHtml(truncateShortLabel(s.treeTitle || s.title || s.pillLabel, 28))}</button>`).join("")}
+        </div>`
+      : "";
+
+    box.innerHTML = `
+      <div class="up-preview-banner">
+        <div>
+          <strong style="color:#9A3412;font-size:13.5px;">Xem trước hiển thị của Học Viên</strong>
+          <div style="font-size:12px;color:#64748B;margin-top:2px;">
+            ${escapeHtml(mod.code)} · ${escapeHtml(statusText)} · ${steps.length} mục · ${qList.length} câu hỏi (${mod.durationMinutes || 20} phút · Đạt &ge;${mod.passThreshold || 80}%)
+          </div>
+        </div>
+        <button type="button" class="btn-secondary" id="btnPreviewFullSaleView">Mở toàn màn hình Học Viên</button>
+      </div>
+
+      ${branchBtnsHtml}
+
+      <div class="up-preview-stage">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid #FFEDD5;">
+          <span class="doc-active-step-tag">${escapeHtml(curStep.treeCode || curStep.pillCode || `Mục ${uploaderPreviewStepIndex + 1}`)}</span>
+          <strong style="font-size:14.5px;color:#0F172A;">${escapeHtml(curStep.treeTitle || curStep.title || mod.title)}</strong>
+        </div>
+        <div class="doc-active-step-body">${curStep.html}</div>
+      </div>
+
+      <div class="up-preview-quiz-summary">
+        <strong style="font-size:13px;color:#0F172A;">Bộ câu hỏi thi (${qList.length} câu)</strong>
+        ${qList.length === 0
+          ? `<div style="font-size:12.5px;color:#B45309;">Chưa có câu hỏi nào. Chuyển sang tab <strong>2. Câu hỏi</strong> để bổ sung.</div>`
+          : `<div style="display:flex;flex-direction:column;gap:6px;">
+              ${qList.slice(0, 5).map((q, i) => `<div style="font-size:12.5px;color:#334155;"><strong>Câu ${i + 1}:</strong> ${escapeHtml(q.question || "(Chưa nhập nội dung)")}</div>`).join("")}
+              ${qList.length > 5 ? `<div style="font-size:12px;color:#64748B;">... và ${qList.length - 5} câu hỏi khác.</div>` : ""}
+            </div>`
+        }
+      </div>
+    `;
+
+    box.querySelectorAll("[data-preview-step]").forEach(btn => {
+      btn.onclick = () => {
+        uploaderPreviewStepIndex = Number(btn.dataset.previewStep || 0);
+        renderUploaderPreviewPanel(mod);
+      };
+    });
+
+    const btnFull = document.getElementById("btnPreviewFullSaleView");
+    if (btnFull) {
+      btnFull.onclick = () => {
+        syncUploaderDocFieldsToModule(mod);
+        triggerAutoSave(true, true);
+        activeWorkspaceView = "sale";
+        activeSaleTab = "doc";
+        resetActiveQuizState();
+        renderAll();
+      };
+    }
+  }
+
   function renderUploaderWorkspace() {
     const mod = getCurrentModule();
     if (!mod) return;
@@ -2703,16 +3049,20 @@
 
     const btnTabDoc = document.getElementById("btnUpTabDoc");
     const btnTabQuiz = document.getElementById("btnUpTabQuiz");
+    const btnTabPreview = document.getElementById("btnUpTabPreview");
     const btnTabBugs = document.getElementById("btnUpTabBugs");
     const panelDoc = document.getElementById("uploaderPanelDoc");
     const panelQuiz = document.getElementById("uploaderPanelQuiz");
+    const panelPreview = document.getElementById("uploaderPanelPreview");
     const panelBugs = document.getElementById("uploaderPanelBugs");
 
     btnTabDoc.classList.toggle("active", activeUploaderTab === "doc");
     btnTabQuiz.classList.toggle("active", activeUploaderTab === "quiz");
+    if (btnTabPreview) btnTabPreview.classList.toggle("active", activeUploaderTab === "preview");
     if (btnTabBugs) btnTabBugs.classList.toggle("active", activeUploaderTab === "bugs");
     panelDoc.classList.toggle("hidden", activeUploaderTab !== "doc");
     panelQuiz.classList.toggle("hidden", activeUploaderTab !== "quiz");
+    if (panelPreview) panelPreview.classList.toggle("hidden", activeUploaderTab !== "preview");
     if (panelBugs) panelBugs.classList.toggle("hidden", activeUploaderTab !== "bugs");
 
     btnTabDoc.onclick = () => {
@@ -2726,6 +3076,14 @@
       sendPresenceHeartbeat();
       renderUploaderWorkspace();
     };
+    if (btnTabPreview) {
+      btnTabPreview.onclick = () => {
+        syncUploaderDocFieldsToModule(mod);
+        activeUploaderTab = "preview";
+        sendPresenceHeartbeat();
+        renderUploaderWorkspace();
+      };
+    }
     if (btnTabBugs) {
       btnTabBugs.onclick = () => {
         syncUploaderDocFieldsToModule(mod);
@@ -2733,9 +3091,6 @@
         sendPresenceHeartbeat();
         renderUploaderWorkspace();
       };
-    }
-    if (activeUploaderTab === "bugs") {
-      renderBugReportsPanelInto("uploaderBugsContainer");
     }
 
     const canEdit = canCurrentUserEditModule(mod);
@@ -2755,8 +3110,8 @@
       if (pubOpt) {
         pubOpt.disabled = !canSelfApprove && mod.status !== "published";
         pubOpt.textContent = canSelfApprove
-          ? "Đã duyệt (Học Viên nhìn thấy)"
-          : "Đã duyệt (Chỉ Admin hoặc ĐT được cấp quyền)";
+          ? "Đã duyệt (HV thấy)"
+          : "Đã duyệt (Cần Admin cấp quyền)";
       }
       statusSel.onchange = () => {
         if (!canCurrentUserEditModule(mod)) return;
@@ -2770,7 +3125,7 @@
         mod.updatedAt = new Date().toISOString();
         logUserActivity(
           safeStatus === "published" ? "approve_module" : "save_module",
-          safeStatus === "published" ? "Đổi trạng thái: Mở cho Học Viên" : `Đổi trạng thái học phần: ${safeStatus}`,
+          safeStatus === "published" ? "Đổi trạng thái: Mở cho Học Viên" : `Đổi trạng thái: ${safeStatus}`,
           `${mod.code}: ${mod.title}`,
           mod.code
         );
@@ -2779,20 +3134,75 @@
         renderUploaderWorkspace();
       };
     }
-    document.getElementById("upModCode").value = mod.code || "HP";
-    document.getElementById("upModCategory").value = mod.category || "Tài liệu Đào tạo";
-    document.getElementById("upModDuration").value = mod.durationMinutes || 20;
-    document.getElementById("upModThreshold").value = mod.passThreshold || 80;
-    document.getElementById("upModTitle").value = mod.title || "";
-    document.getElementById("upModTitle").readOnly = !canEdit;
+
+    const codeInp = document.getElementById("upModCode");
+    const catInp = document.getElementById("upModCategory");
+    const durInp = document.getElementById("upModDuration");
+    const thrInp = document.getElementById("upModThreshold");
+    const titleInp = document.getElementById("upModTitle");
+
+    if (codeInp) {
+      codeInp.value = mod.code || "HP";
+      codeInp.readOnly = !canEdit;
+      codeInp.oninput = () => {
+        if (!canCurrentUserEditModule(mod)) return;
+        mod.code = codeInp.value.trim() || mod.code;
+        triggerAutoSave(false, true);
+        renderSidebar();
+      };
+    }
+    if (catInp) {
+      catInp.value = mod.category || "Tài liệu Đào tạo";
+      catInp.readOnly = !canEdit;
+      catInp.oninput = () => {
+        if (!canCurrentUserEditModule(mod)) return;
+        mod.category = catInp.value.trim() || "Tài liệu Đào tạo";
+        triggerAutoSave(false, true);
+      };
+    }
+    if (durInp) {
+      durInp.value = mod.durationMinutes || 20;
+      durInp.readOnly = !canEdit;
+      durInp.oninput = () => {
+        if (!canCurrentUserEditModule(mod)) return;
+        const n = Number(durInp.value);
+        if (n >= 1) {
+          mod.durationMinutes = n;
+          triggerAutoSave(false, true);
+        }
+      };
+    }
+    if (thrInp) {
+      thrInp.value = mod.passThreshold || 80;
+      thrInp.readOnly = !canEdit;
+      thrInp.oninput = () => {
+        if (!canCurrentUserEditModule(mod)) return;
+        const n = Number(thrInp.value);
+        if (n >= 10 && n <= 100) {
+          mod.passThreshold = n;
+          triggerAutoSave(false, true);
+        }
+      };
+    }
+    if (titleInp) {
+      titleInp.value = mod.title || "";
+      titleInp.readOnly = !canEdit;
+      titleInp.oninput = () => {
+        if (!canCurrentUserEditModule(mod)) return;
+        mod.title = titleInp.value.trim() || mod.title;
+        triggerAutoSave(false, true);
+        renderSidebar();
+      };
+    }
+
     document.getElementById("upModSubtitle").value = mod.subtitle || "";
     document.getElementById("upModSummaryPoints").value = (mod.summaryPoints || []).join("\n");
     const lblAuthor = document.getElementById("lblUploaderModuleAuthor");
     if (lblAuthor) {
       const permNote = canEdit
-        ? (canSelfApprove ? " · Quyền: Tự duyệt & Đẩy bài" : " · Quyền: Sửa & Gửi Admin duyệt")
-        : " (Chỉ xem)";
-      lblAuthor.textContent = `Tác giả: ${mod.authorName || "Đào tạo"}${permNote}`;
+        ? (canSelfApprove ? " · Tự duyệt" : " · Gửi Admin duyệt")
+        : " · Chỉ xem";
+      lblAuthor.textContent = `${mod.authorName || "Đào tạo"}${permNote}`;
     }
 
     const btnDelMod = document.getElementById("btnUploaderDeleteModule");
@@ -2804,41 +3214,89 @@
       btnSubApp.classList.toggle("hidden", !canEdit);
       if (canPublish) {
         btnSubApp.textContent = mod.status === "published"
-          ? "✓ Cập nhật bài đang mở cho HV"
-          : "✓ Duyệt & Đẩy cho Học Viên";
-        btnSubApp.title = "Tự duyệt và đẩy học phần lên ngay cho Học Viên nhìn thấy";
+          ? "✓ Cập nhật bài mở"
+          : "✓ Duyệt & Đẩy bài";
+        btnSubApp.title = "Tự duyệt và đẩy học phần lên ngay cho Học Viên";
       } else {
-        btnSubApp.textContent = "Lưu & Gửi Admin duyệt";
-        btnSubApp.title = "Lưu nội dung và gửi sang hàng chờ Admin duyệt xuất bản";
+        btnSubApp.textContent = "Gửi Admin duyệt";
+        btnSubApp.title = "Lưu và gửi sang hàng chờ Admin duyệt xuất bản";
       }
     }
 
     const uploadLabelBtn = document.querySelector(".up-doc-toolbar .btn-upload-doc-primary");
     if (uploadLabelBtn) uploadLabelBtn.classList.toggle("hidden", !canEdit);
 
-    const quizToolbar = document.querySelector(".up-quiz-one-line-bar");
+    const quizToolbar = document.querySelector(".up-quiz-toolbar-stack");
     if (quizToolbar) quizToolbar.classList.toggle("hidden", !canEdit);
+
+    // Content Mode Switch: Sections vs Fulltext
+    const docMode = getUploaderDocModeForModule(mod);
+    const btnModeSec = document.getElementById("btnDocModeSections");
+    const btnModeFull = document.getElementById("btnDocModeFulltext");
+    const btnAutoSplit = document.getElementById("btnAutoSplitSections");
+    const sectionsWrap = document.getElementById("upSectionsWrap");
+    const fulltextWrap = document.getElementById("upFulltextWrap");
+
+    if (btnModeSec) btnModeSec.classList.toggle("active", docMode === "sections");
+    if (btnModeFull) btnModeFull.classList.toggle("active", docMode === "fulltext");
+    if (sectionsWrap) sectionsWrap.classList.toggle("hidden", docMode !== "sections");
+    if (fulltextWrap) fulltextWrap.classList.toggle("hidden", docMode !== "fulltext");
+    if (btnAutoSplit) btnAutoSplit.classList.toggle("hidden", docMode !== "fulltext" || !canEdit);
 
     const textContent = mod.contentText || buildPlainTextFromStructuredData(mod);
     const contentTa = document.getElementById("upModContentText");
-    contentTa.value = textContent;
-    contentTa.readOnly = !canEdit;
-    document.getElementById("lblDocCharCount").textContent = `${textContent.length.toLocaleString("vi-VN")} ký tự`;
-
-    contentTa.oninput = () => {
-      if (!canCurrentUserEditModule(mod)) return;
-      mod.contentText = contentTa.value;
-      document.getElementById("lblDocCharCount").textContent = `${contentTa.value.length.toLocaleString("vi-VN")} ký tự`;
-      triggerAutoSave(false, true);
-    };
-
-    const titleInp = document.getElementById("upModTitle");
-    if (titleInp) {
-      titleInp.oninput = () => {
+    if (contentTa) {
+      contentTa.value = textContent;
+      contentTa.readOnly = !canEdit;
+      contentTa.oninput = () => {
         if (!canCurrentUserEditModule(mod)) return;
-        mod.title = titleInp.value.trim() || mod.title;
+        mod.contentText = contentTa.value;
+        document.getElementById("lblDocCharCount").textContent = `${contentTa.value.length.toLocaleString("vi-VN")} ký tự`;
         triggerAutoSave(false, true);
-        renderSidebar();
+      };
+    }
+
+    if (docMode === "sections") {
+      renderUploaderSectionsEditor(mod, canEdit);
+    } else {
+      document.getElementById("lblDocCharCount").textContent = `${textContent.length.toLocaleString("vi-VN")} ký tự`;
+    }
+
+    if (btnModeSec) {
+      btnModeSec.onclick = () => {
+        if (canEdit && (!Array.isArray(mod.customSections) || mod.customSections.length === 0)) {
+          const srcText = (contentTa ? contentTa.value : mod.contentText) || buildPlainTextFromStructuredData(mod);
+          if (srcText.trim()) {
+            mod.customSections = autoSplitTextToSections(srcText, mod.title || "Nội dung chính");
+            triggerAutoSave(true, true);
+          }
+        }
+        uploaderDocModePreference[mod.id] = "sections";
+        renderUploaderWorkspace();
+      };
+    }
+    if (btnModeFull) {
+      btnModeFull.onclick = () => {
+        if (canEdit && Array.isArray(mod.customSections) && mod.customSections.length > 0) {
+          mod.contentText = buildPlainTextFromCustomSections(mod.customSections);
+        }
+        uploaderDocModePreference[mod.id] = "fulltext";
+        renderUploaderWorkspace();
+      };
+    }
+    if (btnAutoSplit) {
+      btnAutoSplit.onclick = () => {
+        if (!canCurrentUserEditModule(mod)) return;
+        const srcText = contentTa ? contentTa.value : mod.contentText;
+        if (!srcText || !srcText.trim()) {
+          alert("Vui lòng nhập hoặc tải nội dung tài liệu trước khi tách mục.");
+          return;
+        }
+        mod.customSections = autoSplitTextToSections(srcText, mod.title || "Nội dung chính");
+        mod.contentText = buildPlainTextFromCustomSections(mod.customSections);
+        uploaderDocModePreference[mod.id] = "sections";
+        triggerAutoSave(true, true);
+        renderUploaderWorkspace();
       };
     }
 
@@ -2852,10 +3310,19 @@
       renderSidebar();
     };
 
+    if (activeUploaderTab === "preview") {
+      renderUploaderPreviewPanel(mod);
+    } else if (activeUploaderTab === "bugs") {
+      renderBugReportsPanelInto("uploaderBugsContainer");
+    }
+
     renderUploaderQuestionBank(mod);
   }
 
   function buildPlainTextFromStructuredData(mod) {
+    if (Array.isArray(mod.customSections) && mod.customSections.length > 0) {
+      return buildPlainTextFromCustomSections(mod.customSections);
+    }
     if (mod.contentText && mod.contentText.trim()) return mod.contentText;
     const lines = [];
     if (mod.structuredType === "comparison_6_criteria" && Array.isArray(mod.structuredData)) {
@@ -2895,10 +3362,32 @@
 
   function syncUploaderDocFieldsToModule(mod) {
     if (!mod || !canCurrentUserEditModule(mod)) return;
-    const reqStatus = document.getElementById("upModStatus").value || "draft";
+    const reqStatus = (document.getElementById("upModStatus") || {}).value || "draft";
     mod.status = sanitizeStatusForCurrentUser(reqStatus, mod.status);
+    const codeEl = document.getElementById("upModCode");
+    if (codeEl && codeEl.value.trim()) mod.code = codeEl.value.trim();
+    const catEl = document.getElementById("upModCategory");
+    if (catEl && catEl.value.trim()) mod.category = catEl.value.trim();
+    const durEl = document.getElementById("upModDuration");
+    if (durEl && Number(durEl.value) >= 1) mod.durationMinutes = Number(durEl.value);
+    const thrEl = document.getElementById("upModThreshold");
+    if (thrEl && Number(thrEl.value) >= 10 && Number(thrEl.value) <= 100) mod.passThreshold = Number(thrEl.value);
     mod.title = document.getElementById("upModTitle").value.trim() || mod.title || "Bài học mới";
-    mod.contentText = document.getElementById("upModContentText").value;
+    if (getUploaderDocModeForModule(mod) === "sections" && Array.isArray(mod.customSections)) {
+      const secListEl = document.getElementById("upSectionsList");
+      if (secListEl) {
+        mod.customSections.forEach((sec, idx) => {
+          const tInp = secListEl.querySelector(`[data-sec-title="${idx}"]`);
+          const bInp = secListEl.querySelector(`[data-sec-body="${idx}"]`);
+          if (tInp) sec.title = tInp.value;
+          if (bInp) sec.content = bInp.value;
+        });
+      }
+      mod.contentText = buildPlainTextFromCustomSections(mod.customSections);
+    } else {
+      const taEl = document.getElementById("upModContentText");
+      if (taEl) mod.contentText = taEl.value;
+    }
     mod.updatedAt = new Date().toISOString();
   }
 
@@ -2913,6 +3402,46 @@
     if (roAuthor) roAuthor.textContent = mod.authorName || "Quản trị viên";
     document.getElementById("lblUpQuestionCount").textContent = String(qList.length);
 
+    const isMissingExp = q => !q || !String(q.explanation || "").trim();
+    const isMissingOpts = q => !q || !Array.isArray(q.options) || q.options.filter(o => String(o || "").trim()).length < 4;
+
+    const noExpCount = qList.filter(isMissingExp).length;
+    const badOptsCount = qList.filter(isMissingOpts).length;
+
+    const filterPillsEl = document.getElementById("upQuizFilterPills");
+    if (filterPillsEl) {
+      const pillLabels = {
+        ALL: `Tất cả (${qList.length})`,
+        NO_EXP: `Thiếu giải thích (${noExpCount})`,
+        BAD_OPTS: `Thiếu đáp án (${badOptsCount})`
+      };
+      filterPillsEl.querySelectorAll("[data-uq-filter]").forEach(btn => {
+        const key = btn.dataset.uqFilter;
+        btn.textContent = pillLabels[key] || key;
+        btn.classList.toggle("active", uploaderQuizFilter === key);
+        btn.onclick = () => {
+          uploaderQuizFilter = key;
+          expandedUploaderQuestionIndex = null;
+          renderUploaderQuestionBank(mod);
+        };
+      });
+    }
+
+    const inpSearch = document.getElementById("inpUpQuizSearch");
+    if (inpSearch) {
+      if (inpSearch.value !== uploaderQuizSearchQuery) inpSearch.value = uploaderQuizSearchQuery;
+      inpSearch.oninput = () => {
+        uploaderQuizSearchQuery = inpSearch.value;
+        expandedUploaderQuestionIndex = null;
+        renderUploaderQuestionBank(mod);
+        const curInp = document.getElementById("inpUpQuizSearch");
+        if (curInp) {
+          curInp.focus();
+          curInp.setSelectionRange(curInp.value.length, curInp.value.length);
+        }
+      };
+    }
+
     const listContainer = document.getElementById("uploaderQuestionsList");
     listContainer.innerHTML = "";
 
@@ -2920,7 +3449,7 @@
       listContainer.innerHTML = `
         <div class="up-card" style="text-align:center;padding:28px;color:#64748B;">
           ${canEdit
-            ? `Chưa có câu hỏi nào. Hãy bấm <strong>"Tạo tự động từ tài liệu"</strong> hoặc <strong>"Tải file câu hỏi có sẵn"</strong> ở thanh công cụ phía trên.`
+            ? `Chưa có câu hỏi nào. Hãy bấm <strong>"Tạo từ tài liệu"</strong> hoặc <strong>"Tải file câu hỏi"</strong> ở phía trên.`
             : `Học phần này của <strong>${escapeHtml(mod.authorName || "Đào tạo")}</strong> hiện chưa có câu hỏi trắc nghiệm.`
           }
         </div>
@@ -2928,22 +3457,46 @@
       return;
     }
 
+    const qTextQuery = uploaderQuizSearchQuery.trim().toLowerCase();
+    const visibleEntries = qList
+      .map((q, qIdx) => ({ q, qIdx }))
+      .filter(({ q }) => {
+        if (uploaderQuizFilter === "NO_EXP" && !isMissingExp(q)) return false;
+        if (uploaderQuizFilter === "BAD_OPTS" && !isMissingOpts(q)) return false;
+        if (qTextQuery) {
+          const hay = `${q.question || ""} ${(q.options || []).join(" ")} ${q.explanation || ""}`.toLowerCase();
+          if (!hay.includes(qTextQuery)) return false;
+        }
+        return true;
+      });
+
+    if (visibleEntries.length === 0) {
+      listContainer.innerHTML = `<div class="up-card" style="text-align:center;padding:20px;color:#64748B;font-size:13px;">Không có câu hỏi nào khớp bộ lọc hiện tại.</div>`;
+      return;
+    }
+
     const letters = ["A", "B", "C", "D"];
-    qList.forEach((q, qIdx) => {
+    visibleEntries.forEach(({ q, qIdx }, vPos) => {
       const isExpanded = expandedUploaderQuestionIndex === qIdx;
+      const missingExp = isMissingExp(q);
+      const missingOpts = isMissingOpts(q);
 
       if (!isExpanded) {
-        // COMPACT 1-LINE ROW
         const row = document.createElement("div");
         row.className = "up-compact-q-row";
         const cIdx = Number(q.correctIndex || 0);
         const correctText = (q.options && q.options[cIdx]) ? q.options[cIdx] : "";
+        const warnHtml = missingOpts
+          ? `<span class="up-q-warn-pill">Thiếu đáp án</span>`
+          : (missingExp ? `<span class="up-q-warn-pill">Thiếu giải thích</span>` : "");
+
         row.innerHTML = `
           <div class="up-q-row-left">
             <span class="qq-num-badge">Câu ${qIdx + 1}</span>
             <span class="up-q-row-title">${escapeHtml(q.question || "(Chưa nhập câu hỏi)")}</span>
           </div>
-          <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+          <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
+            ${warnHtml}
             <span class="up-q-row-ans" title="Đáp án đúng: ${letters[cIdx]}. ${escapeHtml(correctText)}">
               ✓ ${letters[cIdx]}. ${escapeHtml(correctText)}
             </span>
@@ -2976,7 +3529,6 @@
         return;
       }
 
-      // EXPANDED EDITOR / VIEWER FOR ONLY THE SELECTED QUESTION
       const card = document.createElement("div");
       card.className = "up-q-card";
 
@@ -2993,6 +3545,9 @@
         `;
       }).join("");
 
+      const hasNextVisible = vPos < visibleEntries.length - 1;
+      const nextQIdx = hasNextVisible ? visibleEntries[vPos + 1].qIdx : null;
+
       card.innerHTML = `
         <div class="up-q-top">
           <div class="up-q-top-left">
@@ -3000,7 +3555,8 @@
           </div>
           <div class="up-q-actions">
             ${canEdit ? `<button type="button" class="btn-q-mini danger" data-del-q="${qIdx}">Xóa câu</button>` : ""}
-            <button type="button" class="btn-primary" data-collapse-q="${qIdx}" style="padding:5px 12px;font-size:12px;">${canEdit ? "✓ Xong (Thu gọn)" : "Thu gọn"}</button>
+            <button type="button" class="btn-secondary" data-collapse-q="${qIdx}" style="padding:5px 11px;font-size:12px;">${canEdit ? "✓ Xong" : "Thu gọn"}</button>
+            ${hasNextVisible ? `<button type="button" class="btn-primary" data-next-q="${nextQIdx}" style="padding:5px 12px;font-size:12px;">Câu tiếp ▸</button>` : ""}
           </div>
         </div>
 
@@ -3014,7 +3570,7 @@
         </div>
 
         <div class="form-group">
-          <label>Giải thích &amp; Gợi ý tư vấn:</label>
+          <label>Giải thích:</label>
           <textarea class="input-control" rows="2" data-edit-exp="${qIdx}" ${canEdit ? "" : "readonly"}>${escapeHtml(q.explanation || "")}</textarea>
         </div>
       `;
@@ -3024,6 +3580,15 @@
         if (canEdit) triggerAutoSave(true, true);
         renderUploaderQuestionBank(mod);
       });
+
+      const nextBtn = card.querySelector("[data-next-q]");
+      if (nextBtn) {
+        nextBtn.addEventListener("click", () => {
+          expandedUploaderQuestionIndex = Number(nextBtn.dataset.nextQ);
+          if (canEdit) triggerAutoSave(true, true);
+          renderUploaderQuestionBank(mod);
+        });
+      }
 
       if (canEdit) {
         card.querySelector(`[data-edit-qtext="${qIdx}"]`).addEventListener("input", e => {
@@ -5041,6 +5606,11 @@
         "Luận điểm trọng tâm 2 về điểm khác biệt của chương trình Novastars."
       ],
       contentText: "",
+      customSections: [{
+        id: `sec-${Date.now().toString(36)}`,
+        title: "Nội dung trọng tâm",
+        content: ""
+      }],
       uploadedTables: [],
       questions: []
     };
@@ -5049,6 +5619,7 @@
     currentModuleId = newMod.id;
     activeWorkspaceView = "uploader";
     activeUploaderTab = "doc";
+    uploaderDocModePreference[newMod.id] = "sections";
     const statusEl = document.getElementById("upDocFileStatus");
     if (statusEl) statusEl.classList.add("hidden");
     logUserActivity("create_module", "Tạo học phần mới", `${newMod.code}: ${newMod.title}`, newMod.code);
@@ -5109,7 +5680,14 @@
         }
         if (extracted.text) {
           mod.contentText = extracted.text;
-          document.getElementById("upModContentText").value = extracted.text;
+          const taEl = document.getElementById("upModContentText");
+          if (taEl) taEl.value = extracted.text;
+          if (!Array.isArray(extracted.tables) || extracted.tables.length === 0) {
+            mod.customSections = autoSplitTextToSections(extracted.text, mod.title || "Nội dung chính");
+            uploaderDocModePreference[mod.id] = "sections";
+          } else {
+            uploaderDocModePreference[mod.id] = "fulltext";
+          }
           document.getElementById("lblDocCharCount").textContent = `${extracted.text.length.toLocaleString("vi-VN")} ký tự`;
 
           // Auto-fill summary points if empty
@@ -5202,6 +5780,10 @@
           const ownMod = (db.modules || []).find(m => canCurrentUserEditModule(m));
           mod = ownMod || createNewModuleForCurrentUser(file.name.replace(/\.[^.]+$/, ""));
           currentModuleId = mod.id;
+        uploaderPreviewStepIndex = 0;
+        uploaderQuizFilter = "ALL";
+        uploaderQuizSearchQuery = "";
+        expandedUploaderQuestionIndex = null;
         }
 
         const extracted = await extractFileContentViaBackendOrFallback(file);
@@ -5445,7 +6027,10 @@
       }
       if (confirm(`Bạn có chắc muốn xóa học phần "${mod.code}: ${mod.title}" không?`)) {
         db.modules = db.modules.filter(m => m.id !== mod.id);
-        currentModuleId = db.modules[0].id;
+        const nextOwn = (currentUser && currentUser.role === "uploader")
+          ? db.modules.find(m => canCurrentUserEditModule(m))
+          : null;
+        currentModuleId = nextOwn ? nextOwn.id : (db.modules[0] ? db.modules[0].id : "");
         triggerAutoSave(true, true);
         renderAll();
       }
@@ -5466,6 +6051,7 @@
     const btnAdminGoUp = document.getElementById("btnAdminGoToUploader");
     if (btnAdminGoUp) {
       btnAdminGoUp.addEventListener("click", () => {
+        uploaderSidebarFilter = "ALL";
         activeWorkspaceView = "uploader";
         renderAll();
       });

@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=37">
+  <link rel="stylesheet" href="styles.css?v=39">
 </head>
 <body>
   <!-- 1. AUTHENTICATION SCREEN (LOGIN PORTAL - 3 ROLES) -->
@@ -172,6 +172,12 @@
           <input type="text" id="sidebarSearchInput" class="sidebar-search-input" style="padding-left:10px;" placeholder="Tìm mã bài, chủ đề..." autocomplete="off">
           <button type="button" class="btn-clear-search hidden" id="btnSidebarClearSearch" title="Xóa tìm kiếm">✕</button>
         </div>
+
+        <div class="sidebar-uploader-filters hidden" id="sidebarUploaderFilters">
+          <button type="button" class="suf-pill active" data-up-filter="MINE">Của tôi (0)</button>
+          <button type="button" class="suf-pill" data-up-filter="PENDING">Chờ/Nháp (0)</button>
+          <button type="button" class="suf-pill" data-up-filter="ALL">Tất cả (0)</button>
+        </div>
       </div>
 
       <div class="sidebar-lessons-scroll" id="sidebarModulesList">
@@ -264,7 +270,7 @@
       </main>
 
       <!-- ================================================================= -->
-      <!-- VIEW B: ĐÀO TẠO WORKSPACE - ULTRA-CLEAN & COMPACT                 -->
+      <!-- VIEW B: ĐÀO TẠO WORKSPACE - CLEAN, STRUCTURED & OFFICE-FRIENDLY   -->
       <!-- ================================================================= -->
       <section class="single-workspace hidden" id="uploaderWorkspace" aria-label="Không gian dành cho Đào tạo">
         <div class="workspace-container">
@@ -272,132 +278,182 @@
           <div class="up-compact-topbar">
             <div class="up-subtabs-inline" role="tablist">
               <button type="button" class="up-pill-tab active" id="btnUpTabDoc" role="tab" aria-selected="true">
-                1. Tài liệu học
+                1. Tài liệu
               </button>
               <button type="button" class="up-pill-tab" id="btnUpTabQuiz" role="tab" aria-selected="false">
-                2. Câu hỏi trắc nghiệm (<span id="lblUpQuestionCount">10</span>)
+                2. Câu hỏi (<span id="lblUpQuestionCount">0</span>)
+              </button>
+              <button type="button" class="up-pill-tab" id="btnUpTabPreview" role="tab" aria-selected="false">
+                3. Xem thử
               </button>
               <button type="button" class="up-pill-tab" id="btnUpTabBugs" role="tab" aria-selected="false">
-                3. Báo lỗi (<span id="lblUpBugCount">0</span>)
+                4. Báo lỗi (<span id="lblUpBugCount">0</span>)
               </button>
             </div>
 
             <div class="up-top-right-actions">
-              <button type="button" class="btn-primary" id="btnTopbarCreateNewModule" style="background:linear-gradient(135deg,#059669,#10B981);box-shadow:0 3px 10px rgba(16,185,129,0.28);">
-                + Tạo bài học mới
-              </button>
-              <button type="button" class="btn-secondary" id="btnUploaderPreviewAsSale">
-                Xem thử như Học Viên
-              </button>
-              <button type="button" class="btn-q-mini danger" id="btnUploaderDeleteModule" style="padding:8px 12px;">
-                Xóa bài
-              </button>
               <button type="button" class="btn-secondary" id="btnUploaderSaveModule">
                 Lưu nháp
               </button>
               <button type="button" class="btn-primary" id="btnUploaderSubmitForApproval">
-                Lưu &amp; Gửi Admin duyệt
+                ✓ Duyệt &amp; Đẩy bài
+              </button>
+              <button type="button" class="btn-q-mini danger" id="btnUploaderDeleteModule" title="Xóa bài học này" style="padding:8px 11px;">
+                Xóa
               </button>
             </div>
           </div>
 
-          <!-- ĐÀO TẠO TAB 1: MINIMALIST DOCUMENT UPLOAD & TITLE -->
+          <div class="up-readonly-banner hidden" id="upReadOnlyNoticeBanner">
+            <div>
+              Bài của <strong id="lblReadOnlyBannerAuthor">—</strong> (Chỉ xem).
+            </div>
+            <button type="button" class="btn-primary" id="btnBannerCreateNewModule" style="padding:6px 12px;font-size:12px;flex-shrink:0;">
+              + Tạo bài mới của bạn
+            </button>
+          </div>
+
+          <!-- ĐÀO TẠO TAB 1: METADATA + SECTIONS / FULLTEXT EDITOR -->
           <div class="uploader-panel" id="uploaderPanelDoc">
             <div class="up-card">
-              <div class="up-readonly-banner hidden" id="upReadOnlyNoticeBanner">
-                <div>
-                  <strong>Chế độ Chỉ xem:</strong> Học phần này do <strong id="lblReadOnlyBannerAuthor">Phạm Mỹ Linh</strong> tạo. Bạn không thể ghi đè lên học phần của người khác.
+              <div class="up-meta-grid-row1">
+                <div class="form-group">
+                  <label for="upModCode">Mã bài:</label>
+                  <input type="text" id="upModCode" class="input-control mono-input" placeholder="HP06">
                 </div>
-                <button type="button" class="btn-primary" id="btnBannerCreateNewModule" style="padding:7px 13px;font-size:12.5px;flex-shrink:0;">
-                  + Tạo bài học mới của bạn
-                </button>
-              </div>
-              <div class="up-minimal-row">
-                <div class="form-group" style="flex:1;">
-                  <div class="label-row-between">
-                    <label for="upModTitle">Tên bài học / Tài liệu:</label>
-                    <span class="up-author-tag" id="lblUploaderModuleAuthor">Tác giả: —</span>
-                  </div>
-                  <input type="text" id="upModTitle" class="input-control" placeholder="Nhập tên bài học cho Học Viên...">
+                <div class="form-group">
+                  <label for="upModCategory">Chuyên đề:</label>
+                  <input type="text" id="upModCategory" class="input-control" placeholder="VD: Nghiệp vụ tư vấn">
                 </div>
-                <div class="form-group" style="width:210px;">
-                  <label for="upModStatus">Trạng thái duyệt:</label>
+                <div class="form-group">
+                  <label for="upModStatus">Trạng thái:</label>
                   <select id="upModStatus" class="input-control">
-                    <option value="pending">Chờ Admin duyệt</option>
-                    <option value="published">Đã duyệt (Học Viên nhìn thấy)</option>
                     <option value="draft">Bản nháp (Đang ẩn)</option>
+                    <option value="pending">Chờ Admin duyệt</option>
+                    <option value="published">Đã duyệt (HV thấy)</option>
                   </select>
                 </div>
               </div>
 
-              <!-- Hidden default inputs kept for compatibility -->
-              <input type="hidden" id="upModCode">
-              <input type="hidden" id="upModCategory">
-              <input type="hidden" id="upModDuration" value="20">
-              <input type="hidden" id="upModThreshold" value="80">
+              <div class="up-meta-grid-row2">
+                <div class="form-group">
+                  <div class="label-row-between">
+                    <label for="upModTitle">Tên bài học:</label>
+                    <span class="up-author-tag" id="lblUploaderModuleAuthor">—</span>
+                  </div>
+                  <input type="text" id="upModTitle" class="input-control" placeholder="Nhập tên bài học cho Học Viên...">
+                </div>
+                <div class="form-group">
+                  <label for="upModDuration">Thời gian (phút):</label>
+                  <input type="number" id="upModDuration" class="input-control" min="5" max="180" step="5" value="20">
+                </div>
+                <div class="form-group">
+                  <label for="upModThreshold">Điểm Đạt (%):</label>
+                  <input type="number" id="upModThreshold" class="input-control" min="50" max="100" step="5" value="80">
+                </div>
+              </div>
+
+              <!-- Hidden legacy fields kept for full compatibility -->
               <input type="hidden" id="upModSubtitle">
               <textarea id="upModSummaryPoints" class="hidden"></textarea>
 
               <div class="up-doc-toolbar">
                 <label class="btn-upload-doc-primary">
-                  Tải file tài liệu (.docx, .xlsx, .pdf, .txt)
+                  Tải file (Word / Excel / PDF)
                   <input type="file" id="inputUploadDocFile" accept=".docx,.xlsx,.xls,.pdf,.txt,.md,.csv" hidden>
                 </label>
-                <span class="up-file-status hidden" id="upDocFileStatus"></span>
+
+                <div class="up-mode-switch" role="group" aria-label="Chế độ soạn tài liệu">
+                  <button type="button" class="up-mode-btn active" id="btnDocModeSections">Theo từng Mục</button>
+                  <button type="button" class="up-mode-btn" id="btnDocModeFulltext">Văn bản gộp</button>
+                </div>
+
+                <button type="button" class="btn-secondary hidden" id="btnAutoSplitSections" title="Tự tách văn bản thành từng mục rõ ràng">
+                  Tách thành từng Mục
+                </button>
+
                 <span class="text-counter" id="lblDocCharCount" style="margin-left:auto;">0 ký tự</span>
               </div>
 
-              <textarea id="upModContentText" class="input-control doc-editor-textarea" rows="12" placeholder="Tải file Word/Excel ở nút trên (hệ thống sẽ tự động lấy chữ vào đây) hoặc dán trực tiếp nội dung tài liệu vào ô này..."></textarea>
+              <span class="up-file-status hidden" id="upDocFileStatus"></span>
+
+              <!-- MODE A: SECTIONS / BRANCHES EDITOR -->
+              <div id="upSectionsWrap" class="up-sections-wrap">
+                <div id="upSectionsList" class="up-sections-list"></div>
+                <button type="button" class="btn-secondary up-add-section-btn" id="btnAddDocSection">
+                  + Thêm mục / nhánh mới
+                </button>
+              </div>
+
+              <!-- MODE B: SINGLE FULLTEXT TEXTAREA -->
+              <div id="upFulltextWrap" class="hidden">
+                <textarea id="upModContentText" class="input-control doc-editor-textarea" rows="11" placeholder="Tải file Word/Excel ở nút trên hoặc dán toàn bộ nội dung vào đây, rồi bấm 'Tách thành từng Mục'..."></textarea>
+              </div>
 
               <div class="up-step-footer">
                 <button type="button" class="btn-primary-large" id="btnGoToQuizGenerator">
-                  Tiếp theo: Câu hỏi trắc nghiệm
+                  Tiếp theo: Câu hỏi ▸
                 </button>
               </div>
             </div>
           </div>
 
-          <!-- ĐÀO TẠO TAB 2: 1-LINE TOOLBAR + COMPACT 1-LINE/QUESTION ACCORDION LIST -->
+          <!-- ĐÀO TẠO TAB 2: 2-GROUP TOOLBAR + QUESTION LIST WITH QUALITY FILTERS -->
           <div class="uploader-panel hidden" id="uploaderPanelQuiz">
-            <!-- SINGLE-ROW ACTION TOOLBAR -->
-            <div class="up-quiz-one-line-bar">
-              <div class="uq-left-group">
-                <input type="number" id="selAiQuestionCount" class="input-control" min="0" placeholder="Số câu (Trống = Toàn bộ)" title="Nhập số câu muốn tạo (không giới hạn), hoặc để trống để tạo toàn bộ câu hỏi từ tài liệu" style="width:185px;padding:8px 10px;font-size:12.5px;font-weight:700;">
-                <select id="selAiMergeMode" class="hidden">
-                  <option value="append" selected>append</option>
-                </select>
-                <button type="button" class="btn-ai-generate" id="btnRunAiQuizConverter" style="flex:none;padding:9px 15px;">
-                  Tạo tự động từ tài liệu
-                </button>
-                <label class="btn-qbank-tool" style="cursor:pointer;margin:0;">
-                  Tải file câu hỏi có sẵn
-                  <input type="file" id="inputImportQuizFile" accept=".xlsx,.xls,.docx,.csv,.json,.txt,.md" hidden>
-                </label>
-                <button type="button" class="btn-qbank-tool" id="btnOpenPasteQuizModal">
-                  Dán câu hỏi
-                </button>
-                <button type="button" class="btn-qbank-tool" id="btnDownloadQuizTemplate" title="Tải file Excel mẫu">
-                  Tải mẫu Excel
-                </button>
+            <div class="up-quiz-toolbar-stack">
+              <div class="up-quiz-one-line-bar">
+                <div class="uq-left-group">
+                  <label class="btn-qbank-tool" style="cursor:pointer;margin:0;">
+                    Tải file câu hỏi
+                    <input type="file" id="inputImportQuizFile" accept=".xlsx,.xls,.docx,.csv,.json,.txt,.md" hidden>
+                  </label>
+                  <button type="button" class="btn-qbank-tool" id="btnOpenPasteQuizModal">
+                    Dán câu hỏi
+                  </button>
+                  <button type="button" class="btn-qbank-tool" id="btnDownloadQuizTemplate" title="Tải file Excel mẫu">
+                    Mẫu Excel
+                  </button>
+                  <div class="uq-ai-pair">
+                    <input type="number" id="selAiQuestionCount" class="input-control" min="0" placeholder="Số câu" title="Số câu muốn tạo (để trống = toàn bộ)" style="width:82px;padding:7px 9px;font-size:12.5px;font-weight:700;">
+                    <select id="selAiMergeMode" class="hidden">
+                      <option value="append" selected>append</option>
+                    </select>
+                    <button type="button" class="btn-ai-generate" id="btnRunAiQuizConverter" style="flex:none;padding:8px 13px;">
+                      Tạo từ tài liệu
+                    </button>
+                  </div>
+                </div>
+
+                <div class="uq-right-group">
+                  <button type="button" class="btn-qbank-tool primary" id="btnAddManualQuestion">
+                    + Thêm câu hỏi
+                  </button>
+                </div>
               </div>
 
-              <div class="uq-right-group">
-                <button type="button" class="btn-qbank-tool primary" id="btnAddManualQuestion">
-                  + Thêm câu hỏi
-                </button>
+              <div class="up-quiz-filter-bar">
+                <div class="study-filter-pills" id="upQuizFilterPills">
+                  <button type="button" class="study-filter-pill active" data-uq-filter="ALL">Tất cả (0)</button>
+                  <button type="button" class="study-filter-pill" data-uq-filter="NO_EXP">Thiếu giải thích (0)</button>
+                  <button type="button" class="study-filter-pill" data-uq-filter="BAD_OPTS">Thiếu đáp án (0)</button>
+                </div>
+                <input type="text" id="inpUpQuizSearch" class="input-control" placeholder="Tìm nhanh câu hỏi..." style="width:220px;padding:6px 10px;font-size:12.5px;">
               </div>
             </div>
 
-            <!-- COMPACT 1-LINE QUESTION LIST (CLICK TO EXPAND & EDIT) -->
-            <div class="up-compact-hint">
-              Bấm vào câu hỏi bất kỳ bên dưới để mở khung chỉnh sửa:
-            </div>
             <div class="uploader-questions-list" id="uploaderQuestionsList">
-              <!-- Rendered by JS: Compact 1-line rows, click to expand editor -->
+              <!-- Rendered by JS -->
             </div>
           </div>
 
-          <!-- ĐÀO TẠO TAB 3: BUG REPORTS & FEEDBACK FROM SALE -->
+          <!-- ĐÀO TẠO TAB 3: INLINE LEARNER PREVIEW -->
+          <div class="uploader-panel hidden" id="uploaderPanelPreview">
+            <div class="up-card" id="uploaderPreviewContainer">
+              <!-- Rendered by JS -->
+            </div>
+          </div>
+
+          <!-- ĐÀO TẠO TAB 4: BUG REPORTS & FEEDBACK FROM SALE -->
           <div class="uploader-panel hidden" id="uploaderPanelBugs">
             <div class="up-card" id="uploaderBugsContainer">
               <!-- Rendered by JS -->
@@ -788,7 +844,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <script src="data/initial_data.js?v=37"></script>
-  <script src="app.js?v=37"></script>
+  <script src="data/initial_data.js?v=39"></script>
+  <script src="app.js?v=39"></script>
 </body>
 </html>
