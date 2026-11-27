@@ -809,6 +809,67 @@ body {
   color: #9A3412;
 }
 
+.btn-font-size-toggle {
+  padding: 4px 10px;
+  border-radius: 7px;
+  border: 1px solid #CBD5E1;
+  background: #FFFFFF;
+  color: #334155;
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.14s ease;
+}
+
+.btn-font-size-toggle:hover {
+  border-color: #F97316;
+  color: #C2410C;
+}
+
+.btn-font-size-toggle.active {
+  background: #FFF7ED;
+  border-color: #F97316;
+  color: #C2410C;
+}
+
+.mindmap-branch-btn.is-viewed:not(.active):not(.mini-done) {
+  background: #FFFBF5;
+  border-color: #FED7AA;
+}
+
+/* Large Readable Font Mode for Non-IT / Older Learners */
+#saleWorkspace.sale-large-text .stc-title {
+  font-size: 17px;
+}
+
+#saleWorkspace.sale-large-text .stc-box-content,
+#saleWorkspace.sale-large-text .stc-rich-item,
+#saleWorkspace.sale-large-text .stc-timeline-step,
+#saleWorkspace.sale-large-text .doc-multiline-cell,
+#saleWorkspace.sale-large-text .progress-matrix-table td {
+  font-size: 15.2px;
+  line-height: 1.66;
+}
+
+#saleWorkspace.sale-large-text .qq-question-text {
+  font-size: 17.5px;
+  line-height: 1.55;
+}
+
+#saleWorkspace.sale-large-text .qq-option-btn,
+#saleWorkspace.sale-large-text .lmq-opt-btn {
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+#saleWorkspace.sale-large-text .qq-explanation-box,
+#saleWorkspace.sale-large-text .lmq-feedback {
+  font-size: 14.5px;
+  line-height: 1.6;
+}
+
 /* 2-Level Mind-Map Tree inside Sidebar (shared branch styles) */
 .sidebar-module-node {
   display: flex;

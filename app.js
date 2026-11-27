@@ -38,6 +38,10 @@
   let sidebarSearchQuery = "";
   let isSidebarCollapsed = localStorage.getItem("novastars_sale_sidebar_collapsed") === "true";
   let isBranchDrawerOpen = false;
+  const READING_STATE_KEY = "novastars_sale_reading_state_v1";
+  const FONT_MODE_KEY = "novastars_sale_font_mode_v1";
+  let learnerFontMode = localStorage.getItem(FONT_MODE_KEY) === "large" ? "large" : "normal";
+  let didRestoreInitialStep = false;
 
   // Study document interactive filters (for HP03 sample lessons & HP04 72 lessons)
   let hp03GradeFilter = "ALL";
@@ -69,6 +73,43 @@
     return String(rawExp || "")
       .replace(/Căn cứ chuẩn\s*\([^)]*\)\s*:\s*/gi, "Căn cứ chuẩn: ")
       .trim();
+  }
+
+  function loadLearnerReadingState() {
+    try {
+      const raw = localStorage.getItem(READING_STATE_KEY);
+      const parsed = raw ? JSON.parse(raw) : {};
+      return (parsed && typeof parsed === "object") ? parsed : {};
+    } catch (e) {
+      return {};
+    }
+  }
+
+  function getLearnerModuleReadingState(userId, modId) {
+    const all = loadLearnerReadingState();
+    const uMap = all[userId] || {};
+    return uMap[modId] || { lastStep: 0, viewed: {} };
+  }
+
+  function saveLearnerReadingStep(userId, modId, stepIdx) {
+    if (!userId || !modId) return;
+    try {
+      const all = loadLearnerReadingState();
+      if (!all[userId] || typeof all[userId] !== "object") all[userId] = {};
+      if (!all[userId][modId] || typeof all[userId][modId] !== "object") {
+        all[userId][modId] = { lastStep: 0, viewed: {} };
+      }
+      all[userId][modId].lastStep = stepIdx;
+      if (!all[userId][modId].viewed) all[userId][modId].viewed = {};
+      all[userId][modId].viewed[String(stepIdx)] = true;
+      localStorage.setItem(READING_STATE_KEY, JSON.stringify(all));
+    } catch (e) {}
+  }
+
+  function truncateShortLabel(text, maxLen = 28) {
+    const clean = String(text || "").replace(/\s+/g, " ").trim();
+    if (clean.length <= maxLen) return clean;
+    return clean.slice(0, maxLen - 1).trim() + "…";
   }
 
   function upgradeCoreModulesIfNeeded(targetDb) {
@@ -833,6 +874,16 @@
       btnToggleSidebar.classList.toggle("hidden", activeWorkspaceView === "admin");
     }
 
+    const isLearnerScreen = activeWorkspaceView === "sale";
+    const btnTopSaveEl = document.getElementById("btnTopSave");
+    if (btnTopSaveEl) {
+      btnTopSaveEl.classList.toggle("hidden", isLearnerScreen);
+    }
+    const btnTopBugEl = document.getElementById("btnTopOpenBugReport");
+    if (btnTopBugEl) {
+      btnTopBugEl.classList.toggle("hidden", isLearnerScreen);
+    }
+
     const openBugsCount = (db.bugReports || []).filter(b => b.status !== "resolved").length;
     const topBugBadge = document.getElementById("badgeTopBugCount");
     if (topBugBadge) {
@@ -992,7 +1043,8 @@
           if (!ok) return;
         }
         currentModuleId = mod.id;
-        activeDocStepIndex = 0;
+        const savedState = !isUploaderView ? getLearnerModuleReadingState(learner.id, mod.id) : { lastStep: 0 };
+        activeDocStepIndex = Number(savedState.lastStep || 0);
         hp03LessonSubTab = "compare";
         activeSaleTab = "doc";
         resetActiveQuizState();
@@ -1031,12 +1083,15 @@
 
     drawer.classList.remove("collapsed");
     if (codeEl) codeEl.textContent = mod.code || "HP";
-    if (titleEl) titleEl.textContent = mod.title || "Chọn nhánh nội dung";
+    if (titleEl) titleEl.textContent = "Chọn mục cần xem";
+
+    const learner = getEffectiveLearnerUser();
+    const viewedSteps = getLearnerModuleReadingState(learner.id, mod.id).viewed || {};
 
     const trunkEl = document.createElement("div");
     trunkEl.className = "bmd-tree-trunk";
     trunkEl.setAttribute("role", "navigation");
-    trunkEl.setAttribute("aria-label", `Sơ đồ nhánh nội dung ${mod.code}`);
+    trunkEl.setAttribute("aria-label", `Mục lục ${mod.code}`);
 
     let lastGroup = "";
     docSteps.forEach((st, idx) => {
@@ -1052,6 +1107,7 @@
       const isBranchDone = lessonQs.length > 0
         && (mod.structuredType !== "sample_10_lessons" || Boolean(inlineMiniQuizSubmitted[idx]))
         && lessonQs.every(q => inlineMiniQuizAnswers[q.id] === Number(q.correctIndex));
+      const isBranchViewed = Boolean(viewedSteps[String(idx)]);
       const isBranchActive = activeSaleTab === "doc" && idx === activeDocStepIndex;
 
       const branchCode = st.treeCode || st.pillCode || st.pillLabel || `Mục ${idx + 1}`;
@@ -1065,11 +1121,14 @@
       bBtn.type = "button";
       bBtn.className = "mindmap-branch-btn"
         + (isBranchActive ? " active" : "")
-        + (isBranchDone ? " mini-done" : "");
+        + (isBranchDone ? " mini-done" : (isBranchViewed ? " is-viewed" : ""));
+      const checkHtml = isBranchDone
+        ? `<span class="mm-branch-check" title="Đã hoàn thành kiểm tra nhanh">✓</span>`
+        : (isBranchViewed ? `<span class="mm-branch-check" style="color:#0EA5E9;" title="Đã mở xem">✓</span>` : "");
       bBtn.innerHTML = `
         <span class="mm-branch-code">${escapeHtml(branchCode)}</span>
         ${branchTitle ? `<span class="mm-branch-title">${escapeHtml(branchTitle)}</span>` : ""}
-        ${isBranchDone ? `<span class="mm-branch-check" title="Đã hoàn thành kiểm tra nhanh">✓</span>` : ""}
+        ${checkHtml}
       `;
 
       bBtn.addEventListener("click", () => {
@@ -1312,6 +1371,17 @@
     currentModuleId = mod.id;
 
     const learner = getEffectiveLearnerUser();
+    if (!didRestoreInitialStep) {
+      didRestoreInitialStep = true;
+      const savedState = getLearnerModuleReadingState(learner.id, mod.id);
+      if (typeof savedState.lastStep === "number" && savedState.lastStep >= 0) {
+        activeDocStepIndex = savedState.lastStep;
+      }
+    }
+    const saleWsEl = document.getElementById("saleWorkspace");
+    if (saleWsEl) {
+      saleWsEl.classList.toggle("sale-large-text", learnerFontMode === "large");
+    }
     const prog = getOrCreateProgress(learner.id, learner.name, mod.id);
     const qList = Array.isArray(mod.questions) ? mod.questions : [];
     const thresh = Number(mod.passThreshold || 80);
@@ -2053,13 +2123,12 @@
     if (activeDocStepIndex >= steps.length) activeDocStepIndex = 0;
     if (activeDocStepIndex < 0) activeDocStepIndex = 0;
 
+    const learner = getEffectiveLearnerUser();
+    saveLearnerReadingStep(learner.id, mod.id, activeDocStepIndex);
+
     const currentStep = steps[activeDocStepIndex];
     const bodyContainer = document.getElementById("saleDocBodyContainer");
     const letters = ["A", "B", "C", "D"];
-
-    const downloadBtnHtml = (mod.sourceFile && mod.sourceFile.url)
-      ? `<a href="${escapeHtml(mod.sourceFile.url)}" download="${escapeHtml(mod.sourceFile.name || 'Tai_lieu.xlsx')}" class="btn-download-source">Tải file gốc</a>`
-      : "";
 
     const lessonQs = getLessonInlineQuestions(mod, activeDocStepIndex);
     let inlineQuizHtml = "";
@@ -2116,12 +2185,20 @@
     }
 
     const isLastStep = activeDocStepIndex === steps.length - 1;
+    const nextStep = !isLastStep ? steps[activeDocStepIndex + 1] : null;
+    const nextRawTitle = nextStep
+      ? (nextStep.pillCode
+        ? `${nextStep.pillCode} – ${nextStep.pillTitle || ""}`
+        : (nextStep.treeTitle || nextStep.pillLabel || nextStep.title || "Mục tiếp theo"))
+      : "";
+    const nextBtnText = nextStep ? `Tiếp theo: ${truncateShortLabel(nextRawTitle, 30)} ▶` : "";
 
     const activeTagText = currentStep.pillCode || currentStep.treeCode || `Mục ${activeDocStepIndex + 1}/${steps.length}`;
     const activeTitleText = currentStep.pillTitle || currentStep.title || currentStep.pillLabel || mod.title;
     const toggleBranchBtnHtml = steps.length > 1
-      ? `<button type="button" class="btn-toggle-branch-drawer" id="btnToggleBranchDrawer">${isBranchDrawerOpen ? "‹ Ẩn nhánh" : `Mở nhánh ${escapeHtml(mod.code)} (${steps.length}) ▸`}</button>`
+      ? `<button type="button" class="btn-toggle-branch-drawer" id="btnToggleBranchDrawer">${isBranchDrawerOpen ? "‹ Đóng mục lục" : `Mục lục ${escapeHtml(mod.code)} (${steps.length}) ▾`}</button>`
       : "";
+    const fontToggleBtnHtml = `<button type="button" class="btn-font-size-toggle ${learnerFontMode === "large" ? "active" : ""}" id="btnToggleSaleFontSize" title="Chuyển cỡ chữ đọc to hơn cho dễ nhìn">${learnerFontMode === "large" ? "Cỡ chữ: Lớn ✓" : "Cỡ chữ: Vừa"}</button>`;
 
     bodyContainer.innerHTML = `
       <div class="doc-active-header-bar">
@@ -2131,9 +2208,9 @@
           <span class="doc-active-step-name">${escapeHtml(activeTitleText)}</span>
         </div>
         <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
-          ${downloadBtnHtml}
+          ${fontToggleBtnHtml}
           <button type="button" class="btn-inline-report-bug" id="btnReportDocStepBug">
-            Báo lỗi mục này
+            Góp ý / Báo lỗi
           </button>
         </div>
       </div>
@@ -2149,11 +2226,22 @@
         </button>
         <span class="doc-pager-counter">Mục ${activeDocStepIndex + 1} / ${steps.length}</span>
         ${!isLastStep
-          ? `<button type="button" class="btn-primary" id="btnDocNextStep">Mục tiếp theo ▶</button>`
-          : `<button type="button" class="btn-start-quiz-cta" id="btnDocStartQuiz">Làm bài Trắc nghiệm tổng hợp (${(mod.questions || []).length} câu) ➔</button>`
+          ? `<button type="button" class="btn-primary" id="btnDocNextStep" title="${escapeHtml(nextRawTitle)}">${escapeHtml(nextBtnText)}</button>`
+          : `<button type="button" class="btn-start-quiz-cta" id="btnDocStartQuiz">Đã xem xong — Thi trắc nghiệm (${(mod.questions || []).length} câu) ➔</button>`
         }
       </div>
     `;
+
+    const btnFontToggle = document.getElementById("btnToggleSaleFontSize");
+    if (btnFontToggle) {
+      btnFontToggle.onclick = () => {
+        learnerFontMode = learnerFontMode === "large" ? "normal" : "large";
+        localStorage.setItem(FONT_MODE_KEY, learnerFontMode);
+        const ws = document.getElementById("saleWorkspace");
+        if (ws) ws.classList.toggle("sale-large-text", learnerFontMode === "large");
+        renderSaleDocumentPanel(mod, prog, steps);
+      };
+    }
 
     const btnToggleBranch = document.getElementById("btnToggleBranchDrawer");
     if (btnToggleBranch) {
@@ -2313,6 +2401,7 @@
           </div>
 
           <ul class="exam-rules-list">
+            <li><strong>Mẹo nhỏ trước khi thi:</strong> Hãy tắt tạm thông báo Zalo, Facebook hoặc ứng dụng khác để tránh lỡ tay chạm nhầm làm hệ thống tính rời phòng thi.</li>
             <li><strong>Đảo đề &amp; đáp án tự động:</strong> Mỗi lượt thi, thứ tự câu hỏi và các phương án A/B/C/D đều được xáo trộn ngẫu nhiên.</li>
             <li><strong>Khóa tài liệu khi làm bài:</strong> Ngay khi bấm bắt đầu, mục <em>Tài liệu</em> sẽ bị khóa. Nếu thoát ra mở lại tài liệu, bài đang làm sẽ bị hủy.</li>
             <li><strong>Giới hạn thời gian đếm ngược:</strong> Đồng hồ đếm ngược <strong>${totalTimeStr}</strong>. Hết giờ hệ thống sẽ tự động thu bài và chấm điểm.</li>
@@ -2463,7 +2552,7 @@
           <span class="qq-num-badge">Câu ${activeQuizQuestionIndex + 1} / ${qList.length}</span>
         </div>
         <button type="button" class="btn-inline-report-bug" id="btnReportCurrentQuestionBug">
-          Báo lỗi câu này
+          Góp ý / Báo lỗi
         </button>
       </div>
 
@@ -2542,10 +2631,21 @@
     const btnSubmit = document.getElementById("btnSubmitSaleQuiz");
     if (btnSubmit) {
       btnSubmit.onclick = () => {
-        const curAnswered = qList.filter(item => currentQuizAnswers[item.id] !== undefined).length;
-        if (curAnswered < qList.length) {
-          const ok = confirm(`Bạn mới chọn ${curAnswered}/${qList.length} câu. Nộp bài ngay?`);
-          if (!ok) return;
+        const missingIndices = qList
+          .map((item, idx) => (currentQuizAnswers[item.id] === undefined ? idx : -1))
+          .filter(idx => idx !== -1);
+        if (missingIndices.length > 0) {
+          const curAnswered = qList.length - missingIndices.length;
+          const missingLabels = missingIndices.slice(0, 6).map(i => `Câu ${i + 1}`).join(", ")
+            + (missingIndices.length > 6 ? `, ... (+${missingIndices.length - 6} câu nữa)` : "");
+          const ok = confirm(
+            `Bạn mới làm ${curAnswered}/${qList.length} câu — còn thiếu: ${missingLabels}.\n\n• Bấm HỦY để máy tự mở thẳng tới Câu ${missingIndices[0] + 1} làm nốt.\n• Hoặc bấm OK nếu vẫn muốn nộp bài ngay.`
+          );
+          if (!ok) {
+            activeQuizQuestionIndex = missingIndices[0];
+            renderSaleQuizPanel(mod, prog);
+            return;
+          }
         }
         submitActiveExam(mod, prog, "");
       };
