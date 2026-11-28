@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "build": "tsc",
+    "test": "node tests/quiz_import.test.mjs",
     "start": "node dist/src/server.js",
     "dev": "tsx src/server.ts"
   },

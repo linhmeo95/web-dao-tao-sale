@@ -4914,6 +4914,167 @@ dialog::backdrop {
   white-space: nowrap;
 }
 
+.up-q-warn-pill.danger {
+  color: #B91C1C;
+  background: #FEE2E2;
+  border-color: #FECACA;
+}
+
+.up-q-warn-pill.info {
+  color: #1D4ED8;
+  background: #EFF6FF;
+  border-color: #BFDBFE;
+}
+
+.up-q-row-ans.unverified {
+  color: #B91C1C;
+  background: #FEF2F2;
+  border: 1px solid #FECACA;
+  padding: 3px 8px;
+  border-radius: 7px;
+  font-weight: 700;
+}
+
+.import-preview-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.import-preview-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.imp-stat-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.imp-stat-chip {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 5px 10px;
+  border-radius: 8px;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  color: #334155;
+}
+
+.imp-stat-chip.good {
+  background: #ECFDF5;
+  border-color: #A7F3D0;
+  color: #065F46;
+}
+
+.imp-stat-chip.warn {
+  background: #FFFBEB;
+  border-color: #FDE68A;
+  color: #B45309;
+}
+
+.imp-stat-chip.danger {
+  background: #FEF2F2;
+  border-color: #FECACA;
+  color: #B91C1C;
+}
+
+.imp-alert-box {
+  padding: 10px 13px;
+  border-radius: 10px;
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+.imp-alert-box.danger {
+  background: #FEF2F2;
+  border: 1px solid #FCA5A5;
+  color: #991B1B;
+}
+
+.imp-alert-box.warn {
+  background: #FFFBEB;
+  border: 1px solid #FCD34D;
+  color: #92400E;
+}
+
+.import-preview-list {
+  max-height: 48vh;
+  overflow-y: auto;
+  border: 1px solid #E2E8F0;
+  border-radius: 10px;
+  background: #FFFFFF;
+}
+
+.imp-preview-row {
+  display: grid;
+  grid-template-columns: 64px minmax(220px, 1.5fr) minmax(210px, 1.2fr) 128px;
+  gap: 10px;
+  align-items: center;
+  padding: 9px 12px;
+  border-bottom: 1px solid #F1F5F9;
+  font-size: 12.5px;
+}
+
+.imp-preview-row:last-child {
+  border-bottom: none;
+}
+
+.imp-preview-row.is-unverified {
+  background: #FFF5F5;
+}
+
+.imp-preview-row.is-style {
+  background: #FFFDF5;
+}
+
+.imp-preview-q {
+  color: #0F172A;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.imp-preview-ans-select {
+  width: 100%;
+  padding: 5px 8px;
+  border-radius: 7px;
+  border: 1px solid #CBD5E1;
+  font-size: 12px;
+  font-weight: 600;
+  background: #FFFFFF;
+  color: #0F172A;
+}
+
+.imp-preview-ans-select.unverified {
+  border-color: #EF4444;
+  background: #FEF2F2;
+  color: #B91C1C;
+}
+
+.imp-preview-src {
+  font-size: 11px;
+  font-weight: 700;
+  text-align: center;
+  padding: 3px 7px;
+  border-radius: 6px;
+  background: #F1F5F9;
+  color: #475569;
+  white-space: nowrap;
+}
+
+.imp-preview-src.style {
+  background: #FEF3C7;
+  color: #92400E;
+}
+
+.imp-preview-src.unresolved {
+  background: #FEE2E2;
+  color: #B91C1C;
+}
+
 .up-preview-banner {
   display: flex;
   align-items: center;

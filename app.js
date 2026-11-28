@@ -421,6 +421,83 @@
     return nextStatus;
   }
 
+  function getQuizAudit(questions) {
+    return window.NovaQuizParser.auditQuestionBank(questions || []);
+  }
+
+  function confirmModulePublishAction(mod, opts = {}) {
+    if (!mod) return false;
+    const audit = getQuizAudit(mod.questions);
+
+    if (audit.unverifiedCount > 0 || audit.missingOptsCount > 0) {
+      if (opts.silent) return false;
+      const parts = [];
+      if (audit.unverifiedCount > 0) {
+        parts.push(`• ${audit.unverifiedCount} câu chưa xác định đáp án đúng (${audit.unverifiedNums.map(n => "Câu " + n).join(", ")})`);
+      }
+      if (audit.missingOptsCount > 0) {
+        parts.push(`• ${audit.missingOptsCount} câu thiếu đủ 4 lựa chọn A/B/C/D (${audit.missingOptsNums.map(n => "Câu " + n).join(", ")})`);
+      }
+      alert(
+        `Không thể duyệt đẩy học phần "${mod.code}: ${mod.title}" cho Học Viên!\n\n` +
+        `${parts.join("\n")}\n\n` +
+        `Vui lòng vào tab "2. Câu hỏi" -> chọn bộ lọc "Thiếu/Chưa rõ ĐA" để chọn đáp án đúng theo file gốc trước khi duyệt.`
+      );
+      if (activeWorkspaceView === "uploader" && currentModuleId === mod.id) {
+        activeUploaderTab = "quiz";
+        uploaderQuizFilter = "BAD_OPTS";
+        expandedUploaderQuestionIndex = audit.badNums.length > 0 ? (audit.badNums[0] - 1) : null;
+        renderUploaderWorkspace();
+      }
+      return false;
+    }
+
+    if (audit.total === 0 && mod.status !== "published") {
+      if (opts.silent) return true;
+      const okEmpty = confirm(`Học phần "${mod.code}: ${mod.title}" hiện chưa có câu hỏi trắc nghiệm nào.\n\nBạn vẫn muốn duyệt và đẩy lên cho Học Viên xem tài liệu trước chứ?`);
+      if (!okEmpty) return false;
+    }
+
+    if (audit.skewedLetter) {
+      if (opts.silent) return true;
+      const pct = Math.round(audit.skewedRatio * 100);
+      const okSkew = confirm(
+        `Cảnh báo kiểm tra đáp án (${mod.code}):\n\n` +
+        `Có tới ${pct}% số câu (${Math.round(audit.skewedRatio * audit.validAnswerCount)}/${audit.validAnswerCount} câu) đang đặt đáp án đúng là "${audit.skewedLetter}".\n` +
+        `Đây thường là dấu hiệu file gốc có câu bị lệch đáp án khi trích xuất.\n\n` +
+        `Bạn chắc chắn đã đối chiếu đúng với file gốc và muốn duyệt lên cho Học Viên chứ?`
+      );
+      if (!okSkew) {
+        if (activeWorkspaceView === "uploader" && currentModuleId === mod.id) {
+          activeUploaderTab = "quiz";
+          uploaderQuizFilter = "ALL";
+          renderUploaderWorkspace();
+        }
+        return false;
+      }
+    }
+
+    if (audit.styleEmphasisCount > 0 && !mod._styleAnswersConfirmed) {
+      if (opts.silent) return true;
+      const okStyle = confirm(
+        `Lưu ý đối chiếu (${mod.code}):\n\n` +
+        `Có ${audit.styleEmphasisCount} câu được nhận diện đáp án từ chữ in đậm/tô màu trong Word (${audit.styleEmphasisNums.map(n => "Câu " + n).join(", ")}).\n` +
+        `Bấm OK để xác nhận bạn đã kiểm tra khớp với file gốc và duyệt lên cho Học Viên.`
+      );
+      if (!okStyle) {
+        if (activeWorkspaceView === "uploader" && currentModuleId === mod.id) {
+          activeUploaderTab = "quiz";
+          uploaderQuizFilter = "ALL";
+          renderUploaderWorkspace();
+        }
+        return false;
+      }
+      mod._styleAnswersConfirmed = true;
+    }
+
+    return true;
+  }
+
   function getCurrentModule() {
     const list = (activeWorkspaceView === "uploader") ? (db.modules || []) : getVisibleModulesForLearner();
     return list.find(m => m.id === currentModuleId) || list[0] || (db.modules || [])[0] || null;
@@ -3608,6 +3685,10 @@
       statusSel.onchange = () => {
         if (!canCurrentUserEditModule(mod)) return;
         const safeStatus = sanitizeStatusForCurrentUser(statusSel.value, mod.status);
+        if (safeStatus === "published" && !confirmModulePublishAction(mod)) {
+          statusSel.value = mod.status || "draft";
+          return;
+        }
         statusSel.value = safeStatus;
         mod.status = safeStatus;
         if (safeStatus === "published") {
@@ -3905,7 +3986,8 @@
     document.getElementById("lblUpQuestionCount").textContent = String(qList.length);
 
     const isMissingExp = q => !q || !String(q.explanation || "").trim();
-    const isMissingOpts = q => !q || !Array.isArray(q.options) || q.options.filter(o => String(o || "").trim()).length < 4;
+    const isUnverifiedAns = q => !window.NovaQuizParser.hasValidCorrectIndex(q);
+    const isMissingOpts = q => !q || !Array.isArray(q.options) || q.options.filter(o => String(o || "").trim()).length < 4 || isUnverifiedAns(q);
 
     const noExpCount = qList.filter(isMissingExp).length;
     const badOptsCount = qList.filter(isMissingOpts).length;
@@ -3915,7 +3997,7 @@
       const pillLabels = {
         ALL: `Tất cả (${qList.length})`,
         NO_EXP: `Thiếu giải thích (${noExpCount})`,
-        BAD_OPTS: `Thiếu đáp án (${badOptsCount})`
+        BAD_OPTS: `Thiếu/Chưa rõ ĐA (${badOptsCount})`
       };
       filterPillsEl.querySelectorAll("[data-uq-filter]").forEach(btn => {
         const key = btn.dataset.uqFilter;
@@ -3986,11 +4068,24 @@
       if (!isExpanded) {
         const row = document.createElement("div");
         row.className = "up-compact-q-row";
-        const cIdx = Number(q.correctIndex || 0);
-        const correctText = (q.options && q.options[cIdx]) ? q.options[cIdx] : "";
-        const warnHtml = missingOpts
-          ? `<span class="up-q-warn-pill">Thiếu đáp án</span>`
-          : (missingExp ? `<span class="up-q-warn-pill">Thiếu giải thích</span>` : "");
+        const hasValidAns = window.NovaQuizParser.hasValidCorrectIndex(q);
+        const cIdx = hasValidAns ? Number(q.correctIndex) : -1;
+        const correctText = (hasValidAns && q.options && q.options[cIdx]) ? q.options[cIdx] : "";
+        const rawMissing4Opts = !q || !Array.isArray(q.options) || q.options.filter(o => String(o || "").trim()).length < 4;
+        let warnHtml = "";
+        if (!hasValidAns) {
+          warnHtml = `<span class="up-q-warn-pill danger">Chưa xác định ĐA</span>`;
+        } else if (rawMissing4Opts) {
+          warnHtml = `<span class="up-q-warn-pill">Thiếu 4 lựa chọn</span>`;
+        } else if (q.answerSource === "style_emphasis") {
+          warnHtml = `<span class="up-q-warn-pill info">Từ in đậm/màu</span>`;
+        } else if (missingExp) {
+          warnHtml = `<span class="up-q-warn-pill">Thiếu giải thích</span>`;
+        }
+
+        const ansBadgeHtml = hasValidAns
+          ? `<span class="up-q-row-ans" title="Đáp án đúng: ${letters[cIdx]}. ${escapeHtml(correctText)}">✓ ${letters[cIdx]}. ${escapeHtml(correctText)}</span>`
+          : `<span class="up-q-row-ans unverified" title="Câu này chưa đọc được đáp án từ file gốc — bấm Sửa để chọn đáp án đúng">✕ Cần chọn ĐA đúng</span>`;
 
         row.innerHTML = `
           <div class="up-q-row-left">
@@ -3999,9 +4094,7 @@
           </div>
           <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
             ${warnHtml}
-            <span class="up-q-row-ans" title="Đáp án đúng: ${letters[cIdx]}. ${escapeHtml(correctText)}">
-              ✓ ${letters[cIdx]}. ${escapeHtml(correctText)}
-            </span>
+            ${ansBadgeHtml}
             <button type="button" class="btn-q-mini" data-expand-q="${qIdx}">${canEdit ? "Sửa" : "Xem"}</button>
             ${canEdit ? `<button type="button" class="btn-q-mini danger" data-del-q="${qIdx}" title="Xóa câu này">Xóa</button>` : ""}
           </div>
@@ -4117,6 +4210,8 @@
           btn.addEventListener("click", () => {
             const [, oStr] = btn.dataset.setCorrect.split(":");
             q.correctIndex = Number(oStr);
+            q.answerUnverified = false;
+            q.answerSource = "manual";
             triggerAutoSave(true, true);
             renderUploaderQuestionBank(mod);
           });
@@ -4388,434 +4483,9 @@
   // PARSER FOR IMPORTING EXISTING QUIZ QUESTION BANKS (TEXT / WORD / EXCEL / JSON)
   // =========================================================================
   function parseImportedQuizTextOrTables(rawText, tables) {
-    const parsedQuestions = [];
-
-    // 1. Try JSON format first
-    const trimmed = (rawText || "").trim();
-    if (trimmed.startsWith("[") || trimmed.startsWith("{")) {
-      try {
-        const obj = JSON.parse(trimmed);
-        const arr = Array.isArray(obj) ? obj : (obj.questions || []);
-        arr.forEach((item, idx) => {
-          if (item && item.question && Array.isArray(item.options)) {
-            parsedQuestions.push({
-              id: item.id || `imp-json-${Date.now()}-${idx}`,
-              category: item.category || "kien_thuc",
-              categoryLabel: item.categoryLabel || getCategoryLabel(item.category || "kien_thuc"),
-              question: String(item.question).trim(),
-              options: item.options.slice(0, 4).map(o => String(o).trim()),
-              correctIndex: Number(item.correctIndex || 0),
-              explanation: String(item.explanation || "").trim()
-            });
-          }
-        });
-        if (parsedQuestions.length > 0) return parsedQuestions;
-      } catch (e) {}
-    }
-
-    // Helper: parse answer letter/number OR full option text -> 0..3 (returns -1 if unresolved)
-    function parseAnswerLetterToIdx(ansRaw, optionTexts = []) {
-      const sRaw = String(ansRaw || "").trim();
-      if (!sRaw) return -1;
-      const s = sRaw.toUpperCase();
-
-      // 1. Leading letter ("A", "B.", "C)", "*D*", "A - ...")
-      const leadMatch = s.match(/^\s*\**([A-D])\**\s*(?:[.:)\-]|$)/);
-      if (leadMatch) return leadMatch[1].charCodeAt(0) - 65;
-
-      // 2. Explicit prefixed answer ("Đáp án: B", "Phương án C", "Câu D", "Đ/A: A")
-      const prefMatch = s.match(/(?:ĐÁP\s*ÁN|PHƯƠNG\s*ÁN|LỰA\s*CHỌN|CÂU|Đ\/A|ĐA|KẾT\s*QUẢ|KQ|CORRECT|ANSWER|KEY)(?:\s+(?:ĐÚNG|CHUẨN))?\s*[:\-=.]?\s*\**([A-D])\b/);
-      if (prefMatch) return prefMatch[1].charCodeAt(0) - 65;
-
-      // 3. Standalone letter A-D anywhere ("(A)", "Chọn B", "B")
-      const wordMatch = s.match(/\b([A-D])\b/);
-      if (wordMatch) return wordMatch[1].charCodeAt(0) - 65;
-
-      // 4. Numeric index ("1".."4" or "Phương án 2")
-      const numMatch = s.match(/^(?:PHƯƠNG\s*ÁN|LỰA\s*CHỌN|CÂU|SỐ)?\s*([1-4])$/);
-      if (numMatch) return Number(numMatch[1]) - 1;
-
-      // 5. Full text matching against the 4 options (never grab random A-D letters inside Vietnamese words)
-      if (Array.isArray(optionTexts) && optionTexts.length > 0) {
-        const norm = v => String(v || "").toLowerCase().replace(/^[-*•]?\s*[a-d][.:)\-]\s*/i, "").replace(/\s+/g, " ").trim();
-        const ansNorm = norm(sRaw);
-        if (ansNorm.length >= 4) {
-          const exactIdx = optionTexts.findIndex(o => norm(o) === ansNorm);
-          if (exactIdx !== -1) return exactIdx;
-          const partialIdx = optionTexts.findIndex(o => {
-            const on = norm(o);
-            return on.length >= 6 && (on.includes(ansNorm) || ansNorm.includes(on));
-          });
-          if (partialIdx !== -1) return partialIdx;
-        }
-      }
-      return -1;
-    }
-
-    // Extract Answer Key ONLY from dedicated key sections, compact key lines, or [STT | A-D] table rows
-    const answerKeyMap = {};
-    const textLinesForKey = String(rawText || "").split(/\r?\n/);
-    let inDedicatedKeySection = false;
-    textLinesForKey.forEach(rawL => {
-      const l = rawL.trim();
-      if (!l) return;
-      if (/^(?:BẢNG\s+ĐÁP\s+ÁN|ĐÁP\s*ÁN\s+THAM\s+KHẢO|PHẦN\s+ĐÁP\s+ÁN|ĐÁP\s*ÁN\s+CHI\s+TIẾT)/i.test(l)) {
-        inDedicatedKeySection = true;
-        return;
-      }
-      const pairs = Array.from(l.matchAll(/\b(\d{1,3})\s*[.:\-)]\s*([A-D])\b/gi));
-      const isCompactKeyLine = pairs.length >= 2 && l.length <= pairs.length * 14 + 20;
-      const isSingleKeyPairLine = /^\s*(?:Câu\s*)?(\d{1,3})\s*[.:\-)]\s*([A-D])\s*$/i.test(l);
-      if (inDedicatedKeySection || isCompactKeyLine || isSingleKeyPairLine) {
-        pairs.forEach(m => {
-          const qNum = Number(m[1]);
-          if (qNum >= 1 && qNum <= 200) {
-            answerKeyMap[qNum] = m[2].toUpperCase().charCodeAt(0) - 65;
-          }
-        });
-      }
+    return window.NovaQuizParser.parseImportedQuizTextOrTables(rawText, tables, {
+      getCategoryLabel
     });
-    if (Array.isArray(tables)) {
-      tables.forEach(t => {
-        (t.rows || []).forEach(r => {
-          if (!Array.isArray(r) || r.length < 2) return;
-          const nonEmpty = r.map(c => String(c || "").trim()).filter(Boolean);
-          if (nonEmpty.length === 2 && /^(?:Câu\s*)?(\d{1,3})[.:)]?$/i.test(nonEmpty[0]) && /^([A-D])$/i.test(nonEmpty[1])) {
-            const qNum = Number(nonEmpty[0].replace(/\D+/g, ""));
-            if (qNum >= 1 && qNum <= 200) answerKeyMap[qNum] = nonEmpty[1].toUpperCase().charCodeAt(0) - 65;
-          }
-        });
-      });
-    }
-
-    // 2. Try Excel/Table rows if tables are provided
-    const extraTableTextBlocks = [];
-    if (Array.isArray(tables) && tables.length > 0) {
-      tables.forEach(tbl => {
-        const rows = tbl.rows || [];
-        if (rows.length === 0) return;
-
-        // Detect column indices from header row if present (check first 15 rows, must have >= 2 non-empty cells)
-        let colQ = -1;
-        let colA = -1;
-        let colB = -1;
-        let colC = -1;
-        let colD = -1;
-        let colAns = -1;
-        let colExp = -1;
-        let colCat = -1;
-        let headerRowIdx = -1;
-
-        for (let r = 0; r < Math.min(rows.length, 15); r++) {
-          const rCols = (rows[r] || []).map(c => String(c || "").trim().toLowerCase());
-          const nonEmptyH = rCols.filter(Boolean);
-          if (nonEmptyH.length < 2) continue;
-          const joined = rCols.join(" | ");
-          if (/câu\s*hỏi|nội\s*dung|question|phương\s*án\s*a|đáp\s*án\s*a|lựa\s*chọn\s*a|đáp\s*án\s*đúng/i.test(joined)) {
-            let tmpQ = -1, tmpA = -1, tmpB = -1, tmpC = -1, tmpD = -1, tmpAns = -1, tmpExp = -1, tmpCat = -1;
-            rCols.forEach((h, idx) => {
-              if (!h) return;
-              // Match option columns A, B, C, D FIRST so "Đáp án A" is never swallowed by "Đáp án" (colAns)
-              if (tmpA === -1 && (/^(?:phương\s*án|đáp\s*án|lựa\s*chọn|pa|câu)?\s*a(?:\s*\(.*\))?$/i.test(h) || /^a[.:)\-\s]/i.test(h))) tmpA = idx;
-              else if (tmpB === -1 && (/^(?:phương\s*án|đáp\s*án|lựa\s*chọn|pa|câu)?\s*b(?:\s*\(.*\))?$/i.test(h) || /^b[.:)\-\s]/i.test(h))) tmpB = idx;
-              else if (tmpC === -1 && (/^(?:phương\s*án|đáp\s*án|lựa\s*chọn|pa|câu)?\s*c(?:\s*\(.*\))?$/i.test(h) || /^c[.:)\-\s]/i.test(h))) tmpC = idx;
-              else if (tmpD === -1 && (/^(?:phương\s*án|đáp\s*án|lựa\s*chọn|pa|câu)?\s*d(?:\s*\(.*\))?$/i.test(h) || /^d[.:)\-\s]/i.test(h))) tmpD = idx;
-              else if (tmpAns === -1 && (/^(?:đáp\s*án|đ\/a|đa|kết\s*quả|correct|answer|key)(?:\s|$|\(|:|–|-)/i.test(h) || /đáp\s*án\s*(?:đúng|chuẩn)|phương\s*án\s*đúng|lựa\s*chọn\s*đúng/i.test(h))) tmpAns = idx;
-              else if (tmpExp === -1 && /giải\s*thích|gợi\s*ý|explanation|ghi\s*chú|hướng\s*dẫn/i.test(h)) tmpExp = idx;
-              else if (tmpQ === -1 && /câu\s*hỏi|nội\s*dung|question|đề\s*bài/i.test(h)) tmpQ = idx;
-              else if (tmpCat === -1 && /nhóm|chủ\s*đề|category|phân\s*loại|mức\s*độ|bài\s*học/i.test(h)) tmpCat = idx;
-            });
-            if (tmpQ !== -1 || (tmpA !== -1 && tmpB !== -1)) {
-              headerRowIdx = r;
-              colA = tmpA;
-              colB = tmpB;
-              colC = tmpC;
-              colD = tmpD;
-              colAns = tmpAns;
-              colExp = tmpExp;
-              colCat = tmpCat;
-              colQ = tmpQ !== -1 ? tmpQ : (tmpA > 0 ? tmpA - 1 : 0);
-              break;
-            }
-          }
-        }
-
-        rows.forEach((row, rIdx) => {
-          if (rIdx <= headerRowIdx) return;
-          const cols = row.map(c => String(c || "").trim());
-          const nonEmptyCols = cols.filter(Boolean);
-          if (nonEmptyCols.length === 0) return;
-
-          // Skip repeated header rows inside multi-table sheets
-          if (/^(?:stt|câu\s*hỏi|mã\s*câu)$/i.test(nonEmptyCols[0]) && nonEmptyCols.some(c => /câu\s*hỏi|phương\s*án|đáp\s*án/i.test(c))) {
-            return;
-          }
-
-          // Helper to push vertical/stacked Excel rows (e.g. ["A", "Phương án A"] -> "A. Phương án A", ["Đáp án", "B"] -> "Đáp án: B")
-          const pushRowToTextBlocks = () => {
-            if (nonEmptyCols.length === 2 && /^[A-D]$/i.test(nonEmptyCols[0])) {
-              extraTableTextBlocks.push(`${nonEmptyCols[0].toUpperCase()}. ${nonEmptyCols[1]}`);
-            } else if (nonEmptyCols.length === 2 && /^(?:đáp\s*án(?:\s*đúng)?|đ\/a|đa|kết\s*quả|kq)$/i.test(nonEmptyCols[0])) {
-              extraTableTextBlocks.push(`Đáp án: ${nonEmptyCols[1]}`);
-            } else if (nonEmptyCols.length >= 2 && /^(?:câu(?:\s*hỏi)?\s*\d+|\d+)$/i.test(nonEmptyCols[0])) {
-              extraTableTextBlocks.push(`Câu ${nonEmptyCols[0].replace(/\D+/g, "") || (parsedQuestions.length + 1)}: ${nonEmptyCols.slice(1).join("\n")}`);
-            } else {
-              extraTableTextBlocks.push(nonEmptyCols.join("\n"));
-            }
-          };
-
-          if (nonEmptyCols.length <= 3 && colA === -1) {
-            pushRowToTextBlocks();
-            return;
-          }
-
-          let qText = "";
-          let optA = "";
-          let optB = "";
-          let optC = "";
-          let optD = "";
-          let ansRaw = "";
-          let expText = "";
-
-          if (colQ !== -1 && colA !== -1 && colB !== -1) {
-            qText = cols[colQ] || "";
-            optA = cols[colA] || "";
-            optB = cols[colB] || "";
-            optC = colC !== -1 ? (cols[colC] || "") : "";
-            optD = colD !== -1 ? (cols[colD] || "") : "";
-            ansRaw = colAns !== -1 ? (cols[colAns] || "") : "";
-            expText = colExp !== -1 ? (cols[colExp] || "") : "";
-          } else {
-            // Smart positional detection on nonEmptyCols / cols:
-            // Find the question column (first column after STT/short metadata that has length >= 8)
-            let qCol = 0;
-            if (/^(?:câu\s*)?\d+[.:)]?$/i.test(cols[0]) && cols.length >= 4) {
-              qCol = 1;
-              while (qCol + 4 < cols.length && cols[qCol].length < 28 && cols[qCol + 1].length > cols[qCol].length + 10) {
-                qCol++;
-              }
-            }
-            qText = cols[qCol] || "";
-            optA = cols[qCol + 1] || "";
-            optB = cols[qCol + 2] || "";
-            optC = cols[qCol + 3] || "";
-            optD = cols[qCol + 4] || "";
-            ansRaw = cols[qCol + 5] || "";
-            expText = cols[qCol + 6] || "";
-          }
-
-          // Case where all 4 options A, B, C, D are inside a single cell (optA or qText)
-          if (qText && optA && (!optC || /^[A-D]$/i.test(optB)) && /\bA[.:)]\s+/i.test(optA) && /\bB[.:)]\s+/i.test(optA)) {
-            if (/^[A-D]$/i.test(optB) && !ansRaw) ansRaw = optB;
-            if (optC && !expText) expText = optC;
-            const splitOpts = optA
-              .replace(/(?:\r?\n|\s+)(?=(?:\*?\s*[A-D][.:)]\s+))/g, "\n")
-              .split(/\n+/)
-              .map(s => s.trim())
-              .filter(Boolean);
-            optA = splitOpts[0] || "";
-            optB = splitOpts[1] || "";
-            optC = splitOpts[2] || "";
-            optD = splitOpts[3] || "";
-          }
-
-          // Strip leading "A. ", "B. " from table option cells if present
-          const cleanOpt = (s, letter) => {
-            const re = new RegExp(`^[-*•]?\\s*\\**${letter}[.:)\\-]\\**\\s*`, "i");
-            return String(s || "").replace(re, "").trim();
-          };
-
-          // If qText itself contains multiline question + options inside a single cell, push to text block parser
-          if (qText && !optA && !optB && /\bA[.:)]\s+/i.test(qText)) {
-            pushRowToTextBlocks();
-            return;
-          }
-
-          if (qText.length >= 4 && optA && optB) {
-            const qIndexNum = parsedQuestions.length + 1;
-            const rawOpts = [optA, optB, optC || "Phương án C", optD || "Phương án D"];
-            let markedOptIdx = -1;
-            const finalOpts = rawOpts.map((o, idx) => {
-              let txt = cleanOpt(o, String.fromCharCode(65 + idx));
-              if (/\(Đáp án đúng\)|\(Đúng\)|^\*|\*$/i.test(txt)) {
-                if (markedOptIdx === -1) markedOptIdx = idx;
-                txt = txt.replace(/\(Đáp án đúng\)|\(Đúng\)|^\*+|\*+$/gi, "").trim();
-              }
-              return txt || `Phương án ${String.fromCharCode(65 + idx)}`;
-            });
-
-            const parsedFromAnsCol = ansRaw ? parseAnswerLetterToIdx(ansRaw, finalOpts) : -1;
-            let cIdx = parsedFromAnsCol !== -1
-              ? parsedFromAnsCol
-              : (markedOptIdx !== -1
-                ? markedOptIdx
-                : (answerKeyMap[qIndexNum] !== undefined ? answerKeyMap[qIndexNum] : 0));
-
-            parsedQuestions.push({
-              id: `imp-tbl-${Date.now()}-${qIndexNum}`,
-              category: "kien_thuc",
-              categoryLabel: "1. Cấu trúc chương trình",
-              question: qText.replace(/^(?:Câu(?:\s+hỏi)?\s*\d+|Q\d+|\d+)[.:)\-]\s*/i, "").trim() || qText,
-              options: finalOpts,
-              correctIndex: cIdx,
-              explanation: expText || "Theo bộ câu hỏi đào tạo chuẩn."
-            });
-          } else if (nonEmptyCols.length > 0) {
-            pushRowToTextBlocks();
-          }
-        });
-      });
-      if (parsedQuestions.length > 0) return parsedQuestions;
-    }
-
-    // 3. Parse free-form Word / Markdown / Text blocks ("Câu 1: ... A. ... B. ... C. ... D. ... Đáp án: ...")
-    const fullTextToParse = [rawText || "", ...extraTableTextBlocks].join("\n");
-
-    // Pre-split lines that contain multiple options on the same line (e.g. "A. ... B. ... C. ... D. ...")
-    const rawLines = fullTextToParse.split(/\r?\n/);
-    const lines = [];
-    rawLines.forEach(rawLine => {
-      let l = rawLine.replace(/\t+/g, "  ").trim();
-      if (!l || /^===\s*SHEET:/i.test(l)) return;
-      // Split inline options like "   B. " or " B. " or " | B. " when preceded by whitespace or pipe
-      l = l
-        .replace(/(?:\s+|\s*\|\s*)(?=(?:\*?\s*[A-D][.:)]\s+\S))/g, "\n")
-        .replace(/([?:])(?:\s+)(?=(?:\*?\s*A[.:)\-]\s+\S))/g, "$1\n");
-      l.split(/\r?\n/).forEach(sub => {
-        const s = sub.trim();
-        if (s) lines.push(s);
-      });
-    });
-
-    let curQ = null;
-    let curQNumber = 0;
-
-    function pushCurQ() {
-      if (curQ && curQ.question && curQ.options.filter(Boolean).length >= 2) {
-        const compactOpts = [];
-        for (let i = 0; i < 4; i++) {
-          if (curQ.options[i]) compactOpts.push(curQ.options[i]);
-        }
-        while (compactOpts.length < 4) {
-          compactOpts.push(`Phương án ${String.fromCharCode(65 + compactOpts.length)}`);
-        }
-        curQ.options = compactOpts.slice(0, 4);
-        if (curQ.emphOptionCount >= 3 && !curQ.hasExplicitAnsLine) {
-          curQ.hasExplicitAnswer = false;
-          curQ.correctIndex = 0;
-        }
-        if (!curQ.hasExplicitAnswer && curQNumber > 0 && answerKeyMap[curQNumber] !== undefined) {
-          curQ.correctIndex = answerKeyMap[curQNumber];
-        }
-        delete curQ.hasExplicitAnswer;
-        delete curQ.hasExplicitAnsLine;
-        delete curQ.emphOptionCount;
-        parsedQuestions.push(curQ);
-      }
-      curQ = null;
-    }
-
-    lines.forEach(line => {
-      // Stop if we hit a standalone "BẢNG ĐÁP ÁN" / "ĐÁP ÁN" section header at the end
-      if (/^(?:BẢNG\s+ĐÁP\s+ÁN|ĐÁP\s+ÁN\s+THAM\s+KHẢO|PHẦN\s+ĐÁP\s+ÁN)$/i.test(line)) {
-        pushCurQ();
-        return;
-      }
-
-      const qMatch = line.match(/^(?:#+\s*)?\**(?:Câu(?:\s+hỏi|\s+số)?\s*(\d+)|Question\s*(\d+)|Q(\d+)|(\d{1,3}))\**\s*[.:)\-/]\s*(.+)$/i);
-      const qHeaderOnlyMatch = !qMatch && line.match(/^(?:#+\s*)?\**(?:Câu(?:\s+hỏi|\s+số)?\s*(\d+)|Question\s*(\d+))\**\s*[.:)\-]?$/i);
-      const optMatch = line.match(/^[-*•]?\s*(\*)?\s*\**\[?([A-D])\]?[.:)\-]\**\s*(.+)$/i);
-      const ansMatch = line.match(/^(?:👉\s*|✓\s*)?\**(?:Đáp\s*án(?:\s*đúng)?|Đ\/A|ĐA|Kết\s*quả|KQ|Correct|Answer)\**\s*[:\-=.]\s*\**(?:Câu\s*|Phương\s*án\s*)?([A-D])\**/i);
-      const expMatch = line.match(/^(?:💡\s*)?\**(?:Giải\s*thích|Ý\s*nghĩa|Gợi\s*ý(?:\s*tư\s*vấn)?|Hướng\s*dẫn)\**\s*[:\-]\s*(.+)$/i);
-
-      if (qMatch && (!curQ || curQ.options.filter(Boolean).length >= 2 || /^(?:Câu|Question|Q)/i.test(line))) {
-        pushCurQ();
-        curQNumber = Number(qMatch[1] || qMatch[2] || qMatch[3] || qMatch[4] || (parsedQuestions.length + 1));
-        curQ = {
-          id: `imp-txt-${Date.now()}-${parsedQuestions.length + 1}`,
-          category: "kien_thuc",
-          categoryLabel: "1. Cấu trúc chương trình",
-          question: qMatch[5].trim(),
-          options: [],
-          correctIndex: 0,
-          hasExplicitAnswer: false,
-          explanation: ""
-        };
-      } else if (qHeaderOnlyMatch && (!curQ || curQ.options.filter(Boolean).length >= 2)) {
-        pushCurQ();
-        curQNumber = Number(qHeaderOnlyMatch[1] || qHeaderOnlyMatch[2] || (parsedQuestions.length + 1));
-        curQ = {
-          id: `imp-txt-${Date.now()}-${parsedQuestions.length + 1}`,
-          category: "kien_thuc",
-          categoryLabel: "1. Cấu trúc chương trình",
-          question: "",
-          options: [],
-          correctIndex: 0,
-          hasExplicitAnswer: false,
-          explanation: ""
-        };
-      } else if (optMatch) {
-        if (!curQ) {
-          curQNumber = parsedQuestions.length + 1;
-          curQ = {
-            id: `imp-txt-${Date.now()}-${curQNumber}`,
-            category: "kien_thuc",
-            categoryLabel: "1. Cấu trúc chương trình",
-            question: `Câu hỏi ${curQNumber}`,
-            options: [],
-            correctIndex: 0,
-            hasExplicitAnswer: false,
-            explanation: ""
-          };
-        }
-        const hasStarPrefix = Boolean(optMatch[1]);
-        const letter = optMatch[2].toUpperCase();
-        const idx = letter.charCodeAt(0) - 65;
-        let optContent = optMatch[3].trim();
-        if (hasStarPrefix || /\(Đáp án đúng\)|\(Đúng\)|✓|\*$/i.test(optContent)) {
-          curQ.correctIndex = idx;
-          curQ.hasExplicitAnswer = true;
-          curQ.emphOptionCount = (curQ.emphOptionCount || 0) + 1;
-          optContent = optContent.replace(/\(Đáp án đúng\)|\(Đúng\)|✓|\*+$/gi, "").trim();
-        }
-        curQ.options[idx] = optContent;
-      } else if (ansMatch && curQ) {
-        const letter = ansMatch[1].toUpperCase();
-        curQ.correctIndex = Math.max(0, Math.min(3, letter.charCodeAt(0) - 65));
-        curQ.hasExplicitAnswer = true;
-        curQ.hasExplicitAnsLine = true;
-      } else if (expMatch && curQ) {
-        curQ.explanation = expMatch[1].trim();
-      } else if (curQ && curQ.question && (/\?$|:$/.test(curQ.question) || curQ.options.length > 0) && curQ.options.filter(Boolean).length < 4) {
-        // Handle Word auto-numbered options where "A.", "B.", "C.", "D." were list bullets stripped from <w:t>
-        const nextOptIdx = curQ.options.filter(Boolean).length;
-        let optContent = line.trim();
-        if (/\(Đáp án đúng\)|\(Đúng\)|✓|\*$/i.test(optContent)) {
-          curQ.correctIndex = nextOptIdx;
-          curQ.hasExplicitAnswer = true;
-          optContent = optContent.replace(/\(Đáp án đúng\)|\(Đúng\)|✓|\*+$/gi, "").trim();
-        }
-        curQ.options[nextOptIdx] = optContent;
-      } else if (curQ && curQ.options.filter(Boolean).length === 0) {
-        curQ.question = (curQ.question ? curQ.question + "\n" : "") + line;
-      } else if (!curQ && line.length > 10 && !/^(?:ĐÁP\s*ÁN|BÀI\s*KIỂM\s*TRA|ĐỀ\s*THI)/i.test(line)) {
-        // Unnumbered question line before A. B. C. D.
-        curQNumber = parsedQuestions.length + 1;
-        curQ = {
-          id: `imp-txt-${Date.now()}-${curQNumber}`,
-          category: "kien_thuc",
-          categoryLabel: "1. Cấu trúc chương trình",
-          question: line,
-          options: [],
-          correctIndex: 0,
-          hasExplicitAnswer: false,
-          explanation: ""
-        };
-      }
-    });
-    pushCurQ();
-
-    return parsedQuestions;
   }
 
   // =========================================================================
@@ -5886,9 +5556,10 @@
     });
   }
 
-  async function parseDocxOrXlsxInBrowser(file) {
+  async function parseDocxOrXlsxInBrowser(file, options = {}) {
     const fname = (file.name || "").toLowerCase();
     const parser = new DOMParser();
+    const preserveStyleMarkers = Boolean(options.preserveStyleMarkers);
 
     if (fname.endsWith(".docx")) {
       if (!window.JSZip) return null;
@@ -5948,9 +5619,8 @@
           for (let i = 0; i < tNodes.length; i++) pText += tNodes[i].textContent || "";
         }
         const trimmed = pText.trim();
-        const isWholeOptionEmphasized = hasStrongHighlight || (totalNonSpaceChars > 6 && emphBodyChars >= totalNonSpaceChars * 0.65);
-        if (isWholeOptionEmphasized && /^[-*•]?\s*[A-D][.:)\-]\s+/i.test(trimmed) && !/\(Đáp án đúng\)|\(Đúng\)/i.test(trimmed)) {
-          return trimmed + " (Đáp án đúng)";
+        if (preserveStyleMarkers && window.NovaQuizParser.shouldMarkDocxParagraphCorrect({ totalNonSpaceChars, emphBodyChars, hasStrongHighlight, trimmed })) {
+          return trimmed + " " + window.NovaQuizParser.STYLE_EMPH_TOKEN;
         }
         return trimmed;
       }
@@ -6108,8 +5778,32 @@
     return null;
   }
 
-  async function extractFileContentViaBackendOrFallback(file) {
+  async function extractFileContentViaBackendOrFallback(file, options = {}) {
     const fname = (file.name || "").toLowerCase();
+
+    // 1. Primary client-side parser for .docx, .xlsx, .xls, .ods so localhost and static hosts match 100%
+    //    and preserve .docx formatting/table column accuracy when needed.
+    try {
+      if (fname.endsWith(".docx") || fname.endsWith(".xlsx") || fname.endsWith(".xls") || fname.endsWith(".ods")) {
+        const parsed = await parseDocxOrXlsxInBrowser(file, options);
+        if (parsed && (parsed.text || (parsed.tables && parsed.tables.length > 0))) {
+          return parsed;
+        }
+      }
+    } catch (e) {}
+
+    // 2. Client-side reader for text/csv/md/json
+    if (fname.endsWith(".txt") || fname.endsWith(".md") || fname.endsWith(".csv") || fname.endsWith(".json")) {
+      const txt = await file.text();
+      const tables = [];
+      if (fname.endsWith(".csv")) {
+        const rows = txt.split(/\r?\n/).filter(Boolean).map(line => line.split(",").map(c => c.replace(/^"|"$/g, "").trim()));
+        if (rows.length > 0) tables.push({ sheet: file.name, rows });
+      }
+      return { text: txt, tables };
+    }
+
+    // 3. Backend fallback if browser libraries are unavailable
     try {
       const b64 = await readFileAsBase64(file);
       const res = await fetch("/api/extract-file", {
@@ -6125,26 +5819,6 @@
       }
     } catch (e) {}
 
-    // Client-side parser for .docx, .xlsx, .xls, .ods (works on both Node server & static hosts like GitHub Pages)
-    try {
-      if (fname.endsWith(".docx") || fname.endsWith(".xlsx") || fname.endsWith(".xls") || fname.endsWith(".ods")) {
-        const parsed = await parseDocxOrXlsxInBrowser(file);
-        if (parsed && (parsed.text || (parsed.tables && parsed.tables.length > 0))) {
-          return parsed;
-        }
-      }
-    } catch (e) {}
-
-    // Client-side fallback for text/csv/md/json
-    if (fname.endsWith(".txt") || fname.endsWith(".md") || fname.endsWith(".csv") || fname.endsWith(".json")) {
-      const txt = await file.text();
-      const tables = [];
-      if (fname.endsWith(".csv")) {
-        const rows = txt.split(/\r?\n/).filter(Boolean).map(line => line.split(",").map(c => c.replace(/^"|"$/g, "").trim()));
-        if (rows.length > 0) tables.push({ sheet: file.name, rows });
-      }
-      return { text: txt, tables };
-    }
     return { text: `[Đã tải lên file: ${file.name}]`, tables: [] };
   }
 
@@ -6243,7 +5917,7 @@
         statusEl.classList.remove("hidden");
         statusEl.textContent = `Đang đọc và trích xuất nội dung từ file "${file.name}"...`;
 
-        const extracted = await extractFileContentViaBackendOrFallback(file);
+        const extracted = await extractFileContentViaBackendOrFallback(file, { preserveStyleMarkers: false });
         mod.sourceFile = {
           name: file.name,
           type: file.name.split(".").pop().toLowerCase()
@@ -6349,6 +6023,150 @@
       });
     }
 
+    // Shared Import Preview & Answer Verification Modal
+    let pendingQuizImportContext = null;
+
+    function renderImportPreviewContents() {
+      if (!pendingQuizImportContext) return;
+      const { questions, sourceName } = pendingQuizImportContext;
+      const audit = window.NovaQuizParser.auditQuestionBank(questions, { skewMinQuestions: 4, skewRatioThreshold: 0.55 });
+      const letters = window.NovaQuizParser.ANSWER_LETTERS;
+
+      const subEl = document.getElementById("importPreviewSub");
+      if (subEl) {
+        subEl.textContent = `Nguồn: ${sourceName} · Phát hiện ${audit.total} câu hỏi trắc nghiệm`;
+      }
+
+      const sumEl = document.getElementById("importPreviewSummary");
+      if (sumEl) {
+        const distChips = letters.map((lt, idx) => `<span class="imp-stat-chip">${lt}: ${audit.distribution[idx]} câu</span>`).join("");
+        const unvChip = audit.unverifiedCount > 0
+          ? `<span class="imp-stat-chip danger">✕ Chưa rõ ĐA: ${audit.unverifiedCount} câu</span>`
+          : `<span class="imp-stat-chip good">✓ 100% câu đã có đáp án</span>`;
+        const styleChip = audit.styleEmphasisCount > 0
+          ? `<span class="imp-stat-chip warn">⚠ In đậm/Màu: ${audit.styleEmphasisCount} câu</span>`
+          : "";
+
+        let alertsHtml = "";
+        if (audit.unverifiedCount > 0 || audit.missingOptsCount > 0) {
+          const warnParts = [];
+          if (audit.unverifiedCount > 0) {
+            warnParts.push(`<strong>${audit.unverifiedCount} câu chưa xác định được đáp án đúng</strong> (${audit.unverifiedNums.map(n => "Câu " + n).join(", ")}) — Bạn có thể chọn ngay ở bảng dưới hoặc vào sửa sau; hệ thống sẽ khóa duyệt lên Học Viên cho đến khi chọn đủ.`);
+          }
+          if (audit.missingOptsCount > 0) {
+            warnParts.push(`<strong>${audit.missingOptsCount} câu thiếu đủ 4 lựa chọn A/B/C/D</strong> (${audit.missingOptsNums.map(n => "Câu " + n).join(", ")}).`);
+          }
+          alertsHtml += `<div class="imp-alert-box danger">${warnParts.join("<br>")}</div>`;
+        }
+        if (audit.skewedLetter) {
+          const pct = Math.round(audit.skewedRatio * 100);
+          alertsHtml += `<div class="imp-alert-box warn"><strong>Cảnh báo lệch tỉ lệ đáp án:</strong> Có tới <strong>${pct}%</strong> câu đang chọn đáp án <strong>${audit.skewedLetter}</strong>. Hãy rà nhanh xem file gốc có bị mất ký hiệu đáp án không.</div>`;
+        }
+        if (audit.styleEmphasisCount > 0) {
+          alertsHtml += `<div class="imp-alert-box warn"><strong>Lưu ý:</strong> ${audit.styleEmphasisCount} câu đang nhận đáp án dựa trên chữ in đậm/tô màu trong Word (${audit.styleEmphasisNums.map(n => "Câu " + n).join(", ")}). Vui lòng đối chiếu nhanh với file gốc.</div>`;
+        }
+
+        sumEl.innerHTML = `
+          <div class="imp-stat-strip">
+            <span class="imp-stat-chip">Tổng: ${audit.total} câu</span>
+            ${distChips}
+            ${unvChip}
+            ${styleChip}
+          </div>
+          ${alertsHtml}
+        `;
+      }
+
+      const listEl = document.getElementById("importPreviewList");
+      if (listEl) {
+        listEl.innerHTML = questions.map((q, idx) => {
+          const hasValid = window.NovaQuizParser.hasValidCorrectIndex(q);
+          const src = !hasValid ? "unresolved" : (q.answerSource || "manual");
+          const rowCls = !hasValid ? "is-unverified" : (src === "style_emphasis" ? "is-style" : "");
+          const srcCls = src === "unresolved" ? "unresolved" : (src === "style_emphasis" ? "style" : "");
+          const optChoicesHtml = [0, 1, 2, 3].map(oIdx => {
+            const optText = (q.options && q.options[oIdx]) ? q.options[oIdx] : `(Thiếu phương án ${letters[oIdx]})`;
+            const shortOpt = optText.length > 52 ? optText.slice(0, 52) + "..." : optText;
+            return `<option value="${oIdx}" ${hasValid && Number(q.correctIndex) === oIdx ? "selected" : ""}>${letters[oIdx]}. ${escapeHtml(shortOpt)}</option>`;
+          }).join("");
+
+          return `
+            <div class="imp-preview-row ${rowCls}">
+              <span class="qq-num-badge" style="justify-self:start;">Câu ${idx + 1}</span>
+              <div class="imp-preview-q" title="${escapeHtml(q.question || "")}">${escapeHtml(q.question || "(Trống)")}</div>
+              <div>
+                <select class="imp-preview-ans-select ${!hasValid ? "unverified" : ""}" data-preview-ans="${idx}">
+                  <option value="-1" ${!hasValid ? "selected" : ""}>-- Chưa xác định đáp án --</option>
+                  ${optChoicesHtml}
+                </select>
+              </div>
+              <span class="imp-preview-src ${srcCls}">${escapeHtml(window.NovaQuizParser.getAnswerSourceLabel(src))}</span>
+            </div>
+          `;
+        }).join("");
+
+        listEl.querySelectorAll("[data-preview-ans]").forEach(sel => {
+          sel.addEventListener("change", () => {
+            const qIdx = Number(sel.dataset.previewAns);
+            const val = Number(sel.value);
+            const q = questions[qIdx];
+            if (!q) return;
+            if (val >= 0 && val <= 3) {
+              q.correctIndex = val;
+              q.answerUnverified = false;
+              q.answerSource = "manual";
+            } else {
+              q.correctIndex = -1;
+              q.answerUnverified = true;
+              q.answerSource = "unresolved";
+            }
+            renderImportPreviewContents();
+          });
+        });
+      }
+
+      const btnConfirm = document.getElementById("btnConfirmImportPreview");
+      if (btnConfirm) {
+        btnConfirm.textContent = `✓ Xác nhận nhập (${audit.total} câu)`;
+      }
+    }
+
+    function openImportPreviewDialog(context) {
+      pendingQuizImportContext = context;
+      const chkReplace = document.getElementById("chkImportPreviewReplace");
+      if (chkReplace) chkReplace.checked = Boolean(context.replaceAll);
+      renderImportPreviewContents();
+      const dlg = document.getElementById("importPreviewDialog");
+      if (dlg) dlg.showModal();
+    }
+
+    const btnConfirmPreview = document.getElementById("btnConfirmImportPreview");
+    if (btnConfirmPreview) {
+      btnConfirmPreview.addEventListener("click", () => {
+        if (!pendingQuizImportContext) return;
+        const { mod, questions, sourceName, activityAction, activityTitle } = pendingQuizImportContext;
+        const chkReplace = document.getElementById("chkImportPreviewReplace");
+        const replaceAll = Boolean(chkReplace && chkReplace.checked);
+        if (replaceAll || !Array.isArray(mod.questions)) {
+          mod.questions = questions;
+        } else {
+          mod.questions = mod.questions.concat(questions);
+        }
+        mod._styleAnswersConfirmed = false;
+        const audit = getQuizAudit(mod.questions);
+        uploaderQuizFilter = (audit.unverifiedCount > 0 || audit.missingOptsCount > 0) ? "BAD_OPTS" : "ALL";
+        expandedUploaderQuestionIndex = audit.badNums.length > 0 ? (audit.badNums[0] - 1) : null;
+        if (activityAction) {
+          logUserActivity(activityAction, activityTitle, `${sourceName} (${questions.length} câu hỏi)`, mod.code);
+        }
+        document.getElementById("importPreviewDialog").close();
+        pendingQuizImportContext = null;
+        triggerAutoSave(true, true);
+        renderUploaderWorkspace();
+        renderSidebar();
+      });
+    }
+
     // Import Existing Quiz File (.xlsx, .docx, .csv, .json, .txt)
     const inpQuizFile = document.getElementById("inputImportQuizFile");
     if (inpQuizFile) {
@@ -6360,38 +6178,33 @@
           const ownMod = (db.modules || []).find(m => canCurrentUserEditModule(m));
           mod = ownMod || createNewModuleForCurrentUser(file.name.replace(/\.[^.]+$/, ""));
           currentModuleId = mod.id;
-        uploaderPreviewStepIndex = 0;
-        uploaderQuizFilter = "ALL";
-        uploaderQuizSearchQuery = "";
-        expandedUploaderQuestionIndex = null;
+          uploaderPreviewStepIndex = 0;
+          uploaderQuizFilter = "ALL";
+          uploaderQuizSearchQuery = "";
+          expandedUploaderQuestionIndex = null;
         }
 
-        const extracted = await extractFileContentViaBackendOrFallback(file);
-        let imported = parseImportedQuizTextOrTables(extracted.text, extracted.tables);
-        if (imported.length === 0 && extracted.text && extracted.text.trim().length > 20) {
-          // Fallback: auto-convert document/text blocks into 20 multiple-choice questions so a valid file never fails
-          imported = generateQuizFromModuleDocument({
-            id: mod.id,
-            code: mod.code,
-            title: mod.title || file.name,
-            contentText: extracted.text,
-            uploadedTables: extracted.tables || []
-          }, 20);
-        }
+        const extracted = await extractFileContentViaBackendOrFallback(file, { preserveStyleMarkers: true });
+        const imported = parseImportedQuizTextOrTables(extracted.text, extracted.tables);
         inpQuizFile.value = "";
 
         if (imported.length === 0) {
-          alert("Không tìm thấy nội dung câu hỏi trong file. Vui lòng kiểm tra lại file hoặc dùng nút 'Dán câu hỏi'.");
+          alert(
+            `Không nhận diện được câu hỏi trắc nghiệm nào trong file "${file.name}".\n\n` +
+            `• Nếu đây là file câu hỏi: vui lòng kiểm tra định dạng theo "Mẫu Excel" hoặc Word có "Câu 1: ... A. ... B. ... Đáp án: ...".\n` +
+            `• Nếu đây là tài liệu lý thuyết chưa có câu hỏi: hãy dùng nút "Tạo từ tài liệu".`
+          );
           return;
         }
 
-        if (!Array.isArray(mod.questions)) mod.questions = [];
-        mod.questions = mod.questions.concat(imported);
-        logUserActivity("import_quiz", "Tải file câu hỏi trắc nghiệm", `File: ${file.name} (${imported.length} câu hỏi)`, mod.code);
-        triggerAutoSave(true, true);
-        renderUploaderWorkspace();
-        renderSidebar();
-        alert(`✓ Đã chèn thành công ${imported.length} câu hỏi trắc nghiệm từ file "${file.name}" vào học phần ${mod.code}!`);
+        openImportPreviewDialog({
+          mod,
+          questions: imported,
+          sourceName: file.name,
+          replaceAll: false,
+          activityAction: "import_quiz",
+          activityTitle: "Tải file câu hỏi trắc nghiệm"
+        });
       });
     }
 
@@ -6417,15 +6230,15 @@
           alert("Chưa nhận diện được câu hỏi. Vui lòng kiểm tra định dạng (Câu 1: ... A. ... B. ... C. ... D. ... Đáp án: ...).");
           return;
         }
-        if (replaceAll || !Array.isArray(mod.questions)) {
-          mod.questions = imported;
-        } else {
-          mod.questions = mod.questions.concat(imported);
-        }
         document.getElementById("pasteQuizDialog").close();
-        triggerAutoSave(true, true);
-        renderUploaderQuestionBank(mod);
-        renderSidebar();
+        openImportPreviewDialog({
+          mod,
+          questions: imported,
+          sourceName: "Văn bản dán trực tiếp",
+          replaceAll,
+          activityAction: "import_quiz",
+          activityTitle: "Dán bộ câu hỏi trắc nghiệm"
+        });
       });
     }
 
@@ -6534,10 +6347,7 @@
         if (currentUser) mod.authorName = currentUser.name;
         const canPublish = canUserSelfApprove(currentUser);
         if (canPublish) {
-          if ((!Array.isArray(mod.questions) || mod.questions.length === 0) && mod.status !== "published") {
-            const ok = confirm(`Học phần "${mod.code}: ${mod.title}" hiện chưa có câu hỏi trắc nghiệm nào.\n\nBạn vẫn muốn duyệt và đẩy lên cho Học Viên xem tài liệu trước chứ?`);
-            if (!ok) return;
-          }
+          if (!confirmModulePublishAction(mod)) return;
           mod.status = "published";
           mod.approvedBy = currentUser ? currentUser.name : "Đào tạo";
           mod.approvedAt = new Date().toISOString();
@@ -7122,15 +6932,29 @@
     const btnApproveAll = document.getElementById("btnAdminApproveAllPending");
     if (btnApproveAll) {
       btnApproveAll.onclick = () => {
+        let approvedCount = 0;
+        const skippedCodes = [];
         (db.modules || []).forEach(m => {
           if (m.status === "pending") {
-            m.status = "published";
-            m.updatedAt = new Date().toISOString();
+            if (confirmModulePublishAction(m, { silent: true })) {
+              m.status = "published";
+              m.approvedBy = currentUser ? currentUser.name : "Admin";
+              m.approvedAt = new Date().toISOString();
+              m.updatedAt = new Date().toISOString();
+              approvedCount += 1;
+            } else {
+              skippedCodes.push(m.code);
+            }
           }
         });
-        logUserActivity("approve_module", "Admin duyệt tất cả học phần chờ duyệt", `${pendingCount} học phần`);
-        triggerAutoSave(true, true);
+        if (approvedCount > 0) {
+          logUserActivity("approve_module", "Admin duyệt học phần chờ duyệt", `Đã duyệt ${approvedCount} học phần`);
+          triggerAutoSave(true, true);
+        }
         renderAdminWorkspace();
+        if (skippedCodes.length > 0) {
+          alert(`Đã bỏ qua ${skippedCodes.length} học phần chưa đủ điều kiện (${skippedCodes.join(", ")}) vì còn câu hỏi chưa xác định đáp án đúng hoặc thiếu đủ 4 lựa chọn.`);
+        }
       };
     }
 
@@ -7166,7 +6990,10 @@
       btn.onclick = () => {
         const mod = (db.modules || []).find(m => m.id === btn.dataset.modApprove);
         if (!mod) return;
+        if (!confirmModulePublishAction(mod)) return;
         mod.status = "published";
+        mod.approvedBy = currentUser ? currentUser.name : "Admin";
+        mod.approvedAt = new Date().toISOString();
         mod.updatedAt = new Date().toISOString();
         logUserActivity("approve_module", "Admin duyệt xuất bản học phần", `${mod.code}: ${mod.title}`, mod.code);
         triggerAutoSave(true, true);

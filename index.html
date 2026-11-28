@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=44">
+  <link rel="stylesheet" href="styles.css?v=45">
 </head>
 <body>
   <!-- 1. AUTHENTICATION SCREEN (LOGIN PORTAL - 3 ROLES) -->
@@ -435,7 +435,7 @@
                 <div class="study-filter-pills" id="upQuizFilterPills">
                   <button type="button" class="study-filter-pill active" data-uq-filter="ALL">Tất cả (0)</button>
                   <button type="button" class="study-filter-pill" data-uq-filter="NO_EXP">Thiếu giải thích (0)</button>
-                  <button type="button" class="study-filter-pill" data-uq-filter="BAD_OPTS">Thiếu đáp án (0)</button>
+                  <button type="button" class="study-filter-pill" data-uq-filter="BAD_OPTS">Thiếu/Chưa rõ ĐA (0)</button>
                 </div>
                 <input type="text" id="inpUpQuizSearch" class="input-control" placeholder="Tìm nhanh câu hỏi..." style="width:220px;padding:6px 10px;font-size:12.5px;">
               </div>
@@ -723,6 +723,34 @@
   </dialog>
 
   <!-- ===================================================================== -->
+  <!-- DIALOG 3B: IMPORT QUIZ PREVIEW & ANSWER VERIFICATION MODAL            -->
+  <!-- ===================================================================== -->
+  <dialog id="importPreviewDialog" closedby="any" aria-labelledby="importPreviewDialogTitle">
+    <div class="dialog-inner dialog-manage" style="max-width:920px;width:96vw;">
+      <div class="dialog-header">
+        <div>
+          <h2 id="importPreviewDialogTitle">Xem trước &amp; Đối soát Đáp án trước khi Nhập</h2>
+          <p id="importPreviewSub" style="font-size:12.5px;color:var(--ink-muted);margin:2px 0 0 0;"></p>
+        </div>
+        <button type="button" class="btn-close-dialog" data-close-dialog="importPreviewDialog" aria-label="Đóng">✕</button>
+      </div>
+      <div class="import-preview-body">
+        <div id="importPreviewSummary" class="import-preview-summary"></div>
+        <div id="importPreviewList" class="import-preview-list"></div>
+      </div>
+      <div class="dialog-footer" style="justify-content:space-between;flex-wrap:wrap;gap:10px;margin-top:8px;">
+        <label style="font-size:13px;font-weight:600;color:var(--ink-secondary);display:flex;align-items:center;gap:6px;">
+          <input type="checkbox" id="chkImportPreviewReplace"> Thay thế toàn bộ câu hỏi hiện tại của học phần
+        </label>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button type="button" class="btn-secondary" id="btnCancelImportPreview" data-close-dialog="importPreviewDialog">Hủy (Không nhập)</button>
+          <button type="button" class="btn-primary" id="btnConfirmImportPreview">✓ Xác nhận nhập</button>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- ===================================================================== -->
   <!-- DIALOG 4: IMAGE LIGHTBOX FOR PIN CARD FALLBACK & BUG SCREENSHOTS      -->
   <!-- ===================================================================== -->
   <dialog id="lightboxDialog" closedby="any" aria-labelledby="lightboxTitle">
@@ -844,7 +872,8 @@
 
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <script src="data/initial_data.js?v=44"></script>
-  <script src="app.js?v=44"></script>
+  <script src="data/initial_data.js?v=45"></script>
+  <script src="quiz-parser.js?v=45"></script>
+  <script src="app.js?v=45"></script>
 </body>
 </html>
