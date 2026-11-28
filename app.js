@@ -1393,6 +1393,61 @@
   let examBroadcastChannel = null;
   let examShuffledQuestionIds = [];
   let examOptionOrders = {}; // { [questionId]: [origIdx0, origIdx1, origIdx2, origIdx3] }
+  let examEnteredFullscreen = false;
+  let examStartInnerWidth = 0;
+  let examIgnoreResizeUntil = 0;
+  let examPrivacyVeilActive = false;
+  let examCopyBlockNotice = "";
+  let examCopyNoticeTimer = null;
+
+  function isActiveSaleExamGuard() {
+    return Boolean(isExamInProgress && activeWorkspaceView === "sale" && activeSaleTab === "quiz" && !currentQuizSubmittedResult);
+  }
+
+  function tryEnterExamFullscreen() {
+    examIgnoreResizeUntil = Date.now() + 1200;
+    const el = document.documentElement;
+    const req = el && (el.requestFullscreen || el.webkitRequestFullscreen);
+    if (!req) {
+      examStartInnerWidth = window.innerWidth || 0;
+      return;
+    }
+    try {
+      Promise.resolve(req.call(el)).then(() => {
+        examEnteredFullscreen = Boolean(document.fullscreenElement || document.webkitFullscreenElement);
+        examStartInnerWidth = window.innerWidth || 0;
+        examIgnoreResizeUntil = Date.now() + 900;
+      }).catch(() => {
+        examStartInnerWidth = window.innerWidth || 0;
+      });
+    } catch (e) {
+      examStartInnerWidth = window.innerWidth || 0;
+    }
+  }
+
+  function tryExitExamFullscreen() {
+    examEnteredFullscreen = false;
+    const fsEl = document.fullscreenElement || document.webkitFullscreenElement;
+    const exitFn = document.exitFullscreen || document.webkitExitFullscreen;
+    if (fsEl && exitFn) {
+      try { Promise.resolve(exitFn.call(document)).catch(() => {}); } catch (e) {}
+    }
+  }
+
+  function showExamCopyNotice(msg) {
+    examCopyBlockNotice = msg || "Tính năng sao chép và chuột phải tạm khóa trong lúc làm bài.";
+    if (examCopyNoticeTimer) clearTimeout(examCopyNoticeTimer);
+    const noticeEl = document.getElementById("lblExamCopyNotice");
+    if (noticeEl) {
+      noticeEl.textContent = examCopyBlockNotice;
+      noticeEl.classList.remove("hidden");
+    }
+    examCopyNoticeTimer = setTimeout(() => {
+      examCopyBlockNotice = "";
+      const el = document.getElementById("lblExamCopyNotice");
+      if (el) el.classList.add("hidden");
+    }, 3200);
+  }
 
   function shuffleArray(arr) {
     const copy = arr.slice();
@@ -1439,6 +1494,9 @@
       examTimerInterval = null;
     }
     isExamInProgress = false;
+    examPrivacyVeilActive = false;
+    examCopyBlockNotice = "";
+    tryExitExamFullscreen();
   }
 
   function resetActiveQuizState() {
@@ -1453,6 +1511,7 @@
     examWarningMsg = "";
     examShuffledQuestionIds = [];
     examOptionOrders = {};
+    examStartInnerWidth = 0;
   }
 
   function formatMMSS(sec) {
@@ -1483,7 +1542,11 @@
 
     examTotalSeconds = qList.length * SECONDS_PER_QUESTION;
     examSecondsRemaining = examTotalSeconds;
+    examStartInnerWidth = window.innerWidth || 0;
+    examPrivacyVeilActive = false;
+    examCopyBlockNotice = "";
     isExamInProgress = true;
+    tryEnterExamFullscreen();
     logUserActivity("start_exam", "Bắt đầu làm bài trắc nghiệm", `${mod.code}: ${mod.title} (${qList.length} câu)`, mod.code);
 
     examTimerInterval = setInterval(() => {
@@ -1573,16 +1636,89 @@
     }
   }
 
-  // Listen for tab switching / window blur during active exam
+  // Listen for tab switching / window blur / fullscreen exit / split-screen / copy attempts during active exam
   document.addEventListener("visibilitychange", () => {
-    if (document.visibilityState === "hidden" && isExamInProgress) {
+    if (document.visibilityState === "hidden" && isActiveSaleExamGuard()) {
+      examPrivacyVeilActive = true;
       recordExamTabViolation("Chuyển sang tab trình duyệt khác khi đang làm bài");
     }
   });
 
   window.addEventListener("blur", () => {
-    if (isExamInProgress) {
-      recordExamTabViolation("Chuyển ra ngoài cửa sổ làm bài (mở ứng dụng hoặc tài liệu khác)");
+    if (isActiveSaleExamGuard()) {
+      examPrivacyVeilActive = true;
+      const shieldEl = document.getElementById("examContentShield");
+      if (shieldEl) shieldEl.classList.add("blurred");
+      recordExamTabViolation("Chuyển ra ngoài cửa sổ làm bài (mở ứng dụng hoặc trợ lý khác)");
+    }
+  });
+
+  window.addEventListener("focus", () => {
+    if (isActiveSaleExamGuard() && examPrivacyVeilActive) {
+      examPrivacyVeilActive = false;
+      const mod = getCurrentModule();
+      const learner = getEffectiveLearnerUser();
+      const prog = mod ? getOrCreateProgress(learner.id, learner.name, mod.id) : null;
+      if (mod && prog) renderSaleQuizPanel(mod, prog);
+    }
+  });
+
+  ["fullscreenchange", "webkitfullscreenchange"].forEach(evName => {
+    document.addEventListener(evName, () => {
+      if (!isActiveSaleExamGuard()) {
+        examEnteredFullscreen = false;
+        return;
+      }
+      examIgnoreResizeUntil = Date.now() + 900;
+      const isFsNow = Boolean(document.fullscreenElement || document.webkitFullscreenElement);
+      if (isFsNow) {
+        examEnteredFullscreen = true;
+        examStartInnerWidth = window.innerWidth || 0;
+        const mod = getCurrentModule();
+        const learner = getEffectiveLearnerUser();
+        const prog = mod ? getOrCreateProgress(learner.id, learner.name, mod.id) : null;
+        if (mod && prog) renderSaleQuizPanel(mod, prog);
+      } else if (examEnteredFullscreen) {
+        examEnteredFullscreen = false;
+        recordExamTabViolation("Thoát chế độ toàn màn hình trong lúc làm bài");
+      }
+    });
+  });
+
+  window.addEventListener("resize", () => {
+    if (!isActiveSaleExamGuard() || Date.now() < examIgnoreResizeUntil) return;
+    if (examStartInnerWidth > 700 && window.innerWidth > 0 && window.innerWidth < examStartInnerWidth * 0.78) {
+      recordExamTabViolation("Thu nhỏ hoặc chia đôi cửa sổ trình duyệt khi đang làm bài");
+    }
+  });
+
+  ["copy", "cut", "contextmenu", "dragstart"].forEach(evName => {
+    document.addEventListener(evName, e => {
+      if (!isActiveSaleExamGuard()) return;
+      if (e.target && e.target.closest && e.target.closest("dialog")) return;
+      e.preventDefault();
+      showExamCopyNotice("Không được sao chép nội dung hoặc dùng chuột phải trong lúc đang làm bài thi.");
+    });
+  });
+
+  document.addEventListener("selectstart", e => {
+    if (!isActiveSaleExamGuard()) return;
+    if (e.target && e.target.closest && e.target.closest("dialog")) return;
+    if (e.target && e.target.closest && e.target.closest("#salePanelQuiz")) {
+      e.preventDefault();
+    }
+  });
+
+  document.addEventListener("keydown", e => {
+    if (!isActiveSaleExamGuard()) return;
+    const insideDialog = Boolean(e.target && e.target.closest && e.target.closest("dialog"));
+    const key = String(e.key || "").toLowerCase();
+    const ctrlOrMeta = e.ctrlKey || e.metaKey;
+    const isDevtools = e.key === "F12" || (ctrlOrMeta && e.shiftKey && ["i", "j", "c"].includes(key));
+    const isCopyOrSave = ctrlOrMeta && !insideDialog && ["c", "x", "a", "p", "u", "s"].includes(key);
+    if (isDevtools || isCopyOrSave) {
+      e.preventDefault();
+      showExamCopyNotice("Phím tắt sao chép / kiểm tra đã tạm khóa trong thời gian làm bài thi.");
     }
   });
 
@@ -2832,6 +2968,7 @@
 
     // State 1: Neither started exam nor submitted yet -> Show Exam Rules & Start Button
     if (!isExamInProgress && !isSubmitted) {
+      stageContainer.classList.remove("exam-locked-copy");
       resultBanner.classList.add("hidden");
       const totalTimeStr = formatMMSS(qList.length * SECONDS_PER_QUESTION);
       const attCnt = Array.isArray(prog.attempts) ? prog.attempts.length : 0;
@@ -2850,9 +2987,9 @@
           <ul class="exam-rules-list">
             <li><strong>Mẹo nhỏ trước khi thi:</strong> Hãy tắt tạm thông báo Zalo, Facebook hoặc ứng dụng khác để tránh lỡ tay chạm nhầm làm hệ thống tính rời phòng thi.</li>
             <li><strong>Đảo đề &amp; đáp án tự động:</strong> Mỗi lượt thi, thứ tự câu hỏi và các phương án A/B/C/D đều được xáo trộn ngẫu nhiên.</li>
-            <li><strong>Khóa tài liệu khi làm bài:</strong> Ngay khi bấm bắt đầu, mục <em>Tài liệu</em> sẽ bị khóa. Nếu thoát ra mở lại tài liệu, bài đang làm sẽ bị hủy.</li>
+            <li><strong>Khóa sao chép &amp; làm mờ chống nhìn trộm:</strong> Khi đang thi, tính năng bôi đen, sao chép (Ctrl+C), chuột phải bị khóa và đề thi sẽ tự làm mờ ngay khi mất tiêu điểm.</li>
+            <li><strong>Chế độ Toàn màn hình &amp; Chống chuyển tab:</strong> Bài thi bật toàn màn hình và khóa mục <em>Tài liệu</em>. Chuyển tab, thoát toàn màn hình hoặc chia đôi cửa sổ quá ${MAX_ALLOWED_TAB_SWITCHES} lần sẽ tự động thu bài.</li>
             <li><strong>Giới hạn thời gian đếm ngược:</strong> Đồng hồ đếm ngược <strong>${totalTimeStr}</strong>. Hết giờ hệ thống sẽ tự động thu bài và chấm điểm.</li>
-            <li><strong>Chống chuyển tab / mở tài liệu khác:</strong> Hệ thống tự động phát hiện khi bạn chuyển sang tab hoặc cửa sổ khác. Mọi lần vi phạm đều báo về Admin và tự động thu bài nếu vượt quá ${MAX_ALLOWED_TAB_SWITCHES} lần.</li>
           </ul>
 
           <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
@@ -2971,59 +3108,88 @@
     }
 
     const isLastQ = activeQuizQuestionIndex === qList.length - 1;
+    const isGuardActive = isActiveSaleExamGuard() && !isSubmitted;
+    stageContainer.classList.toggle("exam-locked-copy", isGuardActive);
+
+    const isFsActive = Boolean(document.fullscreenElement || document.webkitFullscreenElement);
+    const canRequestFs = Boolean(document.documentElement && (document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen));
 
     const hudHtml = !isSubmitted ? `
       <div class="exam-hud-bar">
         <span class="exam-timer-pill ${examSecondsRemaining <= 60 ? 'urgent' : ''}" id="lblExamCountdown">
           Thời gian còn lại: ${formatMMSS(examSecondsRemaining)}
         </span>
-        <span class="exam-violation-pill ${examTabSwitchCount > 0 ? 'warn' : ''}">
-          Chuyển tab / Rời màn hình: ${examTabSwitchCount}/${MAX_ALLOWED_TAB_SWITCHES} lần
-        </span>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          ${(!isFsActive && canRequestFs) ? `<button type="button" class="btn-exam-fs" id="btnEnterExamFullscreen">⛶ Toàn màn hình</button>` : ""}
+          <span class="exam-violation-pill ${examTabSwitchCount > 0 ? 'warn' : ''}">
+            Chuyển tab / Rời màn hình: ${examTabSwitchCount}/${MAX_ALLOWED_TAB_SWITCHES} lần
+          </span>
+        </div>
       </div>
       ${examWarningMsg ? `<div class="exam-warning-toast">${escapeHtml(examWarningMsg)}</div>` : ""}
+      <div class="exam-copy-notice ${examCopyBlockNotice ? "" : "hidden"}" id="lblExamCopyNotice">${escapeHtml(examCopyBlockNotice)}</div>
+      ${examPrivacyVeilActive ? `
+        <div class="exam-privacy-banner" id="examPrivacyBanner">
+          <span><strong>Đề bài đang tạm làm mờ</strong> do cửa sổ vừa mất tiêu điểm. Bấm nút để tiếp tục.</span>
+          <button type="button" class="btn-primary" id="btnResumeExamFocus" style="padding:6px 12px;font-size:12px;">Tiếp tục làm bài</button>
+        </div>
+      ` : ""}
     ` : "";
 
     stageContainer.innerHTML = `
       ${hudHtml}
 
-      <div class="quiz-num-strip-bar">
-        <div class="quiz-num-pills">${numPillsHtml}</div>
-        <span style="font-size:12.5px;font-weight:700;color:#64748B;">
-          Đã chọn: <strong style="color:#EA580C;">${answeredCount}/${qList.length}</strong> câu
-        </span>
-      </div>
-
-      <div class="qq-head">
-        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-          <span class="qq-num-badge">Câu ${activeQuizQuestionIndex + 1} / ${qList.length}</span>
+      <div class="exam-content-shield ${(!isSubmitted && examPrivacyVeilActive) ? "blurred" : ""}" id="examContentShield">
+        <div class="quiz-num-strip-bar">
+          <div class="quiz-num-pills">${numPillsHtml}</div>
+          <span style="font-size:12.5px;font-weight:700;color:#64748B;">
+            Đã chọn: <strong style="color:#EA580C;">${answeredCount}/${qList.length}</strong> câu
+          </span>
         </div>
-        <button type="button" class="btn-inline-report-bug" id="btnReportCurrentQuestionBug">
-          Góp ý / Báo lỗi
-        </button>
-      </div>
 
-      <div class="qq-question-text">${escapeHtml(q.question)}</div>
-      <div class="qq-options-list">${optsHtml}</div>
-      ${explanationHtml}
+        <div class="qq-head">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            <span class="qq-num-badge">Câu ${activeQuizQuestionIndex + 1} / ${qList.length}</span>
+          </div>
+          <button type="button" class="btn-inline-report-bug" id="btnReportCurrentQuestionBug">
+            Góp ý / Báo lỗi
+          </button>
+        </div>
 
-      <div class="single-q-nav-bar">
-        <button type="button" class="btn-secondary" id="btnPrevQuizQ" ${activeQuizQuestionIndex === 0 ? "disabled" : ""}>
-          ◀ Câu trước
-        </button>
+        <div class="qq-question-text">${escapeHtml(q.question)}</div>
+        <div class="qq-options-list">${optsHtml}</div>
+        ${explanationHtml}
 
-        <div style="display:flex;gap:8px;align-items:center;">
-          ${!isLastQ
-            ? `<button type="button" class="${selectedIdx !== undefined && !isSubmitted ? "btn-primary" : "btn-secondary"}" id="btnNextQuizQ">Câu tiếp theo ▶</button>`
-            : ""
-          }
-          ${!isSubmitted && (isLastQ || answeredCount === qList.length)
-            ? `<button type="button" class="btn-submit-quiz" id="btnSubmitSaleQuiz">Nộp bài &amp; Chấm điểm</button>`
-            : ""
-          }
+        <div class="single-q-nav-bar">
+          <button type="button" class="btn-secondary" id="btnPrevQuizQ" ${activeQuizQuestionIndex === 0 ? "disabled" : ""}>
+            ◀ Câu trước
+          </button>
+
+          <div style="display:flex;gap:8px;align-items:center;">
+            ${!isLastQ
+              ? `<button type="button" class="${selectedIdx !== undefined && !isSubmitted ? "btn-primary" : "btn-secondary"}" id="btnNextQuizQ">Câu tiếp theo ▶</button>`
+              : ""
+            }
+            ${!isSubmitted && (isLastQ || answeredCount === qList.length)
+              ? `<button type="button" class="btn-submit-quiz" id="btnSubmitSaleQuiz">Nộp bài &amp; Chấm điểm</button>`
+              : ""
+            }
+          </div>
         </div>
       </div>
     `;
+
+    const btnEnterFs = document.getElementById("btnEnterExamFullscreen");
+    if (btnEnterFs) {
+      btnEnterFs.onclick = () => tryEnterExamFullscreen();
+    }
+    const btnResumeFocus = document.getElementById("btnResumeExamFocus");
+    if (btnResumeFocus) {
+      btnResumeFocus.onclick = () => {
+        examPrivacyVeilActive = false;
+        renderSaleQuizPanel(mod, prog);
+      };
+    }
 
     const btnRepQ = document.getElementById("btnReportCurrentQuestionBug");
     if (btnRepQ) {

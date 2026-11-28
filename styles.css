@@ -4276,6 +4276,66 @@ dialog::backdrop {
   line-height: 1.45;
 }
 
+.single-quiz-stage.exam-locked-copy,
+.single-quiz-stage.exam-locked-copy *:not(input):not(textarea) {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.exam-copy-notice {
+  background: #FFFBEB;
+  border: 1px solid #F59E0B;
+  color: #92400E;
+  padding: 8px 12px;
+  border-radius: 9px;
+  font-size: 12.5px;
+  font-weight: 700;
+}
+
+.exam-privacy-banner {
+  background: #EFF6FF;
+  border: 1.5px solid #3B82F6;
+  color: #1E3A8A;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.exam-content-shield {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  transition: filter 0.12s ease, opacity 0.12s ease;
+}
+
+.exam-content-shield.blurred {
+  filter: blur(11px);
+  opacity: 0.2;
+  pointer-events: none;
+  user-select: none;
+}
+
+.btn-exam-fs {
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  color: #FFFFFF;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn-exam-fs:hover {
+  background: rgba(255, 255, 255, 0.28);
+}
+
 .sale-mode-tab.locked-tab {
   opacity: 0.6;
   background: #F1F5F9;
