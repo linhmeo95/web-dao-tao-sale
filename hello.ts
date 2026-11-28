@@ -98,12 +98,41 @@ export default {
         );
       }
 
-      // 2. App State Sync (Lakebase Postgres)
+      // 2. App State Sync (Lakebase Postgres) with incremental ?since= and ?role= filtering
       if (pathname === "/state") {
         if (request.method === "GET") {
-          const { rows } = await pool.query(
-            "SELECT id, payload, updated_at FROM public.novastars_app_state WHERE id LIKE 'sale_training__%' ORDER BY updated_at DESC"
-          );
+          const sinceParam = url.searchParams.get("since") || "";
+          const roleParam = (url.searchParams.get("role") || "").toLowerCase();
+          const uidParam = url.searchParams.get("uid") || "";
+          const parsedSince = sinceParam ? Date.parse(sinceParam) : NaN;
+          const hasValidSince = Boolean(sinceParam && !Number.isNaN(parsedSince));
+
+          const conditions: string[] = ["id LIKE 'sale_training__%'"];
+          const params: string[] = [];
+
+          if (hasValidSince) {
+            params.push(new Date(parsedSince).toISOString());
+            conditions.push(`updated_at > $${params.length}::timestamptz`);
+          }
+
+          if (roleParam === "sale") {
+            if (uidParam) {
+              params.push(`sale_training__prog__%__${uidParam}`);
+              const progPatternParam = `$${params.length}`;
+              params.push(`sale_training__presence__${uidParam}`);
+              const presParam = `$${params.length}`;
+              conditions.push(
+                `(id = 'sale_training__config' OR id = 'sale_training__bug_reports' OR id LIKE ${progPatternParam} OR id = ${presParam})`
+              );
+            } else {
+              conditions.push(
+                `(id = 'sale_training__config' OR id = 'sale_training__bug_reports' OR id LIKE 'sale_training__prog__%')`
+              );
+            }
+          }
+
+          const sql = `SELECT id, payload, updated_at FROM public.novastars_app_state WHERE ${conditions.join(" AND ")} ORDER BY updated_at DESC`;
+          const { rows } = await pool.query(sql, params);
           return new Response(JSON.stringify(rows), {
             status: 200,
             headers: corsHeaders(request),
@@ -117,11 +146,11 @@ export default {
             if (!item || !item.id) continue;
             await pool.query(
               `INSERT INTO public.novastars_app_state (id, payload, updated_at)
-               VALUES ($1, $2::jsonb, COALESCE($3::timestamptz, now()))
+               VALUES ($1, $2::jsonb, now())
                ON CONFLICT (id) DO UPDATE SET
                  payload = EXCLUDED.payload,
-                 updated_at = EXCLUDED.updated_at`,
-              [item.id, JSON.stringify(item.payload ?? {}), item.updated_at || new Date().toISOString()]
+                 updated_at = now()`,
+              [item.id, JSON.stringify(item.payload ?? {})]
             );
           }
           return new Response(JSON.stringify({ ok: true, upserted: items.length }), {
@@ -177,6 +206,25 @@ export default {
           }),
           { status: 201, headers: corsHeaders(request) }
         );
+      }
+
+      if (pathname === "/storage/view" && request.method === "GET") {
+        const key = url.searchParams.get("key") || "";
+        if (!key.startsWith("training-docs/")) {
+          return new Response(JSON.stringify({ ok: false, error: "Invalid storage key" }), {
+            status: 400,
+            headers: corsHeaders(request),
+          });
+        }
+        const presignedUrl = await files.url(key, { expiresIn: 3600 });
+        return new Response(null, {
+          status: 302,
+          headers: {
+            ...corsHeaders(request),
+            Location: presignedUrl,
+            "Cache-Control": "private, max-age=1800",
+          },
+        });
       }
 
       if (pathname === "/storage/files" && request.method === "GET") {

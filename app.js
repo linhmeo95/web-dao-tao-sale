@@ -532,8 +532,24 @@
   }
 
   // =========================================================================
-  // NEON LAKEBASE POSTGRES & FUNCTIONS CLOUD SYNC
+  // NEON LAKEBASE POSTGRES & FUNCTIONS CLOUD SYNC (DELTA + BANDWIDTH GUARD)
   // =========================================================================
+  let lastCloudSyncUpdatedAt = "";
+  let lastCloudFetchAt = 0;
+  let dirtyActivityLog = false;
+  let dirtyBugReports = false;
+  let lastPresenceSentAt = 0;
+  let lastPresenceSentText = "";
+
+  function buildNeonStateQuery() {
+    const params = new URLSearchParams();
+    if (lastCloudSyncUpdatedAt) params.set("since", lastCloudSyncUpdatedAt);
+    if (currentUser && currentUser.role) params.set("role", currentUser.role);
+    if (currentUser && currentUser.id) params.set("uid", currentUser.id);
+    const qs = params.toString();
+    return qs ? `?${qs}` : "";
+  }
+
   async function fetchNeonStateRows() {
     try {
       const localRes = await fetch("/api/state", { cache: "no-store" });
@@ -543,7 +559,8 @@
       }
     } catch (e) {}
     try {
-      const fnRes = await fetch(`${NEON_FUNCTION_URL}/state`, { cache: "no-store" });
+      const qs = buildNeonStateQuery();
+      const fnRes = await fetch(`${NEON_FUNCTION_URL}/state${qs}`, { cache: "no-store" });
       if (fnRes.ok) {
         const rows = await fnRes.json();
         if (Array.isArray(rows)) return rows;
@@ -554,8 +571,23 @@
 
   async function fetchCloudDb(forceRender = false) {
     try {
+      lastCloudFetchAt = Date.now();
       const rows = await fetchNeonStateRows();
-      if (!Array.isArray(rows) || rows.length === 0) return false;
+      if (!Array.isArray(rows)) return false;
+      if (rows.length === 0) return true;
+
+      let maxRowUpdatedMs = lastCloudSyncUpdatedAt ? (Date.parse(lastCloudSyncUpdatedAt) || 0) : 0;
+      let maxRowUpdatedIso = lastCloudSyncUpdatedAt || "";
+      rows.forEach(row => {
+        if (row && row.updated_at) {
+          const ms = Date.parse(row.updated_at) || 0;
+          if (ms > maxRowUpdatedMs) {
+            maxRowUpdatedMs = ms;
+            maxRowUpdatedIso = row.updated_at;
+          }
+        }
+      });
+      if (maxRowUpdatedIso) lastCloudSyncUpdatedAt = maxRowUpdatedIso;
 
       let cloudConfig = null;
       const cloudProgress = [];
@@ -778,16 +810,28 @@
     if (!currentUser) return;
     if (!db.presence || typeof db.presence !== "object") db.presence = {};
     const mod = getCurrentModule();
+    const nextStatus = customStatus || computeCurrentPresenceStatus();
+    const nowMs = Date.now();
+    const minSameStatusMs = (currentUser.role === "sale" && !isExamInProgress) ? 90000 : 30000;
+    if (!customStatus && nextStatus === lastPresenceSentText && (nowMs - lastPresenceSentAt) < minSameStatusMs) {
+      return;
+    }
+    if (!customStatus && (nowMs - lastPresenceSentAt) < 10000) {
+      return;
+    }
+
     const record = {
       userId: currentUser.id,
       userName: currentUser.name,
       role: currentUser.role,
-      statusText: customStatus || computeCurrentPresenceStatus(),
+      statusText: nextStatus,
       moduleId: mod ? mod.id : "",
       moduleCode: mod ? mod.code : "",
-      lastSeenAt: new Date().toISOString()
+      lastSeenAt: new Date(nowMs).toISOString()
     };
     db.presence[currentUser.id] = record;
+    lastPresenceSentAt = nowMs;
+    lastPresenceSentText = nextStatus;
     localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
     saveRowsToSupabase([
       {
@@ -816,6 +860,7 @@
     if (db.activityLogs.length > 150) {
       db.activityLogs = db.activityLogs.slice(0, 150);
     }
+    dirtyActivityLog = true;
     sendPresenceHeartbeat(`${actionLabel}${moduleCode ? " (" + moduleCode + ")" : ""}`);
     triggerAutoSave(true, false);
   }
@@ -844,6 +889,9 @@
     if (saveTimer) clearTimeout(saveTimer);
     saveTimer = setTimeout(async () => {
       const rows = [];
+      let pushedActivity = false;
+      let pushedBugs = false;
+
       if (saveConfig) {
         rows.push({
           id: ROW_CONFIG_ID,
@@ -856,7 +904,8 @@
         });
       }
 
-      if (Array.isArray(db.activityLogs) && db.activityLogs.length > 0) {
+      if (dirtyActivityLog && Array.isArray(db.activityLogs) && db.activityLogs.length > 0) {
+        pushedActivity = true;
         rows.push({
           id: ROW_ACTIVITY_ID,
           payload: { items: db.activityLogs.slice(0, 150) },
@@ -864,7 +913,8 @@
         });
       }
 
-      if (Array.isArray(db.bugReports) && (db.bugReports.length > 0 || (db.meta && db.meta.bugsModified))) {
+      if (dirtyBugReports && Array.isArray(db.bugReports)) {
+        pushedBugs = true;
         rows.push({
           id: ROW_BUGS_ID,
           payload: { items: db.bugReports },
@@ -902,6 +952,10 @@
       if (rows.length > 0) {
         const uniqueRows = Array.from(new Map(rows.map(r => [r.id, r])).values());
         cloudSaved = await saveRowsToSupabase(uniqueRows);
+        if (cloudSaved) {
+          if (pushedActivity) dirtyActivityLog = false;
+          if (pushedBugs) dirtyBugReports = false;
+        }
       }
 
       try {
@@ -1027,7 +1081,9 @@
         const ownMod = (db.modules || []).find(m => canCurrentUserEditModule(m));
         if (ownMod) currentModuleId = ownMod.id;
         localStorage.setItem(SESSION_KEY, JSON.stringify(currentUser));
+        lastCloudSyncUpdatedAt = "";
         logUserActivity("login", "Đăng nhập hệ thống", "Vai trò: Đào tạo");
+        fetchCloudDb(true);
         renderAll();
       });
     }
@@ -1047,7 +1103,9 @@
         impersonatedSaleUser = null;
         activeWorkspaceView = "admin";
         localStorage.setItem(SESSION_KEY, JSON.stringify(currentUser));
+        lastCloudSyncUpdatedAt = "";
         logUserActivity("login", "Đăng nhập hệ thống", "Vai trò: Admin");
+        fetchCloudDb(true);
         renderAll();
       });
     }
@@ -1059,6 +1117,9 @@
         currentUser = null;
         impersonatedSaleUser = null;
         activeWorkspaceView = "sale";
+        lastCloudSyncUpdatedAt = "";
+        lastPresenceSentAt = 0;
+        lastPresenceSentText = "";
         ["authSalePin", "authUploaderPin", "authAdminPin"].forEach(id => {
           const el = document.getElementById(id);
           if (el) el.value = "";
@@ -7644,6 +7705,7 @@
         bug.updatedAt = new Date().toISOString();
         if (!db.meta) db.meta = {};
         db.meta.bugsModified = true;
+        dirtyBugReports = true;
         triggerAutoSave(true, false);
         renderTopBar();
         renderBugReportsPanelInto(containerId);
@@ -7660,6 +7722,7 @@
           db.bugReports = (db.bugReports || []).filter(item => item.id !== bug.id);
           if (!db.meta) db.meta = {};
           db.meta.bugsModified = true;
+          dirtyBugReports = true;
           triggerAutoSave(true, false);
           renderTopBar();
           renderBugReportsPanelInto(containerId);
@@ -7873,14 +7936,62 @@
       } catch (err) {}
     });
 
+    async function uploadBugScreenshotToCloud(dataUrl, meta = {}) {
+      if (!dataUrl || !dataUrl.startsWith("data:image/")) return dataUrl || "";
+      try {
+        const m = dataUrl.match(/^data:([^;]+);base64,(.+)$/);
+        if (!m) return dataUrl;
+        const contentType = m[1] || "image/jpeg";
+        const contentBase64 = m[2];
+        const ext = contentType.includes("png") ? "png" : "jpg";
+        const res = await fetch(`${NEON_FUNCTION_URL}/storage/upload`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            filename: `bug-${Date.now()}.${ext}`,
+            contentBase64,
+            contentType,
+            moduleId: meta.moduleId || "general",
+            uploadedBy: currentUser ? currentUser.name : "Ẩn danh"
+          })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.ok && data.key) {
+            return `${NEON_FUNCTION_URL}/storage/view?key=${encodeURIComponent(data.key)}`;
+          }
+        }
+      } catch (e) {}
+      return dataUrl;
+    }
+
     const form = document.getElementById("formBugReport");
     if (form) {
-      form.addEventListener("submit", e => {
+      form.addEventListener("submit", async e => {
         e.preventDefault();
         const targetContext = document.getElementById("bugTargetContext").value.trim() || "Báo lỗi chung";
         const category = document.getElementById("bugCategorySelect").value;
         const description = document.getElementById("bugDescriptionInput").value.trim();
         if (!description) return;
+
+        const submitBtn = document.getElementById("btnSubmitBugReport");
+        const origSubmitText = submitBtn ? submitBtn.textContent : "";
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.textContent = "Đang gửi báo lỗi...";
+        }
+
+        let screenshotUrlOrData = pendingBugImageDataUrl || "";
+        try {
+          if (screenshotUrlOrData.startsWith("data:image/")) {
+            screenshotUrlOrData = await uploadBugScreenshotToCloud(screenshotUrlOrData, pendingBugContextMeta);
+          }
+        } finally {
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = origSubmitText;
+          }
+        }
 
         if (!Array.isArray(db.bugReports)) db.bugReports = [];
         const newBug = {
@@ -7891,7 +8002,7 @@
           targetContext,
           category,
           description,
-          screenshotDataUrl: pendingBugImageDataUrl || "",
+          screenshotDataUrl: screenshotUrlOrData,
           moduleId: pendingBugContextMeta.moduleId || "",
           moduleCode: pendingBugContextMeta.moduleCode || "",
           moduleTitle: pendingBugContextMeta.moduleTitle || "",
@@ -7907,6 +8018,7 @@
         db.bugReports.unshift(newBug);
         if (!db.meta) db.meta = {};
         db.meta.bugsModified = true;
+        dirtyBugReports = true;
         logUserActivity("report_bug", "Gửi báo lỗi / phản hồi", `${targetContext}: ${description}`, newBug.moduleCode);
         triggerAutoSave(true, false);
         switchBugModalTab("list");
@@ -7996,19 +8108,23 @@
   renderAll();
   fetchServerDb();
 
-  // Periodic real-time presence heartbeat & cloud sync every 15s when tab is visible
+  // Periodic delta cloud sync every 60s when tab is visible (reduces Neon egress >95%)
   setInterval(() => {
     if (document.visibilityState === "visible" && currentUser) {
-      sendPresenceHeartbeat();
+      if (currentUser.role !== "sale" || isExamInProgress) {
+        sendPresenceHeartbeat();
+      }
       fetchCloudDb(false);
     }
-  }, 15000);
+  }, 60000);
 
-  // Auto-refresh cloud state when tab becomes visible
+  // Auto-refresh delta cloud state when tab becomes visible (throttled >= 15s)
   document.addEventListener("visibilitychange", () => {
-    if (document.visibilityState === "visible") {
-      sendPresenceHeartbeat();
-      fetchCloudDb(false);
+    if (document.visibilityState === "visible" && currentUser) {
+      if (Date.now() - lastCloudFetchAt >= 15000) {
+        sendPresenceHeartbeat();
+        fetchCloudDb(false);
+      }
     }
   });
 })();
