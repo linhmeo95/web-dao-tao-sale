@@ -4413,32 +4413,79 @@
       } catch (e) {}
     }
 
-    // Helper: parse answer letter/number -> 0..3
-    function parseAnswerLetterToIdx(ansRaw) {
-      const s = String(ansRaw || "").toUpperCase().trim();
-      if (!s) return 0;
-      const m = s.match(/\b([A-D])\b/) || s.match(/([A-D])/);
-      if (m) return m[1].charCodeAt(0) - 65;
-      if (s === "2") return 1;
-      if (s === "3") return 2;
-      if (s === "4") return 3;
-      return 0;
+    // Helper: parse answer letter/number OR full option text -> 0..3 (returns -1 if unresolved)
+    function parseAnswerLetterToIdx(ansRaw, optionTexts = []) {
+      const sRaw = String(ansRaw || "").trim();
+      if (!sRaw) return -1;
+      const s = sRaw.toUpperCase();
+
+      // 1. Leading letter ("A", "B.", "C)", "*D*", "A - ...")
+      const leadMatch = s.match(/^\s*\**([A-D])\**\s*(?:[.:)\-]|$)/);
+      if (leadMatch) return leadMatch[1].charCodeAt(0) - 65;
+
+      // 2. Explicit prefixed answer ("Đáp án: B", "Phương án C", "Câu D", "Đ/A: A")
+      const prefMatch = s.match(/(?:ĐÁP\s*ÁN|PHƯƠNG\s*ÁN|LỰA\s*CHỌN|CÂU|Đ\/A|ĐA|KẾT\s*QUẢ|KQ|CORRECT|ANSWER|KEY)(?:\s+(?:ĐÚNG|CHUẨN))?\s*[:\-=.]?\s*\**([A-D])\b/);
+      if (prefMatch) return prefMatch[1].charCodeAt(0) - 65;
+
+      // 3. Standalone letter A-D anywhere ("(A)", "Chọn B", "B")
+      const wordMatch = s.match(/\b([A-D])\b/);
+      if (wordMatch) return wordMatch[1].charCodeAt(0) - 65;
+
+      // 4. Numeric index ("1".."4" or "Phương án 2")
+      const numMatch = s.match(/^(?:PHƯƠNG\s*ÁN|LỰA\s*CHỌN|CÂU|SỐ)?\s*([1-4])$/);
+      if (numMatch) return Number(numMatch[1]) - 1;
+
+      // 5. Full text matching against the 4 options (never grab random A-D letters inside Vietnamese words)
+      if (Array.isArray(optionTexts) && optionTexts.length > 0) {
+        const norm = v => String(v || "").toLowerCase().replace(/^[-*•]?\s*[a-d][.:)\-]\s*/i, "").replace(/\s+/g, " ").trim();
+        const ansNorm = norm(sRaw);
+        if (ansNorm.length >= 4) {
+          const exactIdx = optionTexts.findIndex(o => norm(o) === ansNorm);
+          if (exactIdx !== -1) return exactIdx;
+          const partialIdx = optionTexts.findIndex(o => {
+            const on = norm(o);
+            return on.length >= 6 && (on.includes(ansNorm) || ansNorm.includes(on));
+          });
+          if (partialIdx !== -1) return partialIdx;
+        }
+      }
+      return -1;
     }
 
-    // Extract any Answer Key table or footer map (e.g. "1.A 2.B 3.C ... 20.D" or "1-A, 2-B...")
+    // Extract Answer Key ONLY from dedicated key sections, compact key lines, or [STT | A-D] table rows
     const answerKeyMap = {};
-    const combinedRawForKey = [
-      rawText || "",
-      ...(Array.isArray(tables) ? tables.map(t => (t.rows || []).map(r => r.join(" ")).join("\n")) : [])
-    ].join("\n");
-    const keyPairRegex = /\b(\d{1,3})\s*[.:\-)\s]\s*([A-D])\b/gi;
-    let kpMatch;
-    while ((kpMatch = keyPairRegex.exec(combinedRawForKey)) !== null) {
-      const qNum = Number(kpMatch[1]);
-      const ansChar = kpMatch[2].toUpperCase();
-      if (qNum >= 1 && qNum <= 200) {
-        answerKeyMap[qNum] = ansChar.charCodeAt(0) - 65;
+    const textLinesForKey = String(rawText || "").split(/\r?\n/);
+    let inDedicatedKeySection = false;
+    textLinesForKey.forEach(rawL => {
+      const l = rawL.trim();
+      if (!l) return;
+      if (/^(?:BẢNG\s+ĐÁP\s+ÁN|ĐÁP\s*ÁN\s+THAM\s+KHẢO|PHẦN\s+ĐÁP\s+ÁN|ĐÁP\s*ÁN\s+CHI\s+TIẾT)/i.test(l)) {
+        inDedicatedKeySection = true;
+        return;
       }
+      const pairs = Array.from(l.matchAll(/\b(\d{1,3})\s*[.:\-)]\s*([A-D])\b/gi));
+      const isCompactKeyLine = pairs.length >= 2 && l.length <= pairs.length * 14 + 20;
+      const isSingleKeyPairLine = /^\s*(?:Câu\s*)?(\d{1,3})\s*[.:\-)]\s*([A-D])\s*$/i.test(l);
+      if (inDedicatedKeySection || isCompactKeyLine || isSingleKeyPairLine) {
+        pairs.forEach(m => {
+          const qNum = Number(m[1]);
+          if (qNum >= 1 && qNum <= 200) {
+            answerKeyMap[qNum] = m[2].toUpperCase().charCodeAt(0) - 65;
+          }
+        });
+      }
+    });
+    if (Array.isArray(tables)) {
+      tables.forEach(t => {
+        (t.rows || []).forEach(r => {
+          if (!Array.isArray(r) || r.length < 2) return;
+          const nonEmpty = r.map(c => String(c || "").trim()).filter(Boolean);
+          if (nonEmpty.length === 2 && /^(?:Câu\s*)?(\d{1,3})[.:)]?$/i.test(nonEmpty[0]) && /^([A-D])$/i.test(nonEmpty[1])) {
+            const qNum = Number(nonEmpty[0].replace(/\D+/g, ""));
+            if (qNum >= 1 && qNum <= 200) answerKeyMap[qNum] = nonEmpty[1].toUpperCase().charCodeAt(0) - 65;
+          }
+        });
+      });
     }
 
     // 2. Try Excel/Table rows if tables are provided
@@ -4464,7 +4511,7 @@
           const nonEmptyH = rCols.filter(Boolean);
           if (nonEmptyH.length < 2) continue;
           const joined = rCols.join(" | ");
-          if (/câu\s*hỏi|nội\s*dung|question|phương\s*án\s*a|đáp\s*án\s*a/i.test(joined)) {
+          if (/câu\s*hỏi|nội\s*dung|question|phương\s*án\s*a|đáp\s*án\s*a|lựa\s*chọn\s*a|đáp\s*án\s*đúng/i.test(joined)) {
             let tmpQ = -1, tmpA = -1, tmpB = -1, tmpC = -1, tmpD = -1, tmpAns = -1, tmpExp = -1, tmpCat = -1;
             rCols.forEach((h, idx) => {
               if (!h) return;
@@ -4473,7 +4520,7 @@
               else if (tmpB === -1 && (/^(?:phương\s*án|đáp\s*án|lựa\s*chọn|pa|câu)?\s*b(?:\s*\(.*\))?$/i.test(h) || /^b[.:)\-\s]/i.test(h))) tmpB = idx;
               else if (tmpC === -1 && (/^(?:phương\s*án|đáp\s*án|lựa\s*chọn|pa|câu)?\s*c(?:\s*\(.*\))?$/i.test(h) || /^c[.:)\-\s]/i.test(h))) tmpC = idx;
               else if (tmpD === -1 && (/^(?:phương\s*án|đáp\s*án|lựa\s*chọn|pa|câu)?\s*d(?:\s*\(.*\))?$/i.test(h) || /^d[.:)\-\s]/i.test(h))) tmpD = idx;
-              else if (tmpAns === -1 && /đáp\s*án\s*đúng|đáp\s*án\s*chuẩn|^đáp\s*án$|kết\s*quả|correct|answer|^đ\/a$|^đa$/i.test(h)) tmpAns = idx;
+              else if (tmpAns === -1 && (/^(?:đáp\s*án|đ\/a|đa|kết\s*quả|correct|answer|key)(?:\s|$|\(|:|–|-)/i.test(h) || /đáp\s*án\s*(?:đúng|chuẩn)|phương\s*án\s*đúng|lựa\s*chọn\s*đúng/i.test(h))) tmpAns = idx;
               else if (tmpExp === -1 && /giải\s*thích|gợi\s*ý|explanation|ghi\s*chú|hướng\s*dẫn/i.test(h)) tmpExp = idx;
               else if (tmpQ === -1 && /câu\s*hỏi|nội\s*dung|question|đề\s*bài/i.test(h)) tmpQ = idx;
               else if (tmpCat === -1 && /nhóm|chủ\s*đề|category|phân\s*loại|mức\s*độ|bài\s*học/i.test(h)) tmpCat = idx;
@@ -4586,19 +4633,23 @@
 
           if (qText.length >= 4 && optA && optB) {
             const qIndexNum = parsedQuestions.length + 1;
-            let cIdx = ansRaw
-              ? parseAnswerLetterToIdx(ansRaw)
-              : (answerKeyMap[qIndexNum] !== undefined ? answerKeyMap[qIndexNum] : 0);
-
             const rawOpts = [optA, optB, optC || "Phương án C", optD || "Phương án D"];
+            let markedOptIdx = -1;
             const finalOpts = rawOpts.map((o, idx) => {
               let txt = cleanOpt(o, String.fromCharCode(65 + idx));
               if (/\(Đáp án đúng\)|\(Đúng\)|^\*|\*$/i.test(txt)) {
-                cIdx = idx;
+                if (markedOptIdx === -1) markedOptIdx = idx;
                 txt = txt.replace(/\(Đáp án đúng\)|\(Đúng\)|^\*+|\*+$/gi, "").trim();
               }
               return txt || `Phương án ${String.fromCharCode(65 + idx)}`;
             });
+
+            const parsedFromAnsCol = ansRaw ? parseAnswerLetterToIdx(ansRaw, finalOpts) : -1;
+            let cIdx = parsedFromAnsCol !== -1
+              ? parsedFromAnsCol
+              : (markedOptIdx !== -1
+                ? markedOptIdx
+                : (answerKeyMap[qIndexNum] !== undefined ? answerKeyMap[qIndexNum] : 0));
 
             parsedQuestions.push({
               id: `imp-tbl-${Date.now()}-${qIndexNum}`,
@@ -4649,10 +4700,16 @@
           compactOpts.push(`Phương án ${String.fromCharCode(65 + compactOpts.length)}`);
         }
         curQ.options = compactOpts.slice(0, 4);
+        if (curQ.emphOptionCount >= 3 && !curQ.hasExplicitAnsLine) {
+          curQ.hasExplicitAnswer = false;
+          curQ.correctIndex = 0;
+        }
         if (!curQ.hasExplicitAnswer && curQNumber > 0 && answerKeyMap[curQNumber] !== undefined) {
           curQ.correctIndex = answerKeyMap[curQNumber];
         }
         delete curQ.hasExplicitAnswer;
+        delete curQ.hasExplicitAnsLine;
+        delete curQ.emphOptionCount;
         parsedQuestions.push(curQ);
       }
       curQ = null;
@@ -4718,6 +4775,7 @@
         if (hasStarPrefix || /\(Đáp án đúng\)|\(Đúng\)|✓|\*$/i.test(optContent)) {
           curQ.correctIndex = idx;
           curQ.hasExplicitAnswer = true;
+          curQ.emphOptionCount = (curQ.emphOptionCount || 0) + 1;
           optContent = optContent.replace(/\(Đáp án đúng\)|\(Đúng\)|✓|\*+$/gi, "").trim();
         }
         curQ.options[idx] = optContent;
@@ -4725,6 +4783,7 @@
         const letter = ansMatch[1].toUpperCase();
         curQ.correctIndex = Math.max(0, Math.min(3, letter.charCodeAt(0) - 65));
         curQ.hasExplicitAnswer = true;
+        curQ.hasExplicitAnsLine = true;
       } else if (expMatch && curQ) {
         curQ.explanation = expMatch[1].trim();
       } else if (curQ && curQ.question && (/\?$|:$/.test(curQ.question) || curQ.options.length > 0) && curQ.options.filter(Boolean).length < 4) {
@@ -5843,13 +5902,26 @@
 
       function extractParagraphTextWithMarkers(pNode) {
         let pText = "";
-        let hasEmph = false;
+        let totalNonSpaceChars = 0;
+        let emphBodyChars = 0;
+        let hasStrongHighlight = false;
         const rNodes = pNode.getElementsByTagName("w:r");
         if (rNodes.length > 0) {
           for (let r = 0; r < rNodes.length; r++) {
             const rNode = rNodes[r];
+            let runText = "";
+            Array.from(rNode.childNodes).forEach(ch => {
+              const cLocal = ch.nodeName.replace(/^.*:/, "");
+              if (cLocal === "t") runText += ch.textContent || "";
+              else if (cLocal === "br" || cLocal === "cr") runText += "\n";
+              else if (cLocal === "tab") runText += "  ";
+            });
+            pText += runText;
+            const nonSpaceLen = runText.replace(/\s+/g, "").length;
+            totalNonSpaceChars += nonSpaceLen;
+
             const rPr = rNode.getElementsByTagName("w:rPr")[0];
-            if (rPr) {
+            if (rPr && nonSpaceLen > 0) {
               const bEl = rPr.getElementsByTagName("w:b")[0];
               const uEl = rPr.getElementsByTagName("w:u")[0];
               const hlEl = rPr.getElementsByTagName("w:highlight")[0];
@@ -5857,28 +5929,27 @@
               const bVal = bEl ? (bEl.getAttribute("w:val") || "true") : "";
               const uVal = uEl ? (uEl.getAttribute("w:val") || "single") : "";
               const colVal = colEl ? (colEl.getAttribute("w:val") || "").toUpperCase() : "";
-              if (
-                (bEl && bVal !== "0" && bVal !== "false") ||
-                (uEl && uVal !== "none" && uVal !== "0" && uVal !== "false") ||
-                hlEl ||
-                (colVal && colVal !== "000000" && colVal !== "AUTO")
-              ) {
-                hasEmph = true;
+              const isBold = Boolean(bEl && bVal !== "0" && bVal !== "false");
+              const isUnder = Boolean(uEl && uVal !== "none" && uVal !== "0" && uVal !== "false");
+              const isColored = Boolean(colVal && colVal !== "000000" && colVal !== "AUTO");
+              if (hlEl || isColored || isUnder) {
+                hasStrongHighlight = true;
+                emphBodyChars += nonSpaceLen;
+              } else if (isBold) {
+                // Ignore pure prefix bolding like "A." or "B." (< 4 chars); count bold body text
+                if (!/^\s*[-*•]?\s*[A-D][.:)\-]?\s*$/i.test(runText)) {
+                  emphBodyChars += nonSpaceLen;
+                }
               }
             }
-            Array.from(rNode.childNodes).forEach(ch => {
-              const cLocal = ch.nodeName.replace(/^.*:/, "");
-              if (cLocal === "t") pText += ch.textContent || "";
-              else if (cLocal === "br" || cLocal === "cr") pText += "\n";
-              else if (cLocal === "tab") pText += "  ";
-            });
           }
         } else {
           const tNodes = pNode.getElementsByTagName("w:t");
           for (let i = 0; i < tNodes.length; i++) pText += tNodes[i].textContent || "";
         }
         const trimmed = pText.trim();
-        if (hasEmph && /^[-*•]?\s*[A-D][.:)\-]\s+/i.test(trimmed) && !/\(Đáp án đúng\)|\(Đúng\)/i.test(trimmed)) {
+        const isWholeOptionEmphasized = hasStrongHighlight || (totalNonSpaceChars > 6 && emphBodyChars >= totalNonSpaceChars * 0.65);
+        if (isWholeOptionEmphasized && /^[-*•]?\s*[A-D][.:)\-]\s+/i.test(trimmed) && !/\(Đáp án đúng\)|\(Đúng\)/i.test(trimmed)) {
           return trimmed + " (Đáp án đúng)";
         }
         return trimmed;
