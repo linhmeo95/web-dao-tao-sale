@@ -227,6 +227,31 @@ export default {
         });
       }
 
+      if (pathname === "/storage/delete" && request.method === "POST") {
+        const body = (await request.json().catch(() => ({}))) as { key?: string; url?: string };
+        let key = String(body.key || "").trim();
+        if (!key && body.url) {
+          try {
+            const parsedUrl = new URL(String(body.url));
+            key = parsedUrl.searchParams.get("key") || "";
+          } catch (e) {}
+        }
+        if (!key.startsWith("training-docs/")) {
+          return new Response(JSON.stringify({ ok: false, error: "Invalid storage key" }), {
+            status: 400,
+            headers: corsHeaders(request),
+          });
+        }
+        try {
+          await files.delete(key);
+        } catch (delErr) {}
+        await pool.query("DELETE FROM public.uploaded_files WHERE storage_key = $1", [key]);
+        return new Response(JSON.stringify({ ok: true, deletedKey: key }), {
+          status: 200,
+          headers: corsHeaders(request),
+        });
+      }
+
       if (pathname === "/storage/files" && request.method === "GET") {
         const { rows } = await pool.query(
           "SELECT * FROM public.uploaded_files ORDER BY created_at DESC LIMIT 50"

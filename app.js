@@ -7550,6 +7550,36 @@
     }
   }
 
+  function deleteCloudBugImage(urlOrKey) {
+    const raw = String(urlOrKey || "").trim();
+    if (!raw || raw.startsWith("data:")) return;
+    let key = "";
+    if (raw.startsWith("training-docs/")) {
+      key = raw;
+    } else {
+      try {
+        const parsed = new URL(raw, window.location.origin);
+        key = parsed.searchParams.get("key") || "";
+      } catch (e) {}
+    }
+    if (!key.startsWith("training-docs/")) return;
+    fetch(`${NEON_FUNCTION_URL}/storage/delete`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ key }),
+      keepalive: true
+    }).catch(() => {});
+  }
+
+  function stripResolvedBugScreenshot(bug) {
+    if (!bug) return;
+    if (bug.screenshotDataUrl) {
+      deleteCloudBugImage(bug.screenshotDataUrl);
+      bug.screenshotDataUrl = "";
+      bug.screenshotCleanedAfterResolve = true;
+    }
+  }
+
   function renderBugReportsPanelInto(containerId) {
     const container = document.getElementById(containerId);
     if (!container) return;
@@ -7593,7 +7623,11 @@
                 <div>
                   <img src="${escapeHtml(b.screenshotDataUrl)}" alt="Ảnh chụp màn hình báo lỗi" class="bug-thumb-img" data-zoom-bug-img="${escapeHtml(b.id)}" title="Bấm vào ảnh để phóng to">
                 </div>
-              ` : ""}
+              ` : (b.screenshotCleanedAfterResolve ? `
+                <div style="font-size:12px;color:#64748B;font-style:italic;">
+                  Ảnh minh họa đã được tự động xóa sau khi xử lý xong để tiết kiệm dung lượng.
+                </div>
+              ` : "")}
 
               ${isResolved && b.resolvedBy ? `
                 <div style="font-size:12px;color:#065F46;background:#ECFDF5;padding:7px 10px;border-radius:7px;">
@@ -7700,6 +7734,7 @@
           bug.status = "resolved";
           bug.resolvedBy = currentUser ? currentUser.name : "Admin";
           bug.resolvedAt = new Date().toISOString();
+          stripResolvedBugScreenshot(bug);
           logUserActivity("resolve_bug", "Đánh dấu đã xử lý báo lỗi", bug.targetContext || "");
         }
         bug.updatedAt = new Date().toISOString();
@@ -7719,6 +7754,7 @@
         const bug = (db.bugReports || []).find(item => item.id === btn.dataset.bugDelete);
         if (!bug) return;
         if (confirm("Xóa báo lỗi này?")) {
+          deleteCloudBugImage(bug.screenshotDataUrl);
           db.bugReports = (db.bugReports || []).filter(item => item.id !== bug.id);
           if (!db.meta) db.meta = {};
           db.meta.bugsModified = true;
